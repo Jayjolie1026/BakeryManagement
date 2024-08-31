@@ -6,40 +6,33 @@ name: Build and Deploy
 on:
   push:
     branches:
-      
-main
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    
-name: Checkout code
-    uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    
-name: Set up Node.js
-    uses: actions/setup-node@v3
-    with:
-      node-version: '14'
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
 
-    
-name: Install dependencies
-    run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    
-name: Run tests
-    run: npm test
+      - name: Run tests
+        run: npm test
 
-    
-name: Build
-    run: npm run build
+      - name: Build
+        run: npm run build
 
-    
-name: Deploy to Azure
-    uses: azure/webapps-deploy@v2
-    with:
-      app-name: 'BakeryManagement'
-      publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-      package: .
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'your-app-service-name'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
