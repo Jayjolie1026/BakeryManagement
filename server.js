@@ -1,11 +1,17 @@
 const express = require('express');
-const sql = require('mssql');
-require('dotenv').config();
-
+const path = require('path');
 const app = express();
-const port = 3000;
 
-app.use(express.json()); // Middleware to parse JSON bodies
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// For single-page apps, serve index.html for all routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+
 
 const dbConfig = {
     user: 'BakeryAdmin',
@@ -1080,8 +1086,4 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 });
 
 
-
-
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
