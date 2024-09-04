@@ -4,12 +4,11 @@
 - Employee = Om
 - Login/Create Acc/Homepage = Ploy
 
-Header: Flour & Fantasy Bakery
-Title: Where Every Slice is a Story
+Script:
 
-
-Bread pic for homepage:
-bread image : https://th.bing.com/th/id/R.b9c30d4c7ca647ecc0bcb65500b6ff7b?rik=sxOV%2bxkrVVBgUw&riu=http%3a%2f%2foljaart.com%2fimg%2ffood%2f07.jpg&ehk=PsJ9U9PV4KunSZsFNMRINLtaML7VmiBPoijHtSaAV8w%3d&risl=&pid=ImgRaw&r=0
+title: Flour & Fantasy Bakery
+h1: Where Every Slice is a Story
+h2: Too good for only one bit
 
 Fonts from google fonts:
 https://fonts.google.com/
