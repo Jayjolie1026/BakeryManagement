@@ -3,12 +3,12 @@ const path = require('path');
 const app = express();
 
 // Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 // For single-page apps, serve index.html for all routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+//app.get('*', (req, res) => {
+//  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+//});
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,6 +22,8 @@ const dbConfig = {
         encrypt: true // For Azure SQL Database
     }
 };
+
+console.log('Server is starting...');
 
 sql.connect(dbConfig).then(pool => {
     if (pool.connected) {
@@ -1117,4 +1119,6 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 });
 
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`); // Log server start message
+});

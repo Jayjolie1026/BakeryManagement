@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  runApp(BakeryManagementApp());
+  runApp(const BakeryManagementApp());
 }
 
 class BakeryManagementApp extends StatelessWidget {
@@ -16,7 +16,7 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
       ),
-      home: SignInPage(),  //BakeryHomePage()
+      home: const SignInPage(),  //BakeryHomePage()
     );
   }
 }
@@ -48,7 +48,7 @@ class _SignInPageState extends State<SignInPage> {
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => BakeryHomePage()),
+        MaterialPageRoute(builder: (context) => const BakeryHomePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -116,7 +116,7 @@ class BakeryHomePage extends StatelessWidget {
                 // Navigate to Inventory Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => InventoryPage()),
+                  MaterialPageRoute(builder: (context) => const InventoryPage()),
                 );
               },
               child: const Text('Manage Inventory'),
@@ -126,7 +126,7 @@ class BakeryHomePage extends StatelessWidget {
                 // Navigate to Employee Management Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => EmployeesPage()),
+                  MaterialPageRoute(builder: (context) => const EmployeesPage()),
                 );
               },
               child: const Text('Manage Recipes'),
@@ -136,7 +136,7 @@ class BakeryHomePage extends StatelessWidget {
                 // Navigate to Orders Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => OrdersPage()),
+                  MaterialPageRoute(builder: (context) => const OrdersPage()),
                 );
               },
               child: const Text('Manage Vendors'),
