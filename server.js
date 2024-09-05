@@ -291,16 +291,6 @@ app.get('/users/username/:username', async (req, res) => {
 
 
 
-const express = require('express');
-const sql = require('mssql');
-
-const app = express();
-app.use(express.json());
-
-const dbConfig = {
-    // Your database configuration here
-};
-
 // POST /login: Authenticate user without hashing (for testing purposes only)
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
