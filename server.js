@@ -303,6 +303,8 @@ app.post('/login', async (req, res) => {
         
         if (result.recordset.length > 0) {
             const hashedPassword = result.recordset[0].password;
+            console.log(`Hashed password from DB: ${hashedPassword}`); // Log hashed password
+
             const isMatch = await bcrypt.compare(password, hashedPassword);
             
             if (isMatch) {
