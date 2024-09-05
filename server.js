@@ -291,9 +291,9 @@ app.get('/users/username/:username', async (req, res) => {
     }
 });
 
-const bcrypt = require('bcrypt');
 
-// POST /login: Authenticate user
+
+// POST /login: Authenticate user without hashing (for testing purposes only)
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
@@ -304,12 +304,11 @@ app.post('/login', async (req, res) => {
             .query('SELECT password FROM Users WHERE username = @username');
         
         if (result.recordset.length > 0) {
-            const hashedPassword = result.recordset[0].password;
-            console.log(`Hashed password from DB: ${hashedPassword}`); // Log hashed password
+            const dbPassword = result.recordset[0].password;
+            console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
-            const isMatch = await bcrypt.compare(password, hashedPassword);
-            
-            if (isMatch) {
+            // Direct comparison of plain-text passwords (for testing purposes)
+            if (password === dbPassword) {
                 res.send('Authentication successful');
             } else {
                 res.status(401).send('Invalid credentials');
@@ -321,6 +320,38 @@ app.post('/login', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+
+//const bcrypt = require('bcrypt');
+
+// POST /login: Authenticate user
+//app.post('/login', async (req, res) => {
+  //  const { username, password } = req.body;
+
+    //try {
+      //  const pool = await sql.connect(dbConfig);
+        //const result = await pool.request()
+          //  .input('username', sql.VarChar, username)
+            //.query('SELECT password FROM Users WHERE username = @username');
+        
+        //if (result.recordset.length > 0) {
+          //  const hashedPassword = result.recordset[0].password;
+            //console.log(`Hashed password from DB: ${hashedPassword}`); // Log hashed password
+
+            //const isMatch = await bcrypt.compare(password, hashedPassword);
+            
+            //if (isMatch) {
+              //  res.send('Authentication successful');
+            //} else {
+              //  res.status(401).send('Invalid credentials');
+            //}
+       // } else {
+         //   res.status(404).send('User not found');
+        //}
+    //} catch (error) {
+      //  res.status(500).send(error.message);
+    //}
+//});
 
 
 
