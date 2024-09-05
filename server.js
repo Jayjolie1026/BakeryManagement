@@ -31,7 +31,15 @@ sql.connect(dbConfig).then(pool => {
     }
   }).catch(err => console.error('Database connection failed:', err));
 
+  try {
+    const pool = await sql.connect(dbConfig);
+    await pool.request()
+    .query("INSERT INTO tblLog VALUES('I am in')");
 
+res.status(201).send('Vendor added successfully');
+} catch (error) {
+res.status(500).send(error.message);
+}
 
   // GET /vendors: Retrieve all vendors
 app.get('/vendors', async (req, res) => {
