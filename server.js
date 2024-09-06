@@ -1152,6 +1152,6 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`); // Log server start message
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`); // Log server start message
 });
