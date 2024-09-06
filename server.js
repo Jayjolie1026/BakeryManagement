@@ -1,17 +1,8 @@
 const express = require('express');
 const path = require('path');
+const sql = require('mssql');
 const app = express();
-
-// Serve static files from the 'public' directory
-//app.use(express.static(path.join(__dirname, 'public')));
-
-// For single-page apps, serve index.html for all routes
-//app.get('*', (req, res) => {
-//  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-//});
-
 const PORT = 8080;
-
 
 const dbConfig = {
     user: 'BakeryAdmin',
@@ -23,6 +14,17 @@ const dbConfig = {
     }
 };
 
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// For single-page apps, serve index.html for all routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
+
+
 console.log('Server is starting...');
 
 sql.connect(dbConfig).then(pool => {
@@ -31,15 +33,7 @@ sql.connect(dbConfig).then(pool => {
     }
   }).catch(err => console.error('Database connection failed:', err));
 
-  try {
-    const pool = await sql.connect(dbConfig);
-    await pool.request()
-    .query("INSERT INTO tblLog VALUES('I am in here')");
-
-res.status(201).send('Vendor added successfully');
-} catch (error) {
-res.status(500).send(error.message);
-}
+ 
 
   // GET /vendors: Retrieve all vendors
 app.get('/vendors', async (req, res) => {
