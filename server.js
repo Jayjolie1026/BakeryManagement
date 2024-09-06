@@ -294,7 +294,7 @@ app.get('/users/username/:username', async (req, res) => {
             res.status(404).send('User not found');
         }
     } catch (error) {
-        res.status(200).send(error);
+        res.status(500).send(error.message);
     }
 });
 
@@ -333,7 +333,7 @@ app.post('/login', async (req, res) => {
             res.status(404).send('User not found');
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(200).send(error);
     }
 });
 
