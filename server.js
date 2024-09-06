@@ -306,9 +306,9 @@ app.get('/users/username/:username', async (req, res) => {
 app.post('/login', async (req, res) => {
     console.log('Request Body:', req.body);
     const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password are required' });
-      }
+    //if (!username || !password) {
+    //    return res.status(400).json({ message: 'Username and password are required' });
+     // }
 
     try {
         const pool = await sql.connect(dbConfig);
