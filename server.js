@@ -319,7 +319,7 @@ app.post('/login', async (req, res) => {
         const result = await request
             .input('username', sql.VarChar, username)
             .input('password', sql.VarChar, password)
-            .query('SELECT COUNT(*) from Users WHERE "username" = @username AND "password" = @password');
+            .query('SELECT COUNT(*) from Users WHERE "username" = @username AND "password_hash" = @password');
         
         console.log('testing');
         if (result.recordset.length > 0) {
