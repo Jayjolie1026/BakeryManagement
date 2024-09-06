@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const sql = require('mssql');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -16,10 +17,12 @@ const dbConfig = {
 
 app.use(express.json());
 
-// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// For single-page apps, serve index.html for all routes
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html for the root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -306,6 +309,10 @@ app.post('/login', async (req, res) => {
       }
 
     try {
+        const pool = await sql.connect(dbConfig);
+        if (pool.connected) {
+            console.log('Connected to Azure SQL Server');
+        }
         const request = new sql.Request();
         const result = await request
             .input('username', sql.VarChar, username)
