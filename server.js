@@ -14,18 +14,20 @@ const dbConfig = {
     }
 };
 
+app.use(express.json());
+
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
 // For single-page apps, serve index.html for all routes
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
 
 
-console.log('Server is starting...');
+console.log('Server is starting.');
 
 sql.connect(dbConfig).then(pool => {
     if (pool.connected) {
@@ -297,11 +299,15 @@ app.get('/users/username/:username', async (req, res) => {
 
 // POST /login: Authenticate user without hashing (for testing purposes only)
 app.post('/login', async (req, res) => {
+    console.log('Request Body:', req.body);
     const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required' });
+      }
 
     try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
+        const request = new sql.Request();
+        const result = await request
             .input('username', sql.VarChar, username)
             .query('SELECT password FROM Users WHERE username = @username');
         

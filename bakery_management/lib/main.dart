@@ -31,15 +31,13 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final String _apiUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/login'; // Replace with your API URL
+  final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/login'); // Replace with your API URL
 
   Future<void> _signIn() async {
     final response = await http.post(
-      Uri.parse(_apiUrl),
-      headers: <String, String>{
-        'Content-Type': 'application/json; usercharset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
+      _apiUrl,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
         'username': _usernameController.text,
         'password': _passwordController.text,
       }),
