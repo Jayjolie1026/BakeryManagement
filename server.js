@@ -301,29 +301,31 @@ app.get('/users/username/:username', async (req, res) => {
 });
 
 
-
 // POST /login: Authenticate user without hashing (for testing purposes only)
 app.post('/login', async (req, res) => {
     console.log('Request Body:', req.body);
     const { username, password } = req.body;
-    //if (!username || !password) {
-    //    return res.status(400).json({ message: 'Username and password are required' });
-     // }
+    
+    // You can uncomment the following if-block to enforce the presence of username and password
+    // if (!username || !password) {
+    //     return res.status(400).json({ message: 'Username and password are required' });
+    // }
 
     try {
         const pool = await sql.connect(dbConfig);
         if (pool.connected) {
             console.log('Connected to Azure SQL Server');
         }
+
         const request = new sql.Request();
+        // Adjust the query to select the password_hash column
         const result = await request
             .input('username', sql.VarChar, username)
-            .input('password', sql.VarChar, password)
-            .query('SELECT password_hash from Users WHERE "username" = @username');
+            .query('SELECT password_hash FROM Users WHERE username = @username'); // Adjusted query
         
         console.log('testing');
         if (result.recordset.length > 0) {
-            const dbPassword = result.recordset[0].password;
+            const dbPassword = result.recordset[0].password_hash; // Correctly access password_hash
             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
             // Direct comparison of plain-text passwords (for testing purposes)
