@@ -318,6 +318,7 @@ app.post('/login', async (req, res) => {
             .input('username', sql.VarChar, username)
             .query('SELECT password FROM Users WHERE username = @username');
         
+            console.log('testing');
         if (result.recordset.length > 0) {
             const dbPassword = result.recordset[0].password;
             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
