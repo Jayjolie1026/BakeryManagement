@@ -34,7 +34,7 @@ sql.connect(dbConfig).then(pool => {
   try {
     const pool = await sql.connect(dbConfig);
     await pool.request()
-    .query("INSERT INTO tblLog VALUES('I am in')");
+    .query("INSERT INTO tblLog VALUES('I am in here')");
 
 res.status(201).send('Vendor added successfully');
 } catch (error) {
