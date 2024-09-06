@@ -330,7 +330,7 @@ app.post('/login', async (req, res) => {
             if (password === dbPassword) {
                 res.send('Authentication successful');
             } else {
-                res.status(401).send('Invalid credentials');
+                res.status(200).send(error);
             }
         } else {
             res.status(404).send('User not found');
