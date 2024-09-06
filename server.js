@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const sql = require('mssql');
+const cors = require('cors'); // Import cors package
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,6 +17,7 @@ const dbConfig = {
 };
 
 app.use(express.json());
+app.use(cors()); // Allow all origins
 
 app.use(express.static(path.join(__dirname, 'public')));
 
