@@ -318,6 +318,7 @@ app.post('/login', async (req, res) => {
         const request = new sql.Request();
         const result = await request
             .input('username', sql.VarChar, username)
+            .input('password', sql.VarChar, password)
             .query('SELECT COUNT(*) from Users WHERE "username" = @username AND "password" = @password');
         
         console.log('testing');
