@@ -17,7 +17,9 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
       ),
+
       home: const SignInPage(),
+      main
     );
   }
 }
@@ -125,7 +127,7 @@ class BakeryHomePage extends StatelessWidget {
                 // Navigate to Employee Management Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const EmployeesPage()),
+                  MaterialPageRoute(builder: (context) => const RecipePage()),
                 );
               },
               child: const Text('Manage Recipes'),
@@ -153,18 +155,158 @@ class BakeryHomePage extends StatelessWidget {
   }
 }
 
-class EmployeesPage extends StatelessWidget {
-  const EmployeesPage({super.key});
+
+class InventoryPage extends StatelessWidget {
+  const InventoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Employee Management'),
+        title: const Text('Inventory Management'),
       ),
       body: const Center(
         child: Text(
-          'Employee Management Page',
+          'Inventory Management Page',
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class RecipePage extends StatelessWidget {
+  const RecipePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Recipe Management'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add), // Plus icon
+            onPressed: () {
+              // Navigate to AddRecipePage when the button is pressed
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddRecipePage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0), // Add some padding around the body
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+          children: [
+            const Text(
+              'Tap on the image to see the recipe',
+              style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 10), // Space between the text and image
+            GestureDetector(
+              onTap: () {
+                // Navigate to the detailed recipe page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DetailedRecipePage(),
+                  ),
+                );
+              },
+              child: Image.asset(
+                'assets/bagel3.jpg', // Replace with your image path
+                width: 100, // Set image width
+                height: 100, // Set image height
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DetailedRecipePage extends StatelessWidget {
+  const DetailedRecipePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Bagels Recipe and Directions'),
+      ),
+      body: SingleChildScrollView( // Use SingleChildScrollView to handle scrolling if content is long
+        padding: const EdgeInsets.all(16.0), // Add padding to the body
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+          children: [
+            // Image section
+            Image.asset(
+              'assets/bagel3.jpg', // Replace with your image path
+              width: double.infinity, // Make the image take up full width
+              height: 200, // Set a fixed height for the image
+              fit: BoxFit.cover, // Make the image cover the available space
+            ),
+            const SizedBox(height: 20), // Space between the image and the headers
+
+            // Ingredients header
+            const Text(
+              'Ingredients',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10), // Space between the header and content
+
+            // Placeholder for ingredients (You can populate this later with API data)
+            const Text(
+              'Loading ingredients...', // Placeholder text
+              style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 20), // Space between ingredients and directions
+
+            // Directions header
+            const Text(
+              'Directions',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10), // Space between the header and content
+
+            // Placeholder for directions (You can populate this later with API data)
+            const Text(
+              'Loading directions...', // Placeholder text
+              style: TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+// New page to add a recipe
+class AddRecipePage extends StatelessWidget {
+  const AddRecipePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add Recipe'),
+      ),
+      body: const Center(
+        child: Text(
+          'Add recipe here',
           style: TextStyle(fontSize: 20),
         ),
       ),
