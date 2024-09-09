@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bakery_management/pages/inventory.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -16,7 +17,9 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
       ),
-      home: const SignInPage(),  //BakeryHomePage(),
+
+      home: const SignInPage(),
+      main
     );
   }
 }
@@ -152,6 +155,7 @@ class BakeryHomePage extends StatelessWidget {
   }
 }
 
+
 class InventoryPage extends StatelessWidget {
   const InventoryPage({super.key});
 
@@ -173,7 +177,7 @@ class InventoryPage extends StatelessWidget {
 
 class RecipePage extends StatelessWidget {
   const RecipePage({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
