@@ -100,7 +100,7 @@ class BakeryHomePage extends StatelessWidget {
           height:40,
       ),
       centerTitle:true, 
-      backgroundColor: const Color(0xFFD8C4AA), 
+      backgroundColor: const Color(0xFFD8C4AA),
       ),
       backgroundColor: const Color(0xFF422308),
       body: Padding(
@@ -115,7 +115,7 @@ class BakeryHomePage extends StatelessWidget {
                 // Navigate to Inventory Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const InventoryPage()),
+                  MaterialPageRoute(builder: (context) => InventoryPage()),
                 );
               },
               child: const Text('Manage Inventory'),
