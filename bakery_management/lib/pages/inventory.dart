@@ -48,7 +48,7 @@ class Item {
   };
 }
 
-// api call
+// api call to get all and queried items
 class InventoryApi {
   static Future<List<Item>> getItems(String query) async {
     final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
@@ -92,6 +92,7 @@ class _InventoryPageState extends State<InventoryPage> {
     super.dispose();
   }
 
+  // timer for refreshing search bar
   void debounce(
       VoidCallback callback, {
         Duration duration = const Duration(microseconds: 1000),
@@ -102,9 +103,9 @@ class _InventoryPageState extends State<InventoryPage> {
     debouncer = Timer(duration, callback);
   }
 
+  // default state, all items
   Future init() async {
     final items = await InventoryApi.getItems(query);
-
     setState(() => this.items = items);
   }
 
@@ -134,7 +135,7 @@ class _InventoryPageState extends State<InventoryPage> {
     ),
   );
 
-  // build search
+  // search bar widget
   Widget buildSearch() => SearchWidget(
       text: query,
       hintText: 'Item Name',
@@ -152,7 +153,7 @@ class _InventoryPageState extends State<InventoryPage> {
     });
   });
 
-  // build item
+  // tiles for items being searched
   Widget buildItem(Item item) => ListTile(
     title: Text(item.item_name),
   );
