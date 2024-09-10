@@ -172,25 +172,6 @@ Widget build(BuildContext context) {
 
 
 
-class InventoryPage extends StatelessWidget {
-  const InventoryPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inventory Management'),
-      ),
-      body: const Center(
-        child: Text(
-          'Inventory Management Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
-
 class RecipePage extends StatelessWidget {
   const RecipePage({super.key});
   
@@ -213,6 +194,7 @@ class RecipePage extends StatelessWidget {
             },
           ),
         ],
+
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0), // Add some padding around the body
@@ -222,6 +204,7 @@ class RecipePage extends StatelessWidget {
             const Text(
               'Tap on the image to see the recipe',
               style: TextStyle(fontSize: 18),
+
             ),
             const SizedBox(height: 10), // Space between the text and image
             GestureDetector(
