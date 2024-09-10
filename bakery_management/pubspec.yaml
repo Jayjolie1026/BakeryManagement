@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: 1.2.1
+  http: ^1.2.2
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -46,7 +46,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -62,11 +62,13 @@ flutter:
   assets:
     - assets/logo1.png
     - assets/bread2.png
+    - assets/inventory_logo.png
     - assets/vendor.png
     - assets/bagel3.jpg
     - assets/bakedgoods.png
     - assets/inventory.png
     - assets/recipe.png
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
