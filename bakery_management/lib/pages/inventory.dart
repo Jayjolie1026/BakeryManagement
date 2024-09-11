@@ -3,52 +3,57 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// user model for inventory items
+// Item model for inventory items
 class Item {
-  final int item_id;
-  final String item_name;
+  final int entryID;
   final int quantity;
-  final double price;
-  final int calories;
-  final DateTime created_at;
-  final DateTime expiration_date;
+  final double cost;
+  final String notes;
+  final DateTime createDateTime;
+  final DateTime expireDateTime;
+  final int employeeID; // Optional if included in API response
+  final int recipeID;   // Optional if included in API response
 
   // Constructor
   Item({
-    required this.item_id,
-    required this.item_name,
+    required this.entryID,
     required this.quantity,
-    required this.price,
-    required this.calories,
-    required this.created_at,
-    required this.expiration_date,
+    required this.cost,
+    required this.notes,
+    required this.createDateTime,
+    required this.expireDateTime,
+    this.employeeID = 0, // Default to 0 if not included in API response
+    this.recipeID = 0,   // Default to 0 if not included in API response
   });
 
-  // A factory constructor to create an Item from a JSON object
+  // Factory constructor to create an Item from a JSON object
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      item_id: json['item_id'],
-      item_name: json['item_name'],
-      quantity: json['quantity'],
-      price: json['price'].toDouble(), // Convert to double if needed
-      calories: json['calories'],
-      created_at: DateTime.parse(json['created_at']),
-      expiration_date: DateTime.parse(json['expiration_date']),
+      entryID: json['EntryID'],
+      quantity: json['Quantity'].toInt(),
+      cost: json['Cost'].toDouble(),
+      notes: json['Notes'] ?? '', // Default to empty string if null
+      createDateTime: DateTime.parse(json['CreateDateTime']),
+      expireDateTime: DateTime.parse(json['ExpireDateTime']),
+      employeeID: json['EmployeeID'] ?? 0, // Use default if null
+      recipeID: json['RecipeID'] ?? 0,     // Use default if null
     );
   }
 
+  // Convert Item object to JSON format
   Map<String, dynamic> toJson() => {
-    'item_id': item_id,
-    'item_name': item_name,
-    'quantity': quantity,
-    'price': price,
-    'calories': calories,
-    'created_at': created_at,
-    'expiration_date': expiration_date,
-  };
+        'EntryID': entryID,
+        'Quantity': quantity,
+        'Cost': cost,
+        'Notes': notes,
+        'CreateDateTime': createDateTime.toIso8601String(),
+        'ExpireDateTime': expireDateTime.toIso8601String(),
+        'EmployeeID': employeeID,
+        'RecipeID': recipeID,
+      };
 }
 
-// api call to get all and queried items
+// API class for inventory items
 class InventoryApi {
   static Future<List<Item>> getItems(String query) async {
     final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
@@ -58,18 +63,18 @@ class InventoryApi {
       final List items = json.decode(response.body);
 
       return items.map((json) => Item.fromJson(json)).where((item) {
-        final nameLower = item.item_name.toLowerCase();
+        final notesLower = item.notes.toLowerCase();
         final searchLower = query.toLowerCase();
 
-        return nameLower.contains(searchLower);
+        return notesLower.contains(searchLower);
       }).toList();
     } else {
-      throw Exception();
+      throw Exception('Failed to load inventory items');
     }
   }
 }
 
-// display page
+// Inventory Page
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
 
@@ -94,74 +99,71 @@ class _InventoryPageState extends State<InventoryPage> {
     super.dispose();
   }
 
-  // timer for refreshing search bar
-  void debounce(
-      VoidCallback callback, {
-        Duration duration = const Duration(microseconds: 1000),
-  }) {
+  // Debounce for search bar
+  void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
     if (debouncer != null) {
       debouncer!.cancel();
     }
     debouncer = Timer(duration, callback);
   }
 
-  // default state, all items
+  // Initialize inventory items
   Future init() async {
     final items = await InventoryApi.getItems(query);
     setState(() => this.items = items);
   }
 
-  // actual inventory page
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar (
-      title: Image.asset(
-        'assets/inventory_logo.png',
-        height: 60,
-      ),
-      centerTitle: true,
-    ),
-    body: Column(
-      children: <Widget>[
-        buildSearch(),
-        Expanded(
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return buildItem(item);
-            },
+        appBar: AppBar(
+          title: Image.asset(
+            'assets/inventory_logo.png',
+            height: 60,
           ),
+          centerTitle: true,
         ),
-      ],
-    ),
-  );
+        body: Column(
+          children: <Widget>[
+            buildSearch(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return buildItem(item);
+                },
+              ),
+            ),
+          ],
+        ),
+      );
 
-  // search bar widget
+  // Search bar widget
   Widget buildSearch() => SearchWidget(
-      text: query,
-      hintText: 'Item Name',
-      onChanged: searchItem,
-    );
+        text: query,
+        hintText: 'Search by Notes',
+        onChanged: searchItem,
+      );
 
+  // Search for an item by query
   Future searchItem(String query) async => debounce(() async {
-    final items = await InventoryApi.getItems(query);
+        final items = await InventoryApi.getItems(query);
 
-    if (!mounted) return;
+        if (!mounted) return;
 
-    setState(() {
-      this.query = query;
-      this.items = items;
-    });
-  });
+        setState(() {
+          this.query = query;
+          this.items = items;
+        });
+      });
 
-  // tiles for items being searched
+  // Build list tile for each inventory item
   Widget buildItem(Item item) => ListTile(
-    title: Text(item.item_name),
-  );
+        title: Text(item.notes), // Display notes or relevant details
+      );
 }
 
-// search widget
+// Search widget component
 class SearchWidget extends StatefulWidget {
   final String text;
   final ValueChanged<String> onChanged;
@@ -189,7 +191,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
     return Container(
       height: 42,
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: Colors.white,
@@ -202,13 +204,13 @@ class _SearchWidgetState extends State<SearchWidget> {
           icon: Icon(Icons.search, color: style.color),
           suffixIcon: widget.text.isNotEmpty
               ? GestureDetector(
-                child: Icon(Icons.close, color: style.color),
-                onTap: () {
-                  controller.clear();
-                  widget.onChanged('');
-                  FocusScope.of(context).requestFocus(FocusNode());
-                },
-              )
+                  child: Icon(Icons.close, color: style.color),
+                  onTap: () {
+                    controller.clear();
+                    widget.onChanged('');
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  },
+                )
               : null,
           hintText: widget.hintText,
           hintStyle: style,
