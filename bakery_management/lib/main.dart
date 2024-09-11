@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bakery_management/pages/inventory.dart';
+//import 'package:bakery_management/pages/vendors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -18,8 +19,10 @@ class BakeryManagementApp extends StatelessWidget {
         primarySwatch: Colors.brown,
       ),
 
+      debugShowCheckedModeBanner: false,
+
       home: const SignInPage(),
-      main
+      //main
     );
   }
 }
@@ -126,7 +129,7 @@ Widget build(BuildContext context) {
               // Navigate to Employee Management Page
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const EmployeesPage()),
+                MaterialPageRoute(builder: (context) => const RecipePage()),
               );
             },
             child: const Text('Manage Recipes'),
@@ -330,21 +333,277 @@ class AddRecipePage extends StatelessWidget {
   }
 }
 
+///
+///
+///
+/// VENDORS
+/// 
+/// 
+/// 
+
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
+
+   @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Order Management',
+          style: TextStyle(
+          color: const Color(0xFFD8C4AA), // Set the text color to white (or any color you prefer)
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF422308),
+        
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.remove), // Minus icon
+            color: const Color(0xFFD8C4AA),
+            onPressed: () {
+              // Navigate to RemoveVendorPage when the button is pressed
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RemoveVendorPage(),
+                ),
+              );
+            },
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.add), // Plus icon
+            color: const Color(0xFFD8C4AA),
+            onPressed: () {
+              // Navigate to AddVendorPage when the button is pressed
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddVendorPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0), // Add some padding around the body
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+          children: [
+            const Center(
+              child: Text(
+                'Tap on the image to see the vendor',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 10), // Space between the text and image
+            GestureDetector(
+              onTap: () {
+                // Navigate to the detailed vendor page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DetailedVendorPage(),
+                  ),
+                );
+              },
+              child: Image.asset(
+                'assets/vendor.png', // Replace with your image path
+                width: 100, // Set image width
+                height: 100, // Set image height
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// New page to add a vendor
+class AddVendorPage extends StatelessWidget {
+  const AddVendorPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Management'),
+        title: const Text('Add Vendor'),
       ),
       body: const Center(
         child: Text(
-          'Order Management Page',
+          'Add Vendor here',
           style: TextStyle(fontSize: 20),
         ),
       ),
     );
   }
 }
+
+// New page to remove a vendor
+class RemoveVendorPage extends StatelessWidget {
+  const RemoveVendorPage({super.key});
+
+ @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Remove Vendor'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0), // Add some padding around the body
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+          children: [
+            const Center(
+              child: Text(
+                'Choose which vendor to remove:',
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+            const SizedBox(height: 10), // Space between the text and image
+            GestureDetector(
+              onTap: () {
+                // Navigate to the detailed vendor page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DetailedVendorPage(),
+                  ),
+                );
+              },
+              child: Image.asset(
+                'assets/vendor.png', // Replace with your image path
+                width: 100, // Set image width
+                height: 100, // Set image height
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DetailedVendorPage extends StatelessWidget {
+  const DetailedVendorPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Vendor Information'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView( // Use SingleChildScrollView to handle scrolling if content is long
+              padding: const EdgeInsets.all(16.0), // Add padding to the body
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
+                children: [
+                  // Image section
+                  Image.asset(
+                    'assets/vendor.png', // Replace with your image path
+                    width: double.infinity, // Make the image take up full width
+                    height: 200, // Set a fixed height for the image
+                    fit: BoxFit.cover, // Make the image cover the available space
+                  ),
+                  const SizedBox(height: 20), // Space between the image and the headers
+
+                  // Phone Number header
+                  const Text(
+                    'Phone Number',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10), // Space between the header and content
+
+                  // Placeholder for phone number
+                  const Text(
+                    'Loading phone...', // Placeholder text
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 20), // Space between phone number and email
+
+                  // Email header
+                  const Text(
+                    'Email',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10), // Space between the header and content
+
+                  // Placeholder for email
+                  const Text(
+                    'Loading email...', // Placeholder text
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0), // Padding around the button
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Define the action when the button is pressed
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditVendorPage(),
+                    ),
+                  );
+                },             
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: const Color(0xFFD8C4AA), // Background color of the button
+                  backgroundColor: const Color(0xFF422308), // Text color of the button
+                  minimumSize: const Size(double.infinity, 60), // Button width and height
+                  padding: const EdgeInsets.symmetric(vertical: 16), // Padding inside the button
+                ),
+                child: const Text(
+                  'Edit Vendor Info',
+                  style: TextStyle(
+                    fontSize: 22, // Increase font size if needed
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+// New page to edit a vendor
+class EditVendorPage extends StatelessWidget {
+  const EditVendorPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Vendor'),
+      ),
+      body: const Center(
+        child: Text(
+          'Vendor info here',
+          style: TextStyle(fontSize: 20),
+        ),
+      ),
+    );
+  }
+}
+
