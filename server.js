@@ -634,11 +634,11 @@ app.post('/login', async (req, res) => {
         // Adjust the query to select the password_hash column
         const result = await request
             .input('username', sql.VarChar, username)
-            .query('SELECT password_hash FROM Users WHERE username = @username'); // Adjusted query
+            .query('SELECT password FROM tblUsers WHERE username = @username'); // Adjusted query
 
         console.log('testing');
         if (result.recordset.length > 0) {
-            const dbPassword = result.recordset[0].password_hash; // Correctly access password_hash
+            const dbPassword = result.recordset[0].password; // Correctly access password_hash
             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
             // Direct comparison of plain-text passwords (for testing purposes)
