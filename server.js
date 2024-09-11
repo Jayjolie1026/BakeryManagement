@@ -23,8 +23,6 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve index.html for the root route
 app.get('/', (req, res) => {
