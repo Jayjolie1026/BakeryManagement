@@ -1,17 +1,12 @@
 const express = require('express');
 const path = require('path');
+const sql = require('mssql');
+const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
+//const cors = require('cors'); // Import cors package
+
 const app = express();
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// For single-page apps, serve index.html for all routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-const PORT = process.env.PORT || 3000;
-
+const port = process.env.PORT || 3000;
 
 const dbConfig = {
     user: 'BakeryAdmin',
@@ -23,59 +18,137 @@ const dbConfig = {
     }
 };
 
-sql.connect(dbConfig).then(pool => {
-    if (pool.connected) {
-      console.log('Connected to Azure SQL Server');
-    }
-  }).catch(err => console.error('Database connection failed:', err));
+app.use(express.json());
 
 
+app.use(express.static(path.join(__dirname, 'public')));
 
-  // GET /vendors: Retrieve all vendors
-app.get('/vendors', async (req, res) => {
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html for the root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+console.log('Server is starting.');
+
+
+  // GET /vendors: Retrieve all vendors Populate list underneath search bar
+  app.get('/vendors', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const vendors = await pool.request().query('SELECT * FROM Vendor');
+        const vendors = await pool.request().query('SELECT VendorName FROM tblVendor');
         res.json(vendors.recordset);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-// POST /vendors: Add a new vendor
+// POST /vendors: Add a new vendor with email, phone, and address 
 app.post('/vendors', async (req, res) => {
-    const { vendor_name, vendor_address, contact_info } = req.body;
+    const {
+        VendorName,
+        EmailAddress,
+        PhoneNumber,
+        AreaCode,
+        StreetAddress,
+        City,
+        State,
+        PostalCode,
+        Country
+    } = req.body;
+
     try {
-       const pool = await sql.connect(dbConfig);
-       await pool.request()
-       .input('vendor_name', sql.VarChar, vendor_name)
-       .input('vendor_address', sql.VarChar, vendor_address)
-       .input('contact_info', sql.VarChar, contact_info)
-       .query('INSERT INTO Vendor (vendor_name, vendor_address, contact_info) VALUES (@vendor_name, @vendor_address, @contact_info)');
-   
-   res.status(201).send('Vendor added successfully');
-} catch (error) {
-   res.status(500).send(error.message);
-}
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        // Begin transaction
+        await transaction.begin();
+
+        // Insert Vendor
+        const vendorRequest = transaction.request();
+        vendorRequest.input('VendorName', sql.VarChar, VendorName);
+        const vendorResult = await vendorRequest.query(`
+            INSERT INTO tblVendors (VendorName) 
+            OUTPUT INSERTED.VendorID 
+            VALUES (@VendorName)
+        `);
+
+        const vendorID = vendorResult.recordset[0].VendorID;
+
+        // Insert Vendor Email
+        if (EmailAddress) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendorID)
+                .input('EmailAddress', sql.VarChar, EmailAddress)
+                .input('TypeID', sql.Int, 1) // Assuming a default TypeID, adjust as needed
+                .input('Valid', sql.Bit, 1)  // Assuming the email is valid by default
+                .query(`
+                    INSERT INTO tblVendorEmails (VendorID, EmailAddress, TypeID, Valid) 
+                    VALUES (@VendorID, @EmailAddress, @TypeID, @Valid)
+                `);
+        }
+
+        // Insert Vendor Phone Number
+        if (PhoneNumber && AreaCode) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendorID)
+                .input('AreaCode', sql.VarChar, AreaCode)
+                .input('PhoneNumber', sql.VarChar, PhoneNumber)
+                .input('TypeID', sql.Int, 1) // Assuming a default TypeID, adjust as needed
+                .input('Valid', sql.Bit, 1)  // Assuming the phone number is valid by default
+                .query(`
+                    INSERT INTO tblVendorPhoneNumbers (VendorID, AreaCode, Number, TypeID, Valid) 
+                    VALUES (@VendorID, @AreaCode, @PhoneNumber, @TypeID, @Valid)
+                `);
+        }
+
+        // Insert Vendor Address
+        if (StreetAddress || City || State || PostalCode || Country) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendorID)
+                .input('StreetAddress', sql.VarChar, StreetAddress || '')
+                .input('City', sql.VarChar, City || '')
+                .input('State', sql.VarChar, State || '')
+                .input('PostalCode', sql.VarChar, PostalCode || '')
+                .input('Country', sql.VarChar, Country || '')
+                .input('AddressTypeID', sql.Int, 1) // Assuming a default AddressTypeID, adjust as needed
+                .input('Active', sql.Bit, 1)       // Assuming the address is active by default
+                .query(`
+                    INSERT INTO tblVendorAddresses (VendorID, StreetAddress, City, State, PostalCode, Country, AddressTypeID, Active) 
+                    VALUES (@VendorID, @StreetAddress, @City, @State, @PostalCode, @Country, @AddressTypeID, @Active)
+                `);
+        }
+
+        // Commit the transaction
+        await transaction.commit();
+        res.status(201).send('Vendor added successfully');
+    } catch (error) {
+        // Rollback transaction in case of error
+        if (transaction) await transaction.rollback();
+        res.status(500).send(error.message);
+    }
 });
+
       
 
-// DELETE /vendors/name/:name: Remove a vendor by name
-app.delete('/vendors/name/:name', async (req, res) => {
-    const vendor_name = req.params.name;
+// DELETE /vendors/:id: Remove a vendor and related data by ID since cascade only need this table
+app.delete('/vendors/:id', async (req, res) => {
+    const vendor_id = req.params.id;
 
-    if (!vendor_name) {
-        return res.status(400).send('Vendor name is required');
+    if (!vendor_id) {
+        return res.status(400).send('Vendor ID is required');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('vendor_name', sql.NVarChar, vendor_name)  // Assuming the vendor_name column is of type NVarChar
-            .query('DELETE FROM Vendor WHERE vendor_name = @vendor_name');
+            .input('VendorID', sql.Int, vendor_id)
+            .query('DELETE FROM tblVendors WHERE VendorID = @VendorID');
         
         if (result.rowsAffected[0] > 0) {
-            res.status(200).send('Vendor deleted successfully');
+            res.status(200).send('Vendor and related data deleted successfully');
         } else {
             res.status(404).send('Vendor not found');
         }
@@ -86,68 +159,223 @@ app.delete('/vendors/name/:name', async (req, res) => {
 
 
 
-// PUT /vendors/:id: Update vendor information
+
+// PUT /vendors/:id: Update vendor information including name, email, phone, and address
 app.put('/vendors/:id', async (req, res) => {
     const vendor_id = req.params.id;
-    const { vendor_name, vendor_address, contact_info } = req.body;
-
-    // Start building the SQL query
-    let query = 'UPDATE Vendor SET ';
-    let parameters = [];
-
-    // Add fields to update based on the request body
-    if (vendor_name) {
-        query += 'vendor_name = @vendor_name, ';
-        parameters.push({ name: 'vendor_name', value: vendor_name });
-    }
-    if (vendor_address) {
-        query += 'vendor_address = @vendor_address, ';
-        parameters.push({ name: 'vendor_address', value: vendor_address });
-    }
-    if (contact_info) {
-        query += 'contact_info = @contact_info, ';
-        parameters.push({ name: 'contact_info', value: contact_info });
-    }
-
-    // Remove the trailing comma and space
-    query = query.slice(0, -2);
-
-    // Add the WHERE clause
-    query += ' WHERE vendor_id = @vendor_id';
-    parameters.push({ name: 'vendor_id', value: vendor_id });
+    const {
+        VendorName,
+        EmailAddress,
+        PhoneNumber,
+        AreaCode,
+        StreetAddress,
+        City,
+        State,
+        PostalCode,
+        Country
+    } = req.body;
 
     try {
         const pool = await sql.connect(dbConfig);
-        const request = pool.request();
-        parameters.forEach(param => request.input(param.name, sql.VarChar, param.value));
-        
-        const result = await request.query(query);
+        const transaction = new sql.Transaction(pool);
 
-        if (result.rowsAffected[0] > 0) {
-            res.send('Vendor updated successfully');
-        } else {
-            res.status(404).send('Vendor not found');
+        // Begin transaction
+        await transaction.begin();
+
+        // Update Vendor Name
+        if (VendorName) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendor_id)
+                .input('VendorName', sql.VarChar, VendorName)
+                .query('UPDATE tblVendors SET VendorName = @VendorName WHERE VendorID = @VendorID');
         }
+
+        // Update Vendor Email
+        if (EmailAddress) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendor_id)
+                .input('EmailAddress', sql.VarChar, EmailAddress)
+                .query('UPDATE tblVendorEmails SET EmailAddress = @EmailAddress WHERE VendorID = @VendorID');
+        }
+
+        // Update Vendor Phone Number
+        if (PhoneNumber && AreaCode) {
+            await transaction.request()
+                .input('VendorID', sql.Int, vendor_id)
+                .input('AreaCode', sql.VarChar, AreaCode)
+                .input('PhoneNumber', sql.VarChar, PhoneNumber)
+                .query('UPDATE tblVendorPhoneNumbers SET AreaCode = @AreaCode, Number = @PhoneNumber WHERE VendorID = @VendorID');
+        }
+
+        // Update Vendor Address
+        if (StreetAddress || City || State || PostalCode || Country) {
+            let updateAddressQuery = 'UPDATE tblVendorAddresses SET ';
+            let addressParameters = [];
+
+            if (StreetAddress) {
+                updateAddressQuery += 'StreetAddress = @StreetAddress, ';
+                addressParameters.push({ name: 'StreetAddress', value: StreetAddress });
+            }
+            if (City) {
+                updateAddressQuery += 'City = @City, ';
+                addressParameters.push({ name: 'City', value: City });
+            }
+            if (State) {
+                updateAddressQuery += 'State = @State, ';
+                addressParameters.push({ name: 'State', value: State });
+            }
+            if (PostalCode) {
+                updateAddressQuery += 'PostalCode = @PostalCode, ';
+                addressParameters.push({ name: 'PostalCode', value: PostalCode });
+            }
+            if (Country) {
+                updateAddressQuery += 'Country = @Country, ';
+                addressParameters.push({ name: 'Country', value: Country });
+            }
+
+            // Remove trailing comma and space
+            updateAddressQuery = updateAddressQuery.slice(0, -2);
+            updateAddressQuery += ' WHERE VendorID = @VendorID';
+
+            const addressRequest = transaction.request();
+            addressRequest.input('VendorID', sql.Int, vendor_id);
+            addressParameters.forEach(param => addressRequest.input(param.name, sql.VarChar, param.value));
+            await addressRequest.query(updateAddressQuery);
+        }
+
+        // Commit the transaction
+        await transaction.commit();
+        res.send('Vendor information updated successfully');
     } catch (error) {
+        // Rollback transaction in case of error
+        if (transaction) await transaction.rollback();
         res.status(500).send(error.message);
     }
 });
 
 
-
-
-// GET /vendors/name/:name: Retrieve a specific vendor by name
+// GET /vendors/name/:name: Retrieve specific vendors by partial name match for search bar
 app.get('/vendors/name/:name', async (req, res) => {
     const vendor_name = req.params.name;
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('vendor_name', sql.VarChar, vendor_name)
-            .query('SELECT * FROM Vendor WHERE vendor_name = @vendor_name');
+            .input('vendor_name', sql.VarChar, `%${vendor_name}%`)
+            .query(`
+                SELECT * 
+                FROM tblVendors 
+                WHERE VendorName LIKE @vendor_name
+            `);
         
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            res.json(result.recordset);  // Return all matching vendors
+        } else {
+            res.status(404).send('No vendors found');
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+
+// GET /vendors/:id: Retrieve full vendor details by ID
+app.get('/vendors/:id', async (req, res) => {
+    const vendor_id = req.params.id;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        // Query to fetch vendor details along with related data (addresses, phone numbers, emails)
+        const result = await pool.request()
+            .input('vendor_id', sql.Int, vendor_id)
+            .query(`
+                SELECT 
+                    v.VendorID,
+                    v.VendorName,
+                    
+                    -- Vendor Address Information
+                    va.AddressID,
+                    va.StreetAddress,
+                    va.City,
+                    va.State,
+                    va.PostalCode,
+                    va.Country,
+                    at.Description AS AddressType,
+                    
+                    -- Vendor Phone Numbers
+                    vp.PhoneNumberID,
+                    vp.AreaCode,
+                    vp.Number AS PhoneNumber,
+                    pt.Description AS PhoneType,
+                    
+                    -- Vendor Emails
+                    ve.EmailID,
+                    ve.EmailAddress,
+                    et.Description AS EmailType
+                FROM 
+                    tblVendors v
+                LEFT JOIN 
+                    tblVendorAddresses va ON v.VendorID = va.VendorID
+                LEFT JOIN 
+                    tblAddressTypes at ON va.AddressTypeID = at.AddressTypeID
+                LEFT JOIN 
+                    tblVendorPhoneNumbers vp ON v.VendorID = vp.VendorID
+                LEFT JOIN 
+                    tblPhoneTypes pt ON vp.TypeID = pt.TypeID
+                LEFT JOIN 
+                    tblVendorEmails ve ON v.VendorID = ve.VendorID
+                LEFT JOIN 
+                    tblEmailTypes et ON ve.TypeID = et.TypeID
+                WHERE 
+                    v.VendorID = @vendor_id
+            `);
+
+        // Check if the vendor was found
+        if (result.recordset.length > 0) {
+            // Format the response to group related data
+            const vendor = {
+                VendorID: result.recordset[0].VendorID,
+                VendorName: result.recordset[0].VendorName,
+                Addresses: [],
+                PhoneNumbers: [],
+                Emails: []
+            };
+
+            result.recordset.forEach(row => {
+                // Aggregate addresses
+                if (row.AddressID) {
+                    vendor.Addresses.push({
+                        AddressID: row.AddressID,
+                        StreetAddress: row.StreetAddress,
+                        City: row.City,
+                        State: row.State,
+                        PostalCode: row.PostalCode,
+                        Country: row.Country,
+                        AddressType: row.AddressType
+                    });
+                }
+
+                // Aggregate phone numbers
+                if (row.PhoneNumberID) {
+                    vendor.PhoneNumbers.push({
+                        PhoneNumberID: row.PhoneNumberID,
+                        AreaCode: row.AreaCode,
+                        PhoneNumber: row.PhoneNumber,
+                        PhoneType: row.PhoneType
+                    });
+                }
+
+                // Aggregate emails
+                if (row.EmailID) {
+                    vendor.Emails.push({
+                        EmailID: row.EmailID,
+                        EmailAddress: row.EmailAddress,
+                        EmailType: row.EmailType
+                    });
+                }
+            });
+
+            res.json(vendor);
         } else {
             res.status(404).send('Vendor not found');
         }
@@ -157,23 +385,57 @@ app.get('/vendors/name/:name', async (req, res) => {
 });
 
 
+
 // POST /users: Add a new user
 app.post('/users', async (req, res) => {
-    const { username, password, access_level } = req.body;
+    const { firstName, lastName, username, password, email, phoneNumber, address } = req.body;
+
+    const newEmployeeID = uuidv4(); // Generate a GUID for the EmployeeID
+
     try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const pool = await sql.connect(dbConfig);
         await pool.request()
-        .input('username', sql.VarChar, username)
-        .input('password', sql.VarChar, password)
-        .input('access_level', sql.VarChar,access_level)
-        .query('INSERT INTO Users (username,password,access_level) VALUES (@username, @password, @access_level)');
+            .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+            .input('firstName', sql.VarChar, firstName)
+            .input('lastName', sql.VarChar, lastName)
+            .input('username', sql.VarChar, username)
+            .input('password', sql.VarChar, hashedPassword)
+            .query('INSERT INTO tblUsers (EmployeeID, FirstName, LastName, Username, Password) VALUES (@employeeID, @firstName, @lastName, @username, @password)');
 
-    res.status(201).send('User added successfully');
+        // Add email, phone number, and address to their respective tables
+        if (email) {
+            await pool.request()
+                .input('email', sql.VarChar, email)
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .query('INSERT INTO tblEmails (EmailAddress, EmployeeID) VALUES (@email, @employeeID)');
+        }
+
+        if (phoneNumber) {
+            await pool.request()
+                .input('phoneNumber', sql.VarChar, phoneNumber)
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID) VALUES (@phoneNumber, @employeeID)');
+        }
+
+        if (address) {
+            await pool.request()
+                .input('streetAddress', sql.VarChar, address.streetAddress)
+                .input('city', sql.VarChar, address.city)
+                .input('state', sql.VarChar, address.state)
+                .input('postalCode', sql.VarChar, address.postalCode)
+                .input('country', sql.VarChar, address.country)
+                .input('addressTypeID', sql.Int, address.addressTypeID)
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .query('INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID) VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID)');
+        }
+
+        res.status(201).send('User added successfully');
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
-
 
 
 
@@ -189,7 +451,7 @@ app.delete('/users/username/:username', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('username', sql.VarChar, username)
-            .query('DELETE FROM Users WHERE username = @username');
+            .query('DELETE FROM tblUsers WHERE Username = @username');
 
         if (result.rowsAffected[0] > 0) {
             res.send('User removed');
@@ -203,65 +465,126 @@ app.delete('/users/username/:username', async (req, res) => {
 
 
 
-// PUT /users/:id/password: Update user password
-app.put('/users/:id/password', async (req, res) => {
-    const userId = req.params.id;
-    const { password } = req.body;
 
-    if (!password) {
-        return res.status(400).send('Password is required');
+// PUT /users/:username: Update user information, including address, phone number, and email
+app.put('/users/:username', async (req, res) => {
+    const username = req.params.username;
+    const { firstName, lastName, newUsername, password, address, phoneNumbers, emails } = req.body;
+
+    if (!username || (!firstName && !lastName && !newUsername && !password && !address && !phoneNumbers && !emails)) {
+        return res.status(400).send('Username and at least one field to update are required');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('password', sql.VarChar, password)  // Assuming password is a VARCHAR
-            .input('user_id', sql.Int, userId)
-            .query('UPDATE Users SET password = @password WHERE user_id = @user_id');
 
-        if (result.rowsAffected[0] > 0) {
-            res.send('Password updated');
-        } else {
-            res.status(404).send('User not found');
+        // Start transaction
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        const request = new sql.Request(transaction);
+
+        // Update user basic information
+        let query = 'UPDATE tblUsers SET ';
+        let parameters = [];
+
+        if (firstName) {
+            query += 'FirstName = @firstName, ';
+            parameters.push({ name: 'firstName', type: sql.VarChar, value: firstName });
         }
+        if (lastName) {
+            query += 'LastName = @lastName, ';
+            parameters.push({ name: 'lastName', type: sql.VarChar, value: lastName });
+        }
+        if (newUsername) {
+            query += 'Username = @newUsername, ';
+            parameters.push({ name: 'newUsername', type: sql.VarChar, value: newUsername });
+        }
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            query += 'Password = @password, ';
+            parameters.push({ name: 'password', type: sql.VarChar, value: hashedPassword });
+        }
+
+        query = query.slice(0, -2);
+        query += ' WHERE Username = @username';
+        parameters.push({ name: 'username', type: sql.VarChar, value: username });
+
+        parameters.forEach(param => request.input(param.name, param.type, param.value));
+        await request.query(query);
+
+        // Update user address
+        if (address) {
+            for (const addr of address) {
+                const addrQuery = `
+                    UPDATE tblAddresses 
+                    SET StreetAddress = @StreetAddress, City = @City, State = @State, PostalCode = @PostalCode, Country = @Country
+                    WHERE AddressID = @AddressID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
+
+                await transaction.request()
+                    .input('StreetAddress', sql.VarChar, addr.StreetAddress)
+                    .input('City', sql.VarChar, addr.City)
+                    .input('State', sql.VarChar, addr.State)
+                    .input('PostalCode', sql.VarChar, addr.PostalCode)
+                    .input('Country', sql.VarChar, addr.Country)
+                    .input('AddressID', sql.Int, addr.AddressID)
+                    .input('username', sql.VarChar, username)
+                    .query(addrQuery);
+            }
+        }
+
+        // Update user phone numbers
+        if (phoneNumbers) {
+            for (const phone of phoneNumbers) {
+                const phoneQuery = `
+                    UPDATE tblPhoneNumbers 
+                    SET AreaCode = @AreaCode, Number = @Number
+                    WHERE PhoneNumberID = @PhoneNumberID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
+
+                await transaction.request()
+                    .input('AreaCode', sql.VarChar, phone.AreaCode)
+                    .input('Number', sql.VarChar, phone.Number)
+                    .input('PhoneNumberID', sql.Int, phone.PhoneNumberID)
+                    .input('username', sql.VarChar, username)
+                    .query(phoneQuery);
+            }
+        }
+
+        // Update user emails
+        if (emails) {
+            for (const email of emails) {
+                const emailQuery = `
+                    UPDATE tblEmails 
+                    SET EmailAddress = @EmailAddress
+                    WHERE EmailID = @EmailID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
+
+                await transaction.request()
+                    .input('EmailAddress', sql.VarChar, email.EmailAddress)
+                    .input('EmailID', sql.Int, email.EmailID)
+                    .input('username', sql.VarChar, username)
+                    .query(emailQuery);
+            }
+        }
+
+        // Commit transaction
+        await transaction.commit();
+        res.send('User updated successfully');
     } catch (error) {
+        // Rollback transaction in case of error
+        await transaction.rollback();
         res.status(500).send(error.message);
     }
 });
 
 
-// PUT /users/:id/access-level: Update user access level
-app.put('/users/:id/access-level', async (req, res) => {
-    const userId = req.params.id;
-    const { access_level } = req.body;
 
-    if (access_level === undefined) {
-        return res.status(400).send('Access level is required');
-    }
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('access_level', sql.VarChar, access_level)  // Adjust sql type if needed
-            .input('user_id', sql.Int, userId)
-            .query('UPDATE Users SET access_level = @access_level WHERE user_id = @user_id');
-
-        if (result.rowsAffected[0] > 0) {
-            res.send('Access level updated');
-        } else {
-            res.status(404).send('User not found');
-        }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
 
 
 // GET /users: Retrieve all users
 app.get('/users', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Users');
+        const result = await pool.request().query('SELECT * FROM tblUsers');
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
@@ -269,15 +592,19 @@ app.get('/users', async (req, res) => {
 });
 
 
-// GET /users/username/:username: Retrieve a specific user by username
-app.get('/users/username/:username', async (req, res) => {
-    const username = req.params.username;
+// GET /users/employeeid/:id: Retrieve a specific user by EmployeeID
+app.get('/users/employeeid/:id', async (req, res) => {
+    const employeeId = parseInt(req.params.id, 10); // Convert to integer
+
+    if (isNaN(employeeId)) {
+        return res.status(400).send('Invalid EmployeeID');
+    }
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('username', sql.VarChar, username)
-            .query('SELECT * FROM Users WHERE username = @username');
+            .input('EmployeeID', sql.Int, employeeId) // Use sql.Int for EmployeeID
+            .query('SELECT * FROM tblUsers WHERE EmployeeID = @EmployeeID');
 
         if (result.recordset.length > 0) {
             res.json(result.recordset[0]);
@@ -291,174 +618,105 @@ app.get('/users/username/:username', async (req, res) => {
 
 
 
-// Add Employee
-app.post('/api/employees', async (req, res) => {
-    const { first_name, last_name, job_title, date_hired, pay_rate, address, phone_number } = req.body;
 
-    // Validate required fields
-    if (!first_name || !last_name || !job_title || !date_hired || !pay_rate || !address || !phone_number) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
+// POST /login: Authenticate user without hashing (for testing purposes only)
+app.post('/login', async (req, res) => {
+    console.log('Request Body:', req.body);
+    const { username, password } = req.body;
 
     try {
         const pool = await sql.connect(dbConfig);
-        await pool.request()
-            .input('first_name', sql.VarChar, first_name)
-            .input('last_name', sql.VarChar, last_name)
-            .input('job_title', sql.VarChar, job_title)
-            .input('date_hired', sql.Date, date_hired)
-            .input('pay_rate', sql.Decimal, pay_rate)  // Adjust SQL type if needed
-            .input('address', sql.VarChar, address)
-            .input('phone_number', sql.VarChar, phone_number)
-            .query(`
-                INSERT INTO Employee (first_name, last_name, job_title, date_hired, pay_rate, address, phone_number) 
-                VALUES (@first_name, @last_name, @job_title, @date_hired, @pay_rate, @address, @phone_number)
-            `);
-
-        res.status(201).json({ message: 'Employee added' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-// Remove Employee
-app.delete('/api/employees/:employee_id', async (req, res) => {
-    const employeeId = req.params.employee_id;
-
-    if (!employeeId) {
-        return res.status(400).json({ error: 'Employee ID is required' });
-    }
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('employee_id', sql.Int, employeeId) // Adjust sql type if needed
-            .query('DELETE FROM Employee WHERE employee_id = @employee_id');
-
-        if (result.rowsAffected[0] > 0) {
-            res.json({ message: 'Employee deleted successfully' });
-        } else {
-            res.status(404).json({ message: 'Employee not found' });
+        if (pool.connected) {
+            console.log('Connected to Azure SQL Server');
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
+        const request = new sql.Request();
+        // Adjust the query to select the password_hash column
+        const result = await request
+            .input('username', sql.VarChar, username)
+            .query('SELECT password FROM tblUsers WHERE username = @username'); // Adjusted query
 
-// Update Employee Info
-// Update Employee Info
-app.put('/api/employees/:employee_id', async (req, res) => {
-    const employeeId = req.params.employee_id;
-    const { first_name, last_name, job_title, date_hired, pay_rate, address, phone_number } = req.body;
-
-    // Build dynamic query and parameters
-    let query = 'UPDATE Employee SET ';
-    let params = [];
-    let paramIndex = 1;
-
-    if (first_name) {
-        query += `first_name = @first_name, `;
-        params.push({ name: 'first_name', value: first_name, type: sql.VarChar });
-    }
-    if (last_name) {
-        query += `last_name = @last_name, `;
-        params.push({ name: 'last_name', value: last_name, type: sql.VarChar });
-    }
-    if (job_title) {
-        query += `job_title = @job_title, `;
-        params.push({ name: 'job_title', value: job_title, type: sql.VarChar });
-    }
-    if (date_hired) {
-        query += `date_hired = @date_hired, `;
-        params.push({ name: 'date_hired', value: date_hired, type: sql.Date });
-    }
-    if (pay_rate) {
-        query += `pay_rate = @pay_rate, `;
-        params.push({ name: 'pay_rate', value: pay_rate, type: sql.Decimal });
-    }
-    if (address) {
-        query += `address = @address, `;
-        params.push({ name: 'address', value: address, type: sql.VarChar });
-    }
-    if (phone_number) {
-        query += `phone_number = @phone_number, `;
-        params.push({ name: 'phone_number', value: phone_number, type: sql.VarChar });
-    }
-
-    // Remove trailing comma and add WHERE clause
-    query = query.slice(0, -2) + ' WHERE employee_id = @employee_id';
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const request = pool.request();
-        
-        // Add parameters to the request
-        params.forEach(param => request.input(param.name, param.type, param.value));
-        request.input('employee_id', sql.Int, employeeId);
-
-        const result = await request.query(query);
-
-        if (result.rowsAffected[0] > 0) {
-            res.json({ employee_id: employeeId, ...req.body });
-        } else {
-            res.status(404).json({ message: 'Employee not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-
-// Get Employee Info
-app.get('/api/employees/:employee_id', async (req, res) => {
-    const employeeId = req.params.employee_id;
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('employee_id', sql.Int, employeeId)
-            .query('SELECT * FROM Employee WHERE employee_id = @employee_id');
-
+        console.log('testing');
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            const dbPassword = result.recordset[0].password; // Correctly access password_hash
+            console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
+
+            // Direct comparison of plain-text passwords (for testing purposes)
+            if (password === dbPassword) {
+                res.send('Authentication successful');
+            } else {
+                res.status(401).send('Invalid credentials');
+            }
         } else {
-            res.status(404).json({ message: 'Employee not found' });
+            res.status(404).send('User not found');
         }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(200).send(error);
     }
 });
 
 
-// Get All Employees
-app.get('/api/employees', async (req, res) => {
+
+
+/* // POST /login: Authenticate user with hashed passwords
+app.post('/login', async (req, res) => {
+    console.log('Request Body:', req.body);
+    const { username, password } = req.body;
+
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Employee');
-        res.json(result.recordset);
+        if (pool.connected) {
+            console.log('Connected to Azure SQL Server');
+        }
+
+        const request = new sql.Request();
+        // Adjust the query to select the password_hash column
+        const result = await request
+            .input('username', sql.VarChar, username)
+            .query('SELECT PasswordHash FROM tblUsers WHERE Username = @username'); // Adjusted query
+
+        console.log('Testing');
+        if (result.recordset.length > 0) {
+            const dbPasswordHash = result.recordset[0].PasswordHash; // Correctly access PasswordHash
+
+            console.log(`Password hash from DB: ${dbPasswordHash}`); // Log password hash for verification
+
+            // Compare provided password with hashed password from the database
+            const match = await bcrypt.compare(password, dbPasswordHash);
+
+            if (match) {
+                res.send('Authentication successful');
+            } else {
+                res.status(401).send('Invalid credentials');
+            }
+        } else {
+            res.status(404).send('User not found');
+        }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(200).send(error.message);
     }
-});
+}); */
 
-// Add Clock In
+
+
+
+
+
+// POST /api/attendance/clockin: Record clock-in time
 app.post('/api/attendance/clockin', async (req, res) => {
-    const { employee_id } = req.body;
+    const { employeeID } = req.body; // Use camelCase for consistency
 
-    if (!employee_id) {
+    if (!employeeID) {
         return res.status(400).json({ error: 'Employee ID is required' });
     }
 
     try {
         const pool = await sql.connect(dbConfig);
         await pool.request()
-            .input('employee_id', sql.Int, employee_id)
+            .input('employeeID', sql.UniqueIdentifier, employeeID) // Use UniqueIdentifier
             .query(`
-                INSERT INTO EmployeeAttendance (employee_id, clock_in_time, date) 
-                VALUES (@employee_id, GETDATE(), CONVERT(date, GETDATE()))
+                INSERT INTO tblEmployeeAttendance (EmployeeID, ClockInTime, Date) 
+                VALUES (@employeeID, GETDATE(), CONVERT(date, GETDATE()))
             `);
         res.status(201).json({ message: 'Clock-in recorded successfully' });
     } catch (error) {
@@ -467,63 +725,24 @@ app.post('/api/attendance/clockin', async (req, res) => {
 });
 
 
-// Add Clock Out
+// POST /api/attendance/clockout: Record clock-out time
 app.post('/api/attendance/clockout', async (req, res) => {
-    const { employee_id } = req.body;
+    const { employeeID } = req.body;
 
-    if (!employee_id) {
+    if (!employeeID) {
         return res.status(400).json({ error: 'Employee ID is required' });
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('employee_id', sql.Int, employee_id)
+        await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
             .query(`
-                UPDATE EmployeeAttendance 
-                SET clock_out_time = GETDATE() 
-                WHERE employee_id = @employee_id 
-                AND date = CONVERT(date, GETDATE()) 
-                AND clock_out_time IS NULL
+                UPDATE tblEmployeeAttendance
+                SET ClockOutTime = GETDATE()
+                WHERE EmployeeID = @employeeID AND Date = CONVERT(date, GETDATE()) AND ClockOutTime IS NULL
             `);
-
-        if (result.rowsAffected[0] === 0) {
-            res.status(404).json({ message: 'No clock-in record found for today or already clocked out' });
-        } else {
-            res.json({ message: 'Clock-out recorded successfully' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-// Update Clock In
-app.put('/api/employee-attendance/:attendance_id/clock-in', async (req, res) => {
-    const { attendance_id } = req.params;
-    const { clock_in_time } = req.body;
-
-    // Validate input
-    if (!clock_in_time) {
-        return res.status(400).json({ error: 'Clock-in time is required' });
-    }
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('attendance_id', sql.Int, attendance_id)
-            .input('clock_in_time', sql.DateTime, clock_in_time) // Adjust the type if needed
-            .query(`
-                UPDATE EmployeeAttendance 
-                SET clock_in_time = @clock_in_time 
-                WHERE attendance_id = @attendance_id
-            `);
-
-        if (result.rowsAffected[0] === 0) {
-            res.status(404).json({ message: 'Record not found' });
-        } else {
-            res.json({ attendance_id, clock_in_time });
-        }
+        res.status(200).json({ message: 'Clock-out recorded successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -544,11 +763,11 @@ app.put('/api/employee-attendance/:attendance_id/clock-out', async (req, res) =>
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('attendance_id', sql.Int, attendance_id)
-            .input('clock_out_time', sql.DateTime, clock_out_time) // Adjust type if necessary
+            .input('clock_out_time', sql.DateTime, clock_out_time) // Use DateTime for both date and time
             .query(`
-                UPDATE EmployeeAttendance 
-                SET clock_out_time = @clock_out_time 
-                WHERE attendance_id = @attendance_id
+                UPDATE tblEmployeeAttendance
+                SET ClockOutTime = @clock_out_time
+                WHERE AttendanceID = @attendance_id
             `);
 
         if (result.rowsAffected[0] === 0) {
@@ -561,28 +780,67 @@ app.put('/api/employee-attendance/:attendance_id/clock-out', async (req, res) =>
     }
 });
 
+app.put('/api/employee-attendance/:attendance_id/clock-in', async (req, res) => {
+    const { attendance_id } = req.params;
+    const { clock_in_time } = req.body;
+
+    // Validate input
+    if (!clock_in_time) {
+        return res.status(400).json({ error: 'Clock-in time is required' });
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('attendance_id', sql.Int, attendance_id)
+            .input('clock_in_time', sql.DateTime, clock_in_time) // Use DateTime for both date and time
+            .query(`
+                UPDATE tblEmployeeAttendance
+                SET ClockInTime = @clock_in_time
+                WHERE AttendanceID = @attendance_id
+            `);
+
+        if (result.rowsAffected[0] === 0) {
+            res.status(404).json({ message: 'Record not found' });
+        } else {
+            res.json({ attendance_id, clock_in_time });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+
 // Get all attendance
 app.get('/api/attendance', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM EmployeeAttendance');
+        const result = await pool.request().query('SELECT * FROM tblEmployeeAttendance');
         res.json(result.recordset);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-//get specific attendance
+// Get specific attendance by EmployeeID
 app.get('/api/attendance/:employee_id', async (req, res) => {
     const { employee_id } = req.params;
+
+    // Validate input
+    if (!employee_id) {
+        return res.status(400).json({ error: 'Employee ID is required' });
+    }
+
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('employee_id', sql.Int, employee_id)
-            .query('SELECT * FROM EmployeeAttendance WHERE employee_id = @employee_id');
+            .input('employee_id', sql.UniqueIdentifier, employee_id) // Use UniqueIdentifier for GUIDs
+            .query('SELECT * FROM tblEmployeeAttendance WHERE EmployeeID = @employee_id');
 
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            res.json(result.recordset);
         } else {
             res.status(404).json({ message: 'Attendance record not found' });
         }
@@ -592,14 +850,15 @@ app.get('/api/attendance/:employee_id', async (req, res) => {
 });
 
 
+
 // Ingredients API Calls
 
-// GET /ingredients: Retrieve all ingredients
 
+// GET /ingredients: Retrieve all ingredients
 app.get('/ingredients', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Ingredient');
+        const result = await pool.request().query('SELECT * FROM tblIngredients'); // Correct table name
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
@@ -608,40 +867,69 @@ app.get('/ingredients', async (req, res) => {
 
 
 
-// GET /ingredients/:name: Retrieve a specific ingredient by name
-app.get('/ingredients/:name', async (req, res) => {
-    const { name } = req.params;
+// GET /ingredients/name/:name: Retrieve ingredients by partial name match for search bar
+app.get('/ingredients/name/:name', async (req, res) => {
+    const ingredientName = req.params.name;
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('name', sql.VarChar, name)
-            .query('SELECT * FROM Ingredient WHERE ingredient_name = @name');
-
+            .input('ingredientName', sql.VarChar, `%${ingredientName}%`)
+            .query(`
+                SELECT * 
+                FROM tblIngredients 
+                WHERE Name LIKE @ingredientName
+            `);
+        
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            res.json(result.recordset);  // Return all matching ingredients
         } else {
-            res.status(404).send('Ingredient not found');
+            res.status(404).send('No ingredients found');
         }
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
+const checkVendorExists = async (vendorID) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('vendorID', sql.Int, vendorID)
+            .query('SELECT COUNT(*) AS count FROM tblVendors WHERE VendorID = @vendorID');
+        
+        return result.recordset[0].count > 0;
+    } catch (error) {
+        throw new Error('Error validating VendorID: ' + error.message);
+    }
+};
+
 
 
 // POST /ingredients: Add a new ingredient
 app.post('/ingredients', async (req, res) => {
-    const { ingredient_name, quantity, vendor } = req.body; // `ingredient_id` should typically be auto-generated
+    const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
+
     try {
+        // Validate VendorID
+        const vendorExists = await checkVendorExists(vendorID);
+        if (!vendorExists) {
+            return res.status(400).send('Invalid VendorID');
+        }
+
         const pool = await sql.connect(dbConfig);
         await pool.request()
-            .input('ingredient_name', sql.VarChar, ingredient_name)
-            .input('quantity', sql.Int, quantity)
-            .input('vendor', sql.VarChar, vendor)
+            .input('name', sql.VarChar, name)
+            .input('description', sql.VarChar, description)
+            .input('category', sql.VarChar, category)
+            .input('measurement', sql.VarChar, measurement)
+            .input('maxAmount', sql.Decimal(10, 2), maxAmount)
+            .input('reorderAmount', sql.Decimal(10, 2), reorderAmount)
+            .input('minAmount', sql.Decimal(10, 2), minAmount)
+            .input('vendorID', sql.Int, vendorID)
             .query(`
-                INSERT INTO Ingredient (ingredient_name, quantity, vendor) 
-                VALUES (@ingredient_name, @quantity, @vendor)
+                INSERT INTO tblIngredients (Name, Description, Category, Measurement, MaxAmount, ReorderAmount, MinAmount, VendorID) 
+                VALUES (@name, @description, @category, @measurement, @maxAmount, @reorderAmount, @minAmount, @vendorID)
             `);
         res.status(201).send('Ingredient added');
     } catch (error) {
@@ -651,60 +939,45 @@ app.post('/ingredients', async (req, res) => {
 
 
 
-// PUT /ingredients/:name/quantity: Update the quantity of an ingredient by name
-app.put('/ingredients/:name/quantity', async (req, res) => {
-    const { name } = req.params;
-    const { quantity } = req.body;
 
-    if (quantity === undefined || quantity === null) {
-        return res.status(400).send('Quantity is required');
-    }
+// PUT /ingredients/:id: Update an existing ingredient
+app.put('/ingredients/:id', async (req, res) => {
+    const ingredientID = req.params.id;
+    const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
 
     try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('name', sql.VarChar, name)
-            .input('quantity', sql.Int, quantity)
-            .query(`
-                UPDATE Ingredient 
-                SET quantity = @quantity 
-                WHERE ingredient_name = @name
-            `);
-
-        if (result.rowsAffected[0] > 0) {
-            res.send('Quantity updated');
-        } else {
-            res.status(404).send('Ingredient not found');
+        // Validate VendorID
+        const vendorExists = await checkVendorExists(vendorID);
+        if (!vendorExists) {
+            return res.status(400).send('Invalid VendorID');
         }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
 
-
-
-// PUT /ingredients/:name/vendor: Update vendor information for an ingredient by name
-app.put('/ingredients/:name/vendor', async (req, res) => {
-    const { name } = req.params;
-    const { vendor } = req.body;
-
-    if (!vendor) {
-        return res.status(400).send('Vendor information is required');
-    }
-
-    try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
+            .input('ingredientID', sql.Int, ingredientID)
             .input('name', sql.VarChar, name)
-            .input('vendor', sql.VarChar, vendor)
+            .input('description', sql.VarChar, description)
+            .input('category', sql.VarChar, category)
+            .input('measurement', sql.VarChar, measurement)
+            .input('maxAmount', sql.Decimal(10, 2), maxAmount)
+            .input('reorderAmount', sql.Decimal(10, 2), reorderAmount)
+            .input('minAmount', sql.Decimal(10, 2), minAmount)
+            .input('vendorID', sql.Int, vendorID)
             .query(`
-                UPDATE Ingredient
-                SET vendor = @vendor 
-                WHERE ingredient_name = @name
+                UPDATE tblIngredients 
+                SET Name = @name, 
+                    Description = @description, 
+                    Category = @category, 
+                    Measurement = @measurement, 
+                    MaxAmount = @maxAmount, 
+                    ReorderAmount = @reorderAmount, 
+                    MinAmount = @minAmount, 
+                    VendorID = @vendorID
+                WHERE IngredientID = @ingredientID
             `);
 
         if (result.rowsAffected[0] > 0) {
-            res.send('Vendor information updated');
+            res.send('Ingredient updated');
         } else {
             res.status(404).send('Ingredient not found');
         }
@@ -729,8 +1002,8 @@ app.delete('/ingredients/:name', async (req, res) => {
         const result = await pool.request()
             .input('name', sql.VarChar, name)
             .query(`
-                DELETE FROM Ingredient
-                WHERE ingredient_name = @name
+                DELETE FROM tblIngredients
+                WHERE Name = @name
             `);
 
         if (result.rowsAffected[0] > 0) {
@@ -745,31 +1018,39 @@ app.delete('/ingredients/:name', async (req, res) => {
 
 
 
+
 // Recipe API Calls
 
 // GET /recipes: Retrieve all recipes
 app.get('/recipes', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Recipe');
+        const result = await pool.request().query('SELECT * FROM tblRecipes');
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-// GET /recipes/name/:name: Retrieve a specific recipe by name
-app.get('/recipes/name/:name', async (req, res) => {
+
+// GET /recipes/search/:name: Search for recipes by partial name
+app.get('/recipes/search/:name', async (req, res) => {
     const { name } = req.params;
+    
+    if (!name) {
+        return res.status(400).send('Search term is required');
+    }
+
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('name', sql.VarChar, name)
-            .query('SELECT * FROM Recipe WHERE recipe_name = @name');
+            .input('name', sql.VarChar, `%${name}%`) // Use % for partial match
+            .query('SELECT * FROM tblRecipes WHERE Name LIKE @name');
+
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            res.json(result.recordset);  // Return all matching recipes
         } else {
-            res.status(404).send('Recipe not found');
+            res.status(404).send('No recipes found');
         }
     } catch (error) {
         res.status(500).send(error.message);
@@ -778,20 +1059,38 @@ app.get('/recipes/name/:name', async (req, res) => {
 
 
 
+
 // POST /recipes: Create a new recipe
 app.post('/recipes', async (req, res) => {
-    const { recipe_id, item_id, recipe_name, steps } = req.body;
+    const { name, steps, product_id } = req.body;
+
+    // Validate required fields
+    if (!name || !steps || !product_id) {
+        return res.status(400).send('Name, steps, and product ID are required');
+    }
+
     try {
         const pool = await sql.connect(dbConfig);
+
+        // Check if the ProductID exists
+        const productCheckResult = await pool.request()
+            .input('product_id', sql.Int, product_id)
+            .query('SELECT COUNT(*) AS Count FROM tblFinalProducts WHERE ProductID = @product_id');
+
+        if (productCheckResult.recordset[0].Count === 0) {
+            return res.status(400).send('Invalid ProductID');
+        }
+
+        // Insert the new recipe
         await pool.request()
-            .input('recipe_id', sql.Int, recipe_id)
-            .input('item_id', sql.Int, item_id)
-            .input('recipe_name', sql.VarChar, recipe_name)
+            .input('name', sql.VarChar, name)
             .input('steps', sql.Text, steps)
+            .input('product_id', sql.Int, product_id)
             .query(`
-                INSERT INTO Recipe (recipe_id, item_id, recipe_name, steps) 
-                VALUES (@recipe_id, @item_id, @recipe_name, @steps)
+                INSERT INTO tblRecipes (Name, Steps, ProductID) 
+                VALUES (@name, @steps, @product_id)
             `);
+
         res.status(201).send('Recipe created');
     } catch (error) {
         res.status(500).send(error.message);
@@ -799,26 +1098,54 @@ app.post('/recipes', async (req, res) => {
 });
 
 
+
+
 // PUT /recipes/name/:name: Update a recipe by name
 app.put('/recipes/name/:name', async (req, res) => {
     const { name } = req.params;
-    const { recipe_name, steps } = req.body;
+    const { new_name, steps } = req.body;
+
+    // Validate input
+    if (!new_name && !steps) {
+        return res.status(400).send('At least one field (new_name or steps) is required for update');
+    }
+    if (new_name && (typeof new_name !== 'string' || new_name.trim().length === 0)) {
+        return res.status(400).send('Valid new_name is required');
+    }
+    if (steps && (typeof steps !== 'string' || steps.trim().length === 0)) {
+        return res.status(400).send('Valid steps are required');
+    }
 
     try {
         const pool = await sql.connect(dbConfig);
-        
-        // Update query for recipe_name; if you want to update the name, be cautious of changing it
-        const result = await pool.request()
-            .input('name', sql.VarChar, name)
-            .input('recipe_name', sql.VarChar, recipe_name)
-            .input('steps', sql.Text, steps)
-            .query(`
-                UPDATE Recipe 
-                SET recipe_name = @recipe_name, 
-                    steps = @steps 
-                WHERE recipe_name = @name
-            `);
-            
+
+        // Prepare update query
+        let updateQuery = 'UPDATE tblRecipes SET ';
+        const updateParams = [];
+
+        if (new_name) {
+            updateQuery += 'Name = @new_name, ';
+            updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
+        }
+        if (steps) {
+            updateQuery += 'Steps = @steps, ';
+            updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+        }
+
+        // Remove trailing comma and space
+        updateQuery = updateQuery.slice(0, -2);
+        updateQuery += ' WHERE Name = @name';
+
+        // Execute update query
+        const request = pool.request();
+        request.input('name', sql.VarChar, name);
+
+        updateParams.forEach(param => {
+            request.input(param.name, param.type, param.value);
+        });
+
+        const result = await request.query(updateQuery);
+
         if (result.rowsAffected[0] > 0) {
             res.send('Recipe updated');
         } else {
@@ -830,17 +1157,23 @@ app.put('/recipes/name/:name', async (req, res) => {
 });
 
 
+
 // DELETE /recipes/name/:name: Delete a recipe by name
 app.delete('/recipes/name/:name', async (req, res) => {
     const { name } = req.params;
+
+    // Validate input
+    if (!name) {
+        return res.status(400).send('Recipe name is required');
+    }
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('name', sql.VarChar, name)
             .query(`
-                DELETE FROM Recipe 
-                WHERE recipe_name = @name
+                DELETE FROM tblRecipes 
+                WHERE Name = @name
             `);
 
         if (result.rowsAffected[0] > 0) {
@@ -849,217 +1182,173 @@ app.delete('/recipes/name/:name', async (req, res) => {
             res.status(404).send('Recipe not found');
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Error deleting recipe: ' + error.message);
     }
 });
 
 
-
-// EmployeeAvailability API Calls
-
-// GET /availability: Retrieve all employee availabilities
-app.get('/availability', async (req, res) => {
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM EmployeeAvailability');
-        res.json(result.recordset);
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
-// GET /availability/employee/:employee_id: Retrieve availability by employee ID
-app.get('/availability/employee/:employee_id', async (req, res) => {
-    const { employee_id } = req.params;
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('employee_id', sql.Int, employee_id)
-            .query('SELECT * FROM EmployeeAvailability WHERE employee_id = @employee_id');
-        if (result.recordset.length > 0) {
-            res.json(result.recordset);
-        } else {
-            res.status(404).send('Availability not found for the specified employee');
-        }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
-//add availability
-// POST /api/availability: Add a new availability record
-app.post('/api/availability', async (req, res) => {
-    const { employee_id, can_work, cannot_work } = req.body;
-    try {
-        await sql.query(`
-            INSERT INTO EmployeeAvailability (employee_id, can_work, cannot_work) 
-            VALUES (@employee_id, @can_work, @cannot_work)`, 
-        { 
-            employee_id, 
-            can_work, 
-            cannot_work 
-        });
-        res.status(201).send('Availability added');
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
-// PUT /api/availability/employee/:employee_id: Update availability for a specific employee
-app.put('/api/availability/employee/:employee_id', async (req, res) => {
-    const { employee_id } = req.params;
-    const { can_work, cannot_work } = req.body;
-
-    // Ensure that at least one of the fields is provided
-    if (can_work === undefined && cannot_work === undefined) {
-        return res.status(400).send('At least one of "can_work" or "cannot_work" must be provided');
-    }
-
-    try {
-        const pool = await sql.connect(dbConfig);
-
-        // Construct the dynamic query based on provided fields
-        let query = 'UPDATE EmployeeAvailability SET';
-        const params = {};
-
-        if (can_work !== undefined) {
-            query += ' can_work = @can_work,';
-            params.can_work = can_work;
-        }
-        if (cannot_work !== undefined) {
-            query += ' cannot_work = @cannot_work,';
-            params.cannot_work = cannot_work;
-        }
-
-        // Remove trailing comma and add WHERE clause
-        query = query.slice(0, -1) + ' WHERE employee_id = @employee_id';
-        params.employee_id = employee_id;
-
-        // Execute the query
-        const result = await pool.request()
-            .input('can_work', sql.VarChar, params.can_work) // Adjust type if necessary
-            .input('cannot_work', sql.VarChar, params.cannot_work) // Adjust type if necessary
-            .input('employee_id', sql.Int, employee_id)
-            .query(query);
-
-        if (result.rowsAffected[0] > 0) {
-            res.send('Availability updated');
-        } else {
-            res.status(404).send('Employee not found or no changes made');
-        }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
 
 
 
 //Inventory Calls
 
-// all items
+// GET /inventory: Retrieve all inventory items
 app.get('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Inventory');
+        const result = await pool.request().query('SELECT * FROM dbo.tblInventory');
         res.json(result.recordset);
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(200).send(error);
+        
     }
 });
 
 
-// GET /inventory/name/:item_name: Retrieve a specific item by name
-app.get('/inventory/name/:item_name', async (req, res) => {
-    const { item_name } = req.params;
+// GET /inventory/name/:name: Retrieve inventory items by partial name match
+app.get('/inventory/name/:name', async (req, res) => {
+    const { name } = req.params;
+
+    if (!name) {
+        return res.status(400).send('Search term is required');
+    }
+
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('item_name', sql.VarChar, item_name)
-            .query('SELECT * FROM Inventory WHERE item_name = @item_name');
+            .input('name', sql.VarChar, `%${name}%`)  // Using LIKE for partial match
+            .query('SELECT * FROM tblInventory WHERE Name LIKE @name');
+
         if (result.recordset.length > 0) {
-            res.json(result.recordset[0]);
+            res.json(result.recordset);  // Return all matching items
         } else {
-            res.status(404).send('Item not found');
+            res.status(404).send('No inventory items found');
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Error retrieving inventory items: ' + error.message);
     }
 });
 
 
-// add a new item
+// POST /inventory: Add a new inventory item
 app.post('/inventory', async (req, res) => {
-    const { item_id, item_name, quantity, price } = req.body;
+    const { quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+
+    // Validate input
+    if (quantity === undefined || cost === undefined || !create_datetime) {
+        return res.status(400).send('Quantity, cost, and create date/time are required');
+    }
+
     try {
         const pool = await sql.connect(dbConfig);
+
+        // Check if the RecipeID is valid (if provided)
+        if (recipe_id) {
+            const recipeCheck = await pool.request()
+                .input('recipe_id', sql.Int, recipe_id)
+                .query('SELECT COUNT(*) AS count FROM tblRecipes WHERE RecipeID = @recipe_id');
+            
+            if (recipeCheck.recordset[0].count === 0) {
+                return res.status(400).send('Invalid RecipeID');
+            }
+        }
+
+        // Insert the new inventory item
         await pool.request()
-            .input('item_id', sql.Int, item_id)
-            .input('item_name', sql.VarChar, item_name)
-            .input('quantity', sql.Int, quantity)
-            .input('price', sql.Decimal, price)
-            .query('INSERT INTO Inventory (item_id, item_name, quantity, price) VALUES (@item_id, @item_name, @quantity, @price)');
+            .input('quantity', sql.Decimal, quantity)
+            .input('notes', sql.VarChar, notes)  // Optional field
+            .input('cost', sql.Decimal, cost)
+            .input('create_datetime', sql.DateTime, create_datetime)
+            .input('expire_datetime', sql.DateTime, expire_datetime)  // Optional field
+            .input('recipe_id', sql.Int, recipe_id)  // Optional field
+            .query(`
+                INSERT INTO tblInventory (Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, RecipeID)
+                VALUES (@quantity, @notes, @cost, @create_datetime, @expire_datetime, @recipe_id)
+            `);
         res.status(201).send('Item added');
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-// PUT /inventory/name/:item_name/quantity: Update the quantity of an item by name
-app.put('/inventory/name/:item_name/quantity', async (req, res) => {
-    const { item_name } = req.params;
-    const { quantity } = req.body;
 
-    if (quantity === undefined) {
-        return res.status(400).send('Quantity is required');
+// PUT /inventory/:item_id: Update an inventory item by ID
+app.put('/inventory/:item_id', async (req, res) => {
+    const { item_id } = req.params;
+    const { quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+
+    // Validate input
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && recipe_id === undefined) {
+        return res.status(400).send('At least one field (quantity, cost, create_datetime, expire_datetime, or recipe_id) is required for update');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('item_name', sql.VarChar, item_name)
-            .input('quantity', sql.Int, quantity)
-            .query('UPDATE Inventory SET quantity = @quantity WHERE item_name = @item_name');
+
+        // Check if the RecipeID is valid (if provided)
+        if (recipe_id) {
+            const recipeCheck = await pool.request()
+                .input('recipe_id', sql.Int, recipe_id)
+                .query('SELECT COUNT(*) AS count FROM tblRecipes WHERE RecipeID = @recipe_id');
+            
+            if (recipeCheck.recordset[0].count === 0) {
+                return res.status(400).send('Invalid RecipeID');
+            }
+        }
+
+        // Prepare update query
+        let updateQuery = 'UPDATE tblInventory SET ';
+        const updateParams = [];
+
+        if (quantity !== undefined) {
+            updateQuery += 'Quantity = @quantity, ';
+            updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
+        }
+        if (notes !== undefined) {
+            updateQuery += 'Notes = @notes, ';
+            updateParams.push({ name: 'notes', value: notes, type: sql.VarChar });
+        }
+        if (cost !== undefined) {
+            updateQuery += 'Cost = @cost, ';
+            updateParams.push({ name: 'cost', value: cost, type: sql.Decimal });
+        }
+        if (create_datetime !== undefined) {
+            updateQuery += 'CreateDateTime = @create_datetime, ';
+            updateParams.push({ name: 'create_datetime', value: create_datetime, type: sql.DateTime });
+        }
+        if (expire_datetime !== undefined) {
+            updateQuery += 'ExpireDateTime = @expire_datetime, ';
+            updateParams.push({ name: 'expire_datetime', value: expire_datetime, type: sql.DateTime });
+        }
+        if (recipe_id !== undefined) {
+            updateQuery += 'RecipeID = @recipe_id, ';
+            updateParams.push({ name: 'recipe_id', value: recipe_id, type: sql.Int });
+        }
+
+        // Remove trailing comma and space
+        updateQuery = updateQuery.slice(0, -2);
+        updateQuery += ' WHERE EntryID = @item_id';
+
+        // Execute update query
+        const request = pool.request();
+        request.input('item_id', sql.Int, item_id);
+
+        updateParams.forEach(param => {
+            request.input(param.name, param.type, param.value);
+        });
+
+        const result = await request.query(updateQuery);
 
         if (result.rowsAffected[0] > 0) {
-            res.send('Quantity updated');
+            res.send('Inventory item updated');
         } else {
-            res.status(404).send('Item not found');
+            res.status(404).send('Inventory item not found');
         }
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-
-
-// PUT /inventory/name/:item_name/price: Update the price of an item by name
-app.put('/inventory/name/:item_name/price', async (req, res) => {
-    const { item_name } = req.params;
-    const { price } = req.body;
-
-    if (price === undefined) {
-        return res.status(400).send('Price is required');
-    }
-
-    try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('item_name', sql.VarChar, item_name)
-            .input('price', sql.Decimal, price)
-            .query('UPDATE Inventory SET price = @price WHERE item_name = @item_name');
-
-        if (result.rowsAffected[0] > 0) {
-            res.send('Price updated');
-        } else {
-            res.status(404).send('Item not found');
-        }
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
 
 // DELETE /inventory/name/:item_name: Remove an item by name
 app.delete('/inventory/name/:item_name', async (req, res) => {
@@ -1073,7 +1362,7 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('item_name', sql.VarChar, item_name)
-            .query('DELETE FROM Inventory WHERE item_name = @item_name');
+            .query('DELETE FROM tblInventory WHERE Name = @item_name');
 
         if (result.rowsAffected[0] > 0) {
             res.send('Item deleted');
@@ -1086,4 +1375,107 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 });
 
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// POST /sessions/start: Create a new session for a user
+app.post('/sessions/start', async (req, res) => {
+    const { employee_id } = req.body;
+
+    // Validate input
+    if (!employee_id) {
+        return res.status(400).json({ error: 'Employee ID is required' });
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('employee_id', sql.UniqueIdentifier, employee_id)
+            .input('create_datetime', sql.DateTime, new Date())
+            .query(`
+                INSERT INTO tblSessions (EmployeeID, CreateDateTime) 
+                VALUES (@employee_id, @create_datetime)
+            `);
+        
+        res.status(201).json({ session_id: result.recordset.insertId, employee_id });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// PUT /sessions/:session_id/update: Update the last activity time for a session
+app.put('/sessions/:session_id/update', async (req, res) => {
+    const { session_id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('session_id', sql.Int, session_id)
+            .input('last_activity_datetime', sql.DateTime, new Date())
+            .query(`
+                UPDATE tblSessions 
+                SET LastActivityDateTime = @last_activity_datetime 
+                WHERE SessionID = @session_id
+            `);
+        
+        if (result.rowsAffected[0] > 0) {
+            res.send('Session updated');
+        } else {
+            res.status(404).json({ message: 'Session not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// GET /sessions: Retrieve all active sessions
+app.get('/sessions', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT * FROM tblSessions');
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /sessions/:employee_id: Retrieve active sessions for a specific employee
+app.get('/sessions/:employee_id', async (req, res) => {
+    const { employee_id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('employee_id', sql.UniqueIdentifier, employee_id)
+            .query('SELECT * FROM tblSessions WHERE EmployeeID = @employee_id');
+        
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE /sessions/:session_id: End a session
+app.delete('/sessions/:session_id', async (req, res) => {
+    const { session_id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('session_id', sql.Int, session_id)
+            .query('DELETE FROM tblSessions WHERE SessionID = @session_id');
+        
+        if (result.rowsAffected[0] > 0) {
+            res.send('Session ended');
+        } else {
+            res.status(404).json({ message: 'Session not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`); // Log server start message
+});

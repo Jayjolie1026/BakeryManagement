@@ -1,0 +1,142 @@
+/*  Author: (Ploy) Siyapa Chanhorm (front page/ login page)
+    Date: 
+    File: styles.css
+    Purpose: create the structure and content of web pages
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+BR:wght@100..400&display=swap');
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Kumbh Sans', sans-serif;
+    font-weight:  300;
+}
+
+.navbar {
+    background: #DCAB6B;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.navbar__container {
+    display: flex;
+    justify-content: space-between;
+    height: 90px;
+    z-index: 1;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 50px;                
+}
+
+/*
+#navbar__logo {
+    background-color: #3d2a0c;
+    background-image: linear linear-gradient(to top, );
+}
+*/
+
+/*menu bar*/
+.navbar__menu {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    text-align: center;
+}
+
+.navbar__item {
+    height:  20px;
+}
+
+/*menu / front page*/
+.navbar__links {
+    background: #DCAB6B;
+    font-family: "Times New Roman", Times, serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: transparent;
+    padding: 0 1rem;
+    color: black;
+}
+
+/* sign in button */
+.navbar__btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1rem;
+    width: 130%;
+}
+
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: #6E0D25;
+    padding: 10px 20px;
+    height: 50px;
+    width: 100%;
+    border: 2px solid #fff;
+    outline: rgb(0, 0, 0);
+    border-radius: 6px;
+    background: transparent;
+    color:#6E0D25; 
+}
+
+.button:hover {
+    background: #FFFFB3;
+    transition: all 0.3 ease;
+}
+
+/* transition color on menu bar*/
+.navbar__links:hover {
+    color: bisque; 
+    transition: all 0.5 ease;
+}
+
+
+/* header section */
+.main {
+    background: #FFFFB3;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: linear-gradient(to top, #6A381F 0%, #deb887 100%);
+}
+
+.main__container {
+    display: grid;
+    /*grid-template-columns: 1fr 1fr;*/
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    height: 100vh;
+    background-color: #f6dcbb;
+
+}
+
+.main__content h1 {
+    background-color: #f6dcbb;
+    font-family:'Times New Roman', Times, serif;
+    font-size: 40px;
+    text-transform: uppercase;
+}
+
+.main__content h2 {
+    font-size: 4rem;
+    color: linear-gradient(to top, #6A381F 0%, #deb887 100%);
+    font-size: 40px;
+    text-transform: none; 
+}
+
+
