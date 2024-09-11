@@ -857,8 +857,11 @@ app.get('/api/attendance/:employee_id', async (req, res) => {
 // GET /ingredients: Retrieve all ingredients
 app.get('/ingredients', async (req, res) => {
     try {
+        console.log("hello");
         const pool = await sql.connect(dbConfig);
+        console.log("b");
         const result = await pool.request().query('SELECT * FROM dbo.tblIngredients'); // Correct table name
+        console.log("c");
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
