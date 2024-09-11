@@ -858,7 +858,7 @@ app.get('/api/attendance/:employee_id', async (req, res) => {
 app.get('/ingredients', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM tblIngredients'); // Correct table name
+        const result = await pool.request().query('SELECT * FROM dbo.tblIngredients'); // Correct table name
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
