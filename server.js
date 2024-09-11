@@ -23,6 +23,17 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+(async () => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendor');
+        console.log('Test Query Result:', testQuery.recordset);
+    } catch (error) {
+        console.error('Test Query Error:', error);
+    }
+})();
+
+
 
 // Serve index.html for the root route
 app.get('/', (req, res) => {
@@ -30,6 +41,18 @@ app.get('/', (req, res) => {
 });
 
 console.log('Server is starting.');
+
+
+(async () => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendor');
+        console.log('Test Query Result:', testQuery.recordset);
+    } catch (error) {
+        console.error('Test Query Error:', error);
+    }
+})();
+
 
 
   // GET /vendors: Retrieve all vendors Populate list underneath search bar
