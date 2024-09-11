@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 (async () => {
     try {
         const pool = await sql.connect(dbConfig);
-        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendor');
+        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendors');
         console.log('Test Query Result:', testQuery.recordset);
     } catch (error) {
         console.error('Test Query Error:', error);
@@ -46,7 +46,7 @@ console.log('Server is starting.');
 (async () => {
     try {
         const pool = await sql.connect(dbConfig);
-        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendor');
+        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendors');
         console.log('Test Query Result:', testQuery.recordset);
     } catch (error) {
         console.error('Test Query Error:', error);
@@ -59,7 +59,7 @@ console.log('Server is starting.');
   app.get('/vendors', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const vendors = await pool.request().query('SELECT VendorName FROM tblVendor');
+        const vendors = await pool.request().query('SELECT VendorName FROM tblVendors');
         res.json(vendors.recordset);
     } catch (error) {
         res.status(500).send(error.message);
