@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // user model for inventory items
 class Item {
@@ -49,8 +51,8 @@ class Item {
 // api call to get all and queried items
 class InventoryApi {
   static Future<List<Item>> getItems(String query) async {
-    final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
-    final response = await http.get(_apiUrl);
+    final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
+    final response = await http.get(apiUrl);
 
     if (response.statusCode == 200) {
       final List items = json.decode(response.body);
@@ -69,6 +71,8 @@ class InventoryApi {
 
 // display page
 class InventoryPage extends StatefulWidget {
+  const InventoryPage({super.key});
+
   @override
   _InventoryPageState createState() => _InventoryPageState();
 }
@@ -164,11 +168,11 @@ class SearchWidget extends StatefulWidget {
   final String hintText;
 
   const SearchWidget({
-    Key? key,
+    super.key,
     required this.text,
     required this.onChanged,
     required this.hintText,
-  }) : super(key: key);
+  });
 
   @override
   _SearchWidgetState createState() => _SearchWidgetState();
@@ -179,8 +183,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final styleActive = TextStyle(color: Colors.black);
-    final styleHint = TextStyle(color: Colors.black54);
+    final styleActive = const TextStyle(color: Colors.black);
+    final styleHint = const TextStyle(color: Colors.black54);
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
