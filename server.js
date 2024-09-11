@@ -1199,7 +1199,8 @@ app.get('/inventory', async (req, res) => {
         const result = await pool.request().query('SELECT * FROM dbo.tblInventory');
         res.json(result.recordset);
     } catch (error) {
-        res.status(500).send('Error retrieving inventory: ' + error.message);
+        res.status(200).send(error);
+        
     }
 });
 
