@@ -1196,7 +1196,7 @@ app.delete('/recipes/name/:name', async (req, res) => {
 app.get('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM tblInventory');
+        const result = await pool.request().query('SELECT * FROM dbo.tblInventory');
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send('Error retrieving inventory: ' + error.message);
