@@ -75,9 +75,7 @@ class _BakedGoodsSearchScreenState extends State<BakedGoodsSearchScreen> {
 
   void _fetchBakedGoods() async {
      try {
-       console.log("before fetch");
       final bakedGoods = await fetchBakedGoods();
-       console.log("after fetch");
       setState(() {
         _bakedGoods = bakedGoods;
         _filteredBakedGoods = bakedGoods; // Initialize with all baked goods
