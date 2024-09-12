@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-// Item model for final products
+// Product model for final products
 class Product {
   final int productID;
-  final String description;
+  final String name;
   final int maxAmount;
   final int minAmount;
   final int quantity;
@@ -15,7 +15,7 @@ class Product {
   // Constructor
   Product({
     required this.productID,
-    required this.description,
+    required this.name,
     required this.maxAmount,
     required this.minAmount,
     required this.quantity,
@@ -26,7 +26,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       productID: json['ProductID'],
-      description: json['Description'] ?? '', // Default to empty string if null
+      name: json['Name'] ?? '', // Default to empty string if null
       maxAmount: json['MaxAmount'].toInt(),  // Extract MaxAmount
       minAmount: json['MinAmount'].toInt(),  // Extract MinAmount
       quantity: json['Quantity'].toInt(),    // Extract Quantity
@@ -37,7 +37,7 @@ class Product {
   // Convert Product object to JSON format
   Map<String, dynamic> toJson() => {
         'ProductID': productID,
-        'Description': description, // Add Description to JSON
+        'Name': name, // Add Name to JSON
         'MaxAmount': maxAmount,
         'MinAmount': minAmount,
         'Quantity': quantity,
@@ -55,10 +55,10 @@ class ProductApi {
       final List products = json.decode(response.body);
 
       return products.map((json) => Product.fromJson(json)).where((product) {
-        final descriptionLower = product.description.toLowerCase();
+        final nameLower = product.name.toLowerCase();
         final searchLower = query.toLowerCase();
 
-        return descriptionLower.contains(searchLower);
+        return nameLower.contains(searchLower);
       }).toList();
     } else {
       throw Exception('Failed to load products');
@@ -133,7 +133,7 @@ class _ProductsPageState extends State<ProductsPage> {
   // Search bar widget
   Widget buildSearch() => SearchWidget(
         text: query,
-        hintText: 'Search by Description',
+        hintText: 'Search by Name',
         onChanged: searchProduct,
       );
 
@@ -151,7 +151,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
   // Build list tile for each product
   Widget buildProduct(Product product) => ListTile(
-        title: Text(product.description), // Display description
+        title: Text(product.name), // Display name
         subtitle: Text('Price: \$${product.price}'), // Display price
         trailing: Text('Quantity: ${product.quantity}'),
       );
