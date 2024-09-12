@@ -21,9 +21,7 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
       ),
-
       debugShowCheckedModeBanner: false,
-
       home: const SignInPage(),
 
     );
