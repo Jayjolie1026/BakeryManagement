@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
 // Item model for inventory items
 class Item {
   final int entryID;
@@ -218,6 +219,7 @@ Widget build(BuildContext context) => Scaffold(
         title: Text(item.notes), // Display notes or relevant details
         subtitle: Text('Ingredient: ${item.ingredientName}'), // Display the IngredientName
         trailing: Text('Quantity: ${item.quantity}'),
+        onTap: () => showItemDetails(context, item), // Show details when an item is tapped
 
       );
 }
@@ -399,3 +401,76 @@ void showAddIngredientDialog(BuildContext context) {
   );
 }
 
+// Function to format dates
+String formatDate(DateTime dateTime) {
+  final day = dateTime.day.toString().padLeft(2, '0');
+  final month = dateTime.month.toString().padLeft(2, '0');
+  final year = dateTime.year.toString();
+
+  return '$year-$month-$day'; // Format as YYYY-MM-DD
+}
+
+// Function to show a dialog with item details
+void showItemDetails(BuildContext context, Item item) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Center(
+          child: Text(
+            'Ingredients',
+            style: TextStyle(color: Color.fromARGB(255, 97, 91, 77)),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Placeholder image at the top
+            Image.network(
+              'https://via.placeholder.com/150', // Placeholder image URL
+              height: 150,
+              width: 150,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(height: 16),
+            // Item details
+            Text('Entry ID: ${item.entryID}'),
+            Text('PO Number: ${item.entryID}'), // Assuming PO Number is same as Entry ID for now
+            Text('Entry Date: ${formatDate(item.createDateTime)}'),
+            Text('Expiration Date: ${formatDate(item.expireDateTime)}'),
+            Text('Quantity: ${item.quantity}'),
+            Text('Cost: \$${item.cost.toStringAsFixed(2)}'),
+            Text('Notes: ${item.notes}'),
+          ],
+        ),
+        actions: [
+          // Container to add space between the buttons and the dialog edges
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Update button
+                TextButton.icon(
+                  icon: const Icon(Icons.update, color: Color.fromARGB(255, 97, 91, 77)), // Change icon color
+                  label: const Text('Update', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
+                  onPressed: () {
+                    // Action for Update button
+                  },
+                ),
+                // Vendor button
+                TextButton.icon(
+                  icon: const Icon(Icons.store, color: Color.fromARGB(255, 97, 91, 77)),
+                  label: const Text('Vendor', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
+                  onPressed: () {
+                    // Action for Vendor button
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
