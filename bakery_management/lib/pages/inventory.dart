@@ -13,6 +13,7 @@ class Item {
   final DateTime expireDateTime;
   final int employeeID; // Optional if included in API response
   final int recipeID;   // Optional if included in API response
+  final String ingredientName;
 
   // Constructor
   Item({
@@ -24,6 +25,7 @@ class Item {
     required this.expireDateTime,
     this.employeeID = 0, // Default to 0 if not included in API response
     this.recipeID = 0,   // Default to 0 if not included in API response
+    required this.ingredientName, // Initialize IngredientName
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -37,6 +39,7 @@ class Item {
       expireDateTime: DateTime.parse(json['ExpireDateTime']),
       employeeID: json['EmployeeID'] ?? 0, // Use default if null
       recipeID: json['RecipeID'] ?? 0,     // Use default if null
+      ingredientName: json['IngredientName'] ?? '', // Extract IngredientName
     );
   }
 
@@ -50,6 +53,7 @@ class Item {
         'ExpireDateTime': expireDateTime.toIso8601String(),
         'EmployeeID': employeeID,
         'RecipeID': recipeID,
+        'IngredientName': ingredientName, // Add IngredientName to JSON
       };
 }
 
@@ -160,6 +164,9 @@ class _InventoryPageState extends State<InventoryPage> {
   // Build list tile for each inventory item
   Widget buildItem(Item item) => ListTile(
         title: Text(item.notes), // Display notes or relevant details
+        subtitle: Text('Ingredient: ${item.ingredientName}'), // Display the IngredientName
+        trailing: Text('Quantity: ${item.quantity}'),
+
       );
 }
 
