@@ -1211,7 +1211,7 @@ app.get('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
-            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, inv.RecipeID,
+            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, 
                    ing.Name AS IngredientName
             FROM dbo.tblInventory inv
             JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
@@ -1237,7 +1237,7 @@ app.get('/inventory/name/:name', async (req, res) => {
         const result = await pool.request()
             .input('name', sql.VarChar, `%${name}%`)  // Using LIKE for partial match
             .query(`
-                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, inv.RecipeID,
+                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, 
                        ing.Name AS IngredientName
                 FROM dbo.tblInventory inv
                 JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
@@ -1269,16 +1269,6 @@ app.post('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
 
-        // Check if the RecipeID is valid (if provided)
-        if (recipe_id) {
-            const recipeCheck = await pool.request()
-                .input('recipe_id', sql.Int, recipe_id)
-                .query('SELECT COUNT(*) AS count FROM tblRecipes WHERE RecipeID = @recipe_id');
-            
-            if (recipeCheck.recordset[0].count === 0) {
-                return res.status(400).send('Invalid RecipeID');
-            }
-        }
 
         // Insert the new inventory item
         await pool.request()
@@ -1288,10 +1278,9 @@ app.post('/inventory', async (req, res) => {
             .input('cost', sql.Decimal, cost)
             .input('create_datetime', sql.DateTime, create_datetime)
             .input('expire_datetime', sql.DateTime, expire_datetime)  // Optional field
-            .input('recipe_id', sql.Int, recipe_id)  // Optional field
             .query(`
-                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, RecipeID)
-                VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime, @recipe_id)
+                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime)
+                VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime)
             `);
         res.status(201).send('Item added');
     } catch (error) {
@@ -1304,26 +1293,17 @@ app.post('/inventory', async (req, res) => {
 // PUT /inventory/:item_id: Update an inventory item by ID
 app.put('/inventory/:item_id', async (req, res) => {
     const { item_id } = req.params;
-    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime } = req.body;
 
     // Validate input
-    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && recipe_id === undefined && ingredient_id === undefined) {
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime  && ingredient_id === undefined) {
         return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, or recipe_id) is required for update');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
 
-        // Check if the RecipeID is valid (if provided)
-        if (recipe_id) {
-            const recipeCheck = await pool.request()
-                .input('recipe_id', sql.Int, recipe_id)
-                .query('SELECT COUNT(*) AS count FROM tblRecipes WHERE RecipeID = @recipe_id');
-            
-            if (recipeCheck.recordset[0].count === 0) {
-                return res.status(400).send('Invalid RecipeID');
-            }
-        }
+    
 
         // Prepare update query
         let updateQuery = 'UPDATE tblInventory SET ';
@@ -1353,10 +1333,7 @@ app.put('/inventory/:item_id', async (req, res) => {
             updateQuery += 'ExpireDateTime = @expire_datetime, ';
             updateParams.push({ name: 'expire_datetime', value: expire_datetime, type: sql.DateTime });
         }
-        if (recipe_id !== undefined) {
-            updateQuery += 'RecipeID = @recipe_id, ';
-            updateParams.push({ name: 'recipe_id', value: recipe_id, type: sql.Int });
-        }
+        
 
         // Remove trailing comma and space
         updateQuery = updateQuery.slice(0, -2);
