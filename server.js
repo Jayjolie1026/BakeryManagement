@@ -1039,18 +1039,49 @@ app.delete('/ingredients/:name', async (req, res) => {
 app.get('/recipes', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM tblRecipes');
-        res.json(result.recordset);
+        const result = await pool.request().query(`
+            SELECT 
+                r.RecipeID, r.Name, r.Steps, r.ProductID,
+                ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+            FROM tblRecipes r
+            LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+            LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+        `);
+
+        const recipes = result.recordset.reduce((acc, row) => {
+            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+            if (!recipe) {
+                recipe = {
+                    RecipeID: row.RecipeID,
+                    Name: row.Name,
+                    Steps: row.Steps,
+                    ProductID: row.ProductID,
+                    Ingredients: []
+                };
+                acc.push(recipe);
+            }
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity
+                });
+            }
+            return acc;
+        }, []);
+
+        res.json(recipes);
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+
 
 
 // GET /recipes/search/:name: Search for recipes by partial name
 app.get('/recipes/search/:name', async (req, res) => {
     const { name } = req.params;
-    
+
     if (!name) {
         return res.status(400).send('Search term is required');
     }
@@ -1058,11 +1089,41 @@ app.get('/recipes/search/:name', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
-            .input('name', sql.VarChar, `%${name}%`) // Use % for partial match
-            .query('SELECT * FROM tblRecipes WHERE Name LIKE @name');
+            .input('name', sql.VarChar, `%${name}%`)
+            .query(`
+                SELECT 
+                    r.RecipeID, r.Name, r.Steps, r.ProductID,
+                    ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                FROM tblRecipes r
+                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                WHERE r.Name LIKE @name
+            `);
 
-        if (result.recordset.length > 0) {
-            res.json(result.recordset);  // Return all matching recipes
+        const recipes = result.recordset.reduce((acc, row) => {
+            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+            if (!recipe) {
+                recipe = {
+                    RecipeID: row.RecipeID,
+                    Name: row.Name,
+                    Steps: row.Steps,
+                    ProductID: row.ProductID,
+                    Ingredients: []
+                };
+                acc.push(recipe);
+            }
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity
+                });
+            }
+            return acc;
+        }, []);
+
+        if (recipes.length > 0) {
+            res.json(recipes);
         } else {
             res.status(404).send('No recipes found');
         }
@@ -1074,13 +1135,13 @@ app.get('/recipes/search/:name', async (req, res) => {
 
 
 
+
 // POST /recipes: Create a new recipe
 app.post('/recipes', async (req, res) => {
-    const { name, steps, product_id } = req.body;
+    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity }]
 
-    // Validate required fields
-    if (!name || !steps || !product_id) {
-        return res.status(400).send('Name, steps, and product ID are required');
+    if (!name || !steps || !product_id || !Array.isArray(ingredients)) {
+        return res.status(400).send('Name, steps, product ID, and ingredients are required');
     }
 
     try {
@@ -1095,21 +1156,37 @@ app.post('/recipes', async (req, res) => {
             return res.status(400).send('Invalid ProductID');
         }
 
-        // Insert the new recipe
-        await pool.request()
+        // Insert the new recipe and get the new RecipeID
+        const recipeResult = await pool.request()
             .input('name', sql.VarChar, name)
             .input('steps', sql.Text, steps)
             .input('product_id', sql.Int, product_id)
             .query(`
                 INSERT INTO tblRecipes (Name, Steps, ProductID) 
+                OUTPUT inserted.RecipeID
                 VALUES (@name, @steps, @product_id)
             `);
 
-        res.status(201).send('Recipe created');
+        const newRecipeID = recipeResult.recordset[0].RecipeID;
+
+        // Insert ingredients into tblRecipeIngredients
+        for (const ingredient of ingredients) {
+            await pool.request()
+                .input('recipe_id', sql.Int, newRecipeID)
+                .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                .input('quantity', sql.Decimal, ingredient.Quantity)
+                .query(`
+                    INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity) 
+                    VALUES (@recipe_id, @ingredient_id, @quantity)
+                `);
+        }
+
+        res.status(201).send('Recipe created with ingredients');
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Error creating recipe: ' + error.message);
     }
 });
+
 
 
 
@@ -1117,58 +1194,79 @@ app.post('/recipes', async (req, res) => {
 // PUT /recipes/name/:name: Update a recipe by name
 app.put('/recipes/name/:name', async (req, res) => {
     const { name } = req.params;
-    const { new_name, steps } = req.body;
+    const { new_name, steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity }]
 
-    // Validate input
-    if (!new_name && !steps) {
-        return res.status(400).send('At least one field (new_name or steps) is required for update');
-    }
-    if (new_name && (typeof new_name !== 'string' || new_name.trim().length === 0)) {
-        return res.status(400).send('Valid new_name is required');
-    }
-    if (steps && (typeof steps !== 'string' || steps.trim().length === 0)) {
-        return res.status(400).send('Valid steps are required');
+    if (!new_name && !steps && !Array.isArray(ingredients)) {
+        return res.status(400).send('At least one field (new_name, steps, or ingredients) is required for update');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
 
-        // Prepare update query
-        let updateQuery = 'UPDATE tblRecipes SET ';
-        const updateParams = [];
+        // Fetch the RecipeID using the current recipe name
+        const recipeResult = await pool.request()
+            .input('name', sql.VarChar, name)
+            .query('SELECT RecipeID FROM tblRecipes WHERE Name = @name');
 
-        if (new_name) {
-            updateQuery += 'Name = @new_name, ';
-            updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
-        }
-        if (steps) {
-            updateQuery += 'Steps = @steps, ';
-            updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+        if (recipeResult.recordset.length === 0) {
+            return res.status(404).send('Recipe not found');
         }
 
-        // Remove trailing comma and space
-        updateQuery = updateQuery.slice(0, -2);
-        updateQuery += ' WHERE Name = @name';
+        const recipeID = recipeResult.recordset[0].RecipeID;
 
-        // Execute update query
-        const request = pool.request();
-        request.input('name', sql.VarChar, name);
+        // Update recipe details
+        if (new_name || steps) {
+            let updateQuery = 'UPDATE tblRecipes SET ';
+            const updateParams = [];
 
-        updateParams.forEach(param => {
-            request.input(param.name, param.type, param.value);
-        });
+            if (new_name) {
+                updateQuery += 'Name = @new_name, ';
+                updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
+            }
+            if (steps) {
+                updateQuery += 'Steps = @steps, ';
+                updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+            }
 
-        const result = await request.query(updateQuery);
+            // Remove trailing comma and space
+            updateQuery = updateQuery.slice(0, -2);
+            updateQuery += ' WHERE RecipeID = @recipe_id';
 
-        if (result.rowsAffected[0] > 0) {
-            res.send('Recipe updated');
-        } else {
-            res.status(404).send('Recipe not found');
+            const request = pool.request();
+            request.input('recipe_id', sql.Int, recipeID);
+            updateParams.forEach(param => {
+                request.input(param.name, param.type, param.value);
+            });
+
+            await request.query(updateQuery);
         }
+
+        // Update ingredients
+        if (Array.isArray(ingredients)) {
+            // Clear current ingredients
+            await pool.request()
+                .input('recipe_id', sql.Int, recipeID)
+                .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+
+            // Insert new ingredients
+            for (const ingredient of ingredients) {
+                await pool.request()
+                    .input('recipe_id', sql.Int, recipeID)
+                    .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                    .input('quantity', sql.Decimal, ingredient.Quantity)
+                    .query(`
+                        INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity) 
+                        VALUES (@recipe_id, @ingredient_id, @quantity)
+                    `);
+            }
+        }
+
+        res.send('Recipe updated');
     } catch (error) {
-        res.status(500).send(error.message);
+        res.status(500).send('Error updating recipe: ' + error.message);
     }
 });
+
 
 
 
@@ -1211,17 +1309,18 @@ app.get('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
-            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, 
-                   ing.Name AS IngredientName
+           SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
+                   ing.Name AS IngredientName, inv.Quantity AS IngredientQuantity, ing.MinAmount,ing.MaxAmount, ing.ReorderAmount
             FROM dbo.tblInventory inv
             JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
         `);
+        
         res.json(result.recordset);
     } catch (error) {
+        console.error('Error retrieving inventory items:', error); // Log any errors
         res.status(500).send('Error retrieving inventory items: ' + error.message);
     }
 });
-
 
 
 // GET /inventory/name/:name: Retrieve inventory items by partial name match
@@ -1237,10 +1336,10 @@ app.get('/inventory/name/:name', async (req, res) => {
         const result = await pool.request()
             .input('name', sql.VarChar, `%${name}%`)  // Using LIKE for partial match
             .query(`
-                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, 
-                       ing.Name AS IngredientName
-                FROM dbo.tblInventory inv
-                JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
+                   ing.Name AS IngredientName, inv.Quantity AS IngredientQuantity, ing.MinAmount,ing.MaxAmount, ing.ReorderAmount
+            FROM dbo.tblInventory inv
+            JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
                 WHERE ing.Name LIKE @name
             `);
 
@@ -1493,6 +1592,206 @@ app.delete('/sessions/:session_id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+
+
+// Final Product API Calls
+// GET /finalproducts: Retrieve all final products
+app.get('/finalproducts', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT * FROM tblFinalProducts');
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).send('Error retrieving final products: ' + error.message);
+    }
+});
+
+// GET /finalproducts/:id: Retrieve a specific final product by ProductID
+app.get('/finalproducts/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT * FROM tblFinalProducts WHERE ProductID = @id');
+
+        if (result.recordset.length > 0) {
+            res.json(result.recordset[0]);
+        } else {
+            res.status(404).send('Final product not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error retrieving final product: ' + error.message);
+    }
+});
+
+// POST /finalproducts: Create a new final product
+app.post('/finalproducts', async (req, res) => {
+    const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
+
+    // Validate required fields
+    if (!name || quantity === undefined || price === undefined) {
+        return res.status(400).send('Name, Quantity, and Price are required');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('name', sql.VarChar, name)
+            .input('description', sql.Text, description || null)
+            .input('maxAmount', sql.Int, maxAmount || null)
+            .input('remakeAmount', sql.Int, remakeAmount || null)
+            .input('minAmount', sql.Int, minAmount || null)
+            .input('quantity', sql.Int, quantity)
+            .input('price', sql.Decimal(18, 2), price)
+            .query(`
+                INSERT INTO tblFinalProducts (Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price) 
+                VALUES (@name, @description, @maxAmount, @remakeAmount, @minAmount, @quantity, @price)
+            `);
+
+        res.status(201).send('Final product created');
+    } catch (error) {
+        res.status(500).send('Error creating final product: ' + error.message);
+    }
+});
+
+// PUT /finalproducts/:id: Update a specific final product by ProductID
+app.put('/finalproducts/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
+
+    // Check if at least one field is provided for update
+    if (!name && description === undefined && maxAmount === undefined && remakeAmount === undefined && minAmount === undefined && quantity === undefined && price === undefined) {
+        return res.status(400).send('At least one field is required for update');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .input('name', sql.VarChar, name || null)
+            .input('description', sql.Text, description || null)
+            .input('maxAmount', sql.Int, maxAmount || null)
+            .input('remakeAmount', sql.Int, remakeAmount || null)
+            .input('minAmount', sql.Int, minAmount || null)
+            .input('quantity', sql.Int, quantity || null)
+            .input('price', sql.Decimal(18, 2), price || null)
+            .query(`
+                UPDATE tblFinalProducts 
+                SET 
+                    Name = ISNULL(@name, Name), 
+                    Description = ISNULL(@description, Description), 
+                    MaxAmount = ISNULL(@maxAmount, MaxAmount), 
+                    RemakeAmount = ISNULL(@remakeAmount, RemakeAmount), 
+                    MinAmount = ISNULL(@minAmount, MinAmount), 
+                    Quantity = ISNULL(@quantity, Quantity), 
+                    Price = ISNULL(@price, Price)
+                WHERE ProductID = @id
+            `);
+
+        if (result.rowsAffected[0] > 0) {
+            res.send('Final product updated');
+        } else {
+            res.status(404).send('Final product not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error updating final product: ' + error.message);
+    }
+});
+
+// DELETE /finalproducts/:id: Delete a specific final product by ProductID
+app.delete('/finalproducts/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query('DELETE FROM tblFinalProducts WHERE ProductID = @id');
+
+        if (result.rowsAffected[0] > 0) {
+            res.send('Final product deleted');
+        } else {
+            res.status(404).send('Final product not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error deleting final product: ' + error.message);
+    }
+});
+
+// GET /finalproducts/search/:name: Search for final products by partial name
+app.get('/finalproducts/search/:name', async (req, res) => {
+    const { name } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('name', sql.VarChar, `%${name}%`) // Use % for partial matching
+            .query('SELECT * FROM tblFinalProducts WHERE Name LIKE @name');
+
+        if (result.recordset.length > 0) {
+            res.json(result.recordset);  // Return all matching final products
+        } else {
+            res.status(404).send('No final products found');
+        }
+    } catch (error) {
+        res.status(500).send('Error searching final products: ' + error.message);
+    }
+});
+
+// GET /finalproducts: Retrieve all final products with quantity check
+app.get('/finalproducts', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request().query('SELECT * FROM tblFinalProducts');
+        
+        // Add a warning if Quantity is below RemakeAmount
+        const productsWithWarnings = result.recordset.map(product => {
+            if (product.Quantity < product.RemakeAmount) {
+                return {
+                    ...product,
+                    warning: 'Quantity is below the remake amount. Consider restocking.'
+                };
+            }
+            return product;
+        });
+
+        res.json(productsWithWarnings);
+    } catch (error) {
+        res.status(500).send('Error retrieving final products: ' + error.message);
+    }
+});
+
+// GET /finalproducts/:id: Retrieve a specific final product by ProductID with quantity check
+app.get('/finalproducts/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query('SELECT * FROM tblFinalProducts WHERE ProductID = @id');
+
+        if (result.recordset.length > 0) {
+            const product = result.recordset[0];
+
+            // Check if Quantity is below RemakeAmount
+            if (product.Quantity < product.RemakeAmount) {
+                product.warning = 'Quantity is below the remake amount. Consider restocking.';
+            }
+
+            res.json(product);
+        } else {
+            res.status(404).send('Final product not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error retrieving final product: ' + error.message);
+    }
+});
+
+
 
 
 

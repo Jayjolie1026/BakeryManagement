@@ -14,6 +14,11 @@ class Item {
   final int employeeID; // Optional if included in API response
   final int recipeID;   // Optional if included in API response
   final String ingredientName;
+  final int ingredientQuantity;
+  final int minAmount;
+  final int maxAmount;
+  final int reorderAmount;
+
 
   // Constructor
   Item({
@@ -26,6 +31,10 @@ class Item {
     this.employeeID = 0, // Default to 0 if not included in API response
     this.recipeID = 0,   // Default to 0 if not included in API response
     required this.ingredientName, // Initialize IngredientName
+    required this.ingredientQuantity,
+    required this.minAmount,
+    required this.maxAmount,
+    required this.reorderAmount,
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -40,6 +49,10 @@ class Item {
       employeeID: json['EmployeeID'] ?? 0, // Use default if null
       recipeID: json['RecipeID'] ?? 0,     // Use default if null
       ingredientName: json['IngredientName'] ?? '', // Extract IngredientName
+      ingredientQuantity: json['IngredientQuantity'].toInt(), // Extract IngredientQuantity
+      minAmount: json['MinAmount'].toInt(),  // Extract MinAmount
+      maxAmount: json['MaxAmount'].toInt(),  // Extract MaxAmount
+      reorderAmount: json['ReorderAmount'].toInt(),  // Extract ReorderAmount
     );
   }
 
@@ -54,6 +67,10 @@ class Item {
         'EmployeeID': employeeID,
         'RecipeID': recipeID,
         'IngredientName': ingredientName, // Add IngredientName to JSON
+        'IngredientQuantity': ingredientQuantity,
+        'MinAmount': minAmount,
+        'MaxAmount': maxAmount,
+        'ReorderAmount': reorderAmount,
       };
 }
 
@@ -68,9 +85,10 @@ class InventoryApi {
 
       return items.map((json) => Item.fromJson(json)).where((item) {
         final notesLower = item.notes.toLowerCase();
+        final ingredientNameLower = item.ingredientName.toLowerCase(); // Add ingredient name for filtering
         final searchLower = query.toLowerCase();
 
-        return notesLower.contains(searchLower);
+        return notesLower.contains(searchLower) || ingredientNameLower.contains(searchLower);
       }).toList();
     } else {
       throw Exception('Failed to load inventory items');
@@ -227,5 +245,15 @@ class _SearchWidgetState extends State<SearchWidget> {
         onChanged: widget.onChanged,
       ),
     );
+  }
+}
+
+// Function to check quantity vs reorder amount
+void checkInventoryLevels(List<Item> items) {
+  for (var item in items) {
+    if (item.quantity < item.reorderAmount) {
+      // Display a warning or alert
+      print('Warning: ${item.ingredientName} is below the reorder amount!');
+    }
   }
 }
