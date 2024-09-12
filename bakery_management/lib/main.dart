@@ -3,7 +3,6 @@ import 'package:bakery_management/pages/inventory.dart';
 import 'package:bakery_management/pages/vendors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:bakery_management/pages/inventory.dart';
 import 'package:bakery_management/pages/bakedgoods.dart';
 
 
