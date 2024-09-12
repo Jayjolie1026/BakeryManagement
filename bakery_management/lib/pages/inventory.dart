@@ -42,15 +42,15 @@ class Item {
 
   // Convert Item object to JSON format
   Map<String, dynamic> toJson() => {
-        'EntryID': entryID,
-        'Quantity': quantity,
-        'Cost': cost,
-        'Notes': notes,
-        'CreateDateTime': createDateTime.toIso8601String(),
-        'ExpireDateTime': expireDateTime.toIso8601String(),
-        'EmployeeID': employeeID,
-        'RecipeID': recipeID,
-      };
+    'EntryID': entryID,
+    'Quantity': quantity,
+    'Cost': cost,
+    'Notes': notes,
+    'CreateDateTime': createDateTime.toIso8601String(),
+    'ExpireDateTime': expireDateTime.toIso8601String(),
+    'EmployeeID': employeeID,
+    'RecipeID': recipeID,
+  };
 }
 
 // API class for inventory items
@@ -115,52 +115,109 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Image.asset(
-            'assets/inventory_logo.png',
-            height: 60,
+    appBar: AppBar(
+      toolbarHeight: 100,
+      title: Image.asset(
+        'assets/inventory_logo.png',
+        height: 100,
+      ),
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF0D1A0),
+    ),
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: Column(
+      children: <Widget>[
+        buildSearch(),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return buildItem(item);
+            },
           ),
-          centerTitle: true,
         ),
-        body: Column(
-          children: <Widget>[
-            buildSearch(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return buildItem(item);
-                },
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 
   // Search bar widget
   Widget buildSearch() => SearchWidget(
-        text: query,
-        hintText: 'Search by Notes',
-        onChanged: searchItem,
-      );
+    text: query,
+    hintText: 'Search by Notes',
+    onChanged: searchItem
+  );
 
   // Search for an item by query
   Future searchItem(String query) async => debounce(() async {
-        final items = await InventoryApi.getItems(query);
+    final items = await InventoryApi.getItems(query);
 
-        if (!mounted) return;
+    if (!mounted) return;
 
-        setState(() {
-          this.query = query;
-          this.items = items;
-        });
-      });
+    setState(() {
+      this.query = query;
+      this.items = items;
+    });
+  });
 
   // Build list tile for each inventory item
-  Widget buildItem(Item item) => ListTile(
-        title: Text(item.notes), // Display notes or relevant details
-      );
+  Widget buildItem(Item item) => Card(
+    color: Color(0xFFEEC07B),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50),
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () {
+        // Navigate to the detailed recipe page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ItemDetailPage(),
+          ),
+        );
+      },
+      child: Container(
+        height: 50,
+        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              item.notes, //should be name
+              style: TextStyle(
+                color: Color(0xFF6D3200),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        )
+      ),
+    ),
+  );
+}
+
+class ItemDetailPage extends StatelessWidget {
+  const ItemDetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Ingredient Details'),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF0D1A0),
+      ),
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: const Column(
+        children: [
+          Text('details'),
+        ],
+      ),
+    );
+  }
 }
 
 // Search widget component
@@ -190,14 +247,13 @@ class _SearchWidgetState extends State<SearchWidget> {
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
-      height: 42,
-      margin: const EdgeInsets.all(16),
+      height: 50,
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        border: Border.all(color: Colors.black26),
+        borderRadius: BorderRadius.circular(50),
+        color: Color(0xFFD8C4AA),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
