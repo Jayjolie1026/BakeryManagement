@@ -65,6 +65,7 @@ flutter:
     - assets/inventory_logo.png
     - assets/vendor.png
     - assets/bagel3.jpg
+    - assets/recipe.png
     - assets/bakedgoods.png
     - assets/inventory.png
     - assets/recipe.png
