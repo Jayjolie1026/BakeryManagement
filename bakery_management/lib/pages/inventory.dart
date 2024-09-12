@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+
 // Item model for inventory items
 class Item {
   final int entryID;
@@ -13,6 +14,12 @@ class Item {
   final DateTime expireDateTime;
   final int employeeID; // Optional if included in API response
   final int recipeID;   // Optional if included in API response
+  final String ingredientName;
+  final int ingredientQuantity;
+  final int minAmount;
+  final int maxAmount;
+  final int reorderAmount;
+
 
   // Constructor
   Item({
@@ -24,6 +31,11 @@ class Item {
     required this.expireDateTime,
     this.employeeID = 0, // Default to 0 if not included in API response
     this.recipeID = 0,   // Default to 0 if not included in API response
+    required this.ingredientName, // Initialize IngredientName
+    required this.ingredientQuantity,
+    required this.minAmount,
+    required this.maxAmount,
+    required this.reorderAmount,
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -37,6 +49,11 @@ class Item {
       expireDateTime: DateTime.parse(json['ExpireDateTime']),
       employeeID: json['EmployeeID'] ?? 0, // Use default if null
       recipeID: json['RecipeID'] ?? 0,     // Use default if null
+      ingredientName: json['IngredientName'] ?? '', // Extract IngredientName
+      ingredientQuantity: json['IngredientQuantity'].toInt(), // Extract IngredientQuantity
+      minAmount: json['MinAmount'].toInt(),  // Extract MinAmount
+      maxAmount: json['MaxAmount'].toInt(),  // Extract MaxAmount
+      reorderAmount: json['ReorderAmount'].toInt(),  // Extract ReorderAmount
     );
   }
 
@@ -50,6 +67,11 @@ class Item {
     'ExpireDateTime': expireDateTime.toIso8601String(),
     'EmployeeID': employeeID,
     'RecipeID': recipeID,
+    'IngredientName': ingredientName, // Add IngredientName to JSON
+    'IngredientQuantity': ingredientQuantity,
+    'MinAmount': minAmount,
+    'MaxAmount': maxAmount,
+    'ReorderAmount': reorderAmount,
   };
 }
 
@@ -64,15 +86,43 @@ class InventoryApi {
 
       return items.map((json) => Item.fromJson(json)).where((item) {
         final notesLower = item.notes.toLowerCase();
+        final ingredientNameLower = item.ingredientName.toLowerCase(); // Add ingredient name for filtering
         final searchLower = query.toLowerCase();
 
-        return notesLower.contains(searchLower);
+        return notesLower.contains(searchLower) || ingredientNameLower.contains(searchLower);
       }).toList();
     } else {
       throw Exception('Failed to load inventory items');
     }
   }
 }
+
+// API for adding an ingredient
+Future<void> addIngredient(String name, String description, String category, String measurement, double maxAmount, double reorderAmount, double minAmount, int vendorID) async {
+  final url = Uri.parse('https://yourapiurl.com/ingredients');
+  
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'name': name,
+      'description': description,
+      'category': category,
+      'measurement': measurement,
+      'maxAmount': maxAmount,
+      'reorderAmount': reorderAmount,
+      'minAmount': minAmount,
+      'vendorID': vendorID,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    print('Ingredient added successfully');
+  } else {
+    throw Exception('Failed to add ingredient: ${response.body}');
+  }
+}
+
 
 // Inventory Page
 class InventoryPage extends StatefulWidget {
@@ -139,6 +189,13 @@ class _InventoryPageState extends State<InventoryPage> {
         ),
       ],
     ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () => showAddIngredientDialog(context), // Open form for new ingredient
+      label: const Text('Add Ingredient'),
+      icon: const Icon(Icons.add),
+      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
 
   // Search bar widget
@@ -174,7 +231,7 @@ class _InventoryPageState extends State<InventoryPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const ItemDetailPage(),
+            builder: (context) => const showItemDetails(context, item),
           ),
         );
       },
@@ -197,27 +254,6 @@ class _InventoryPageState extends State<InventoryPage> {
       ),
     ),
   );
-}
-
-class ItemDetailPage extends StatelessWidget {
-  const ItemDetailPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ingredient Details'),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF0D1A0),
-      ),
-      backgroundColor: const Color(0xFFF0D1A0),
-      body: const Column(
-        children: [
-          Text('details'),
-        ],
-      ),
-    );
-  }
 }
 
 // Search widget component
@@ -277,4 +313,195 @@ class _SearchWidgetState extends State<SearchWidget> {
       ),
     );
   }
+}
+
+// Function to check quantity vs reorder amount
+void checkInventoryLevels(List<Item> items) {
+  for (var item in items) {
+    if (item.quantity < item.reorderAmount) {
+      // Display a warning or alert
+      print('Warning: ${item.ingredientName} is below the reorder amount!');
+    }
+  }
+}
+
+// Function to show a dialog for adding a new ingredient
+void showAddIngredientDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String ingredientName = '';
+      String description = '';
+      String category = '';
+      String measurement = '';
+      double maxAmount = 0.0;
+      double reorderAmount = 0.0;
+      double minAmount = 0.0;
+      int vendorID = 0;
+
+      return AlertDialog(
+        title: const Text('Add Ingredient'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(labelText: 'Ingredient Name'),
+              onChanged: (value) {
+                ingredientName = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Description'),
+              onChanged: (value) {
+                description = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Category'),
+              onChanged: (value) {
+                category = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Measurement'),
+              onChanged: (value) {
+                measurement = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Max Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                maxAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Reorder Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                reorderAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Min Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                minAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Vendor ID'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                vendorID = int.tryParse(value) ?? 0;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          ElevatedButton(
+            child: const Text('Add'),
+            onPressed: () async {
+              try {
+                await addIngredient(
+                  ingredientName,
+                  description,
+                  category,
+                  measurement,
+                  maxAmount,
+                  reorderAmount,
+                  minAmount,
+                  vendorID,
+                );
+                Navigator.of(context).pop();
+                // Optionally, refresh the inventory list
+              } catch (e) {
+                print('Error adding ingredient: $e');
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// Function to format dates
+String formatDate(DateTime dateTime) {
+  final day = dateTime.day.toString().padLeft(2, '0');
+  final month = dateTime.month.toString().padLeft(2, '0');
+  final year = dateTime.year.toString();
+
+  return '$year-$month-$day'; // Format as YYYY-MM-DD
+}
+
+// Function to show a dialog with item details
+void showItemDetails(BuildContext context, Item item) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Center(
+          child: Text(
+            'Ingredients',
+            style: TextStyle(color: Color.fromARGB(255, 97, 91, 77)),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Placeholder image at the top
+            Image.network(
+              'https://via.placeholder.com/150', // Placeholder image URL
+              height: 150,
+              width: 150,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(height: 16),
+            // Item details
+            Text('Entry ID: ${item.entryID}'),
+            Text('PO Number: ${item.entryID}'), // Assuming PO Number is same as Entry ID for now
+            Text('Entry Date: ${formatDate(item.createDateTime)}'),
+            Text('Expiration Date: ${formatDate(item.expireDateTime)}'),
+            Text('Quantity: ${item.quantity}'),
+            Text('Cost: \$${item.cost.toStringAsFixed(2)}'),
+            Text('Notes: ${item.notes}'),
+          ],
+        ),
+        actions: [
+          // Container to add space between the buttons and the dialog edges
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Update button
+                TextButton.icon(
+                  icon: const Icon(Icons.update, color: Color.fromARGB(255, 97, 91, 77)), // Change icon color
+                  label: const Text('Update', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
+                  onPressed: () {
+                    // Action for Update button
+                  },
+                ),
+                // Vendor button
+                TextButton.icon(
+                  icon: const Icon(Icons.store, color: Color.fromARGB(255, 97, 91, 77)),
+                  label: const Text('Vendor', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
+                  onPressed: () {
+                    // Action for Vendor button
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }

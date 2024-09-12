@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:bakery_management/pages/inventory.dart';
+import 'package:bakery_management/pages/vendors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/inventory.dart';
+import 'package:bakery_management/pages/bakedgoods.dart';
+
 
 void main() {
   runApp(const BakeryManagementApp());
@@ -138,7 +142,7 @@ class BakeryHomePage extends StatelessWidget {
                     context,
                     'assets/bakedgoods.png',
                     'Manage Baked Goods',
-                    const BakedGoodsPage(), // Replace with the appropriate page for baked goods
+                    ProductsPage(), // Replace with the appropriate page for baked goods
                   ),
                 ],
               ),
@@ -329,40 +333,5 @@ class AddRecipePage extends StatelessWidget {
   }
 }
 
-class VendorsPage extends StatelessWidget {
-  const VendorsPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Management'),
-      ),
-      body: const Center(
-        child: Text(
-          'Order Management Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
 
-class BakedGoodsPage extends StatelessWidget {
-  const BakedGoodsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Management'),
-      ),
-      body: const Center(
-        child: Text(
-          'Order Management Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
