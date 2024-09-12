@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:bakery_management/pages/inventory.dart';
 import 'package:bakery_management/pages/recipe.dart';
+import 'package:bakery_management/pages/vendors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:bakery_management/pages/inventory.dart';
+import 'package:bakery_management/pages/bakedgoods.dart';
+
 
 void main() {
   runApp(const BakeryManagementApp());
@@ -18,7 +22,7 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
       ),
-
+      debugShowCheckedModeBanner: false,
       home: const SignInPage(),
     );
   }
@@ -62,7 +66,7 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In'),
-        backgroundColor: const Color(0xFFD8C4AA),
+        backgroundColor: const Color(0xFFEEC07B),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -93,120 +97,99 @@ class _SignInPageState extends State<SignInPage> {
 class BakeryHomePage extends StatelessWidget {
   const BakeryHomePage({super.key});
 
- @override
- Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Image.asset(
-        'assets/logo1.png',
-        height: 40,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Image.asset(
+          'assets/chatlogo.png',
+          height: 75,
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFEEC07B),
       ),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFD8C4AA),
-    ),
-    backgroundColor: const Color(0xFF422308),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to Inventory Page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const InventoryPage()),
-              );
-            },
-            child: const Text('Manage Inventory'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to Employee Management Page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const RecipePage()),
-              );
-            },
-            child: const Text('Manage Recipes'),
-          ),
-          GestureDetector(
-            onTap: () {
-              // Navigate to Vendors Page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OrdersPage()),
-              );
-            },
-            child: Column(
-              children: [
-                Image.asset(
-                  'assets/vendor.png', // Replace with the vendor image path
-                  height: 100,               // Adjust height as needed
-                  fit: BoxFit.cover,         // Adjust fit based on your layout needs
-                ),
-                const SizedBox(height: 8),  // Space between image and text
-                const Text(
-                  'Manage Vendors',
-                  style: TextStyle(
-                    fontSize: 16,           // Adjust text size as needed
-                    color: Colors.white,    // Adjust text color as needed
+      backgroundColor: const Color(0xFF422308),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2, // Two columns
+                crossAxisSpacing: 16, // Space between columns
+                mainAxisSpacing: 16, // Space between rows
+                children: [
+                  _buildGridButton(
+                    context,
+                    'assets/vendor.png',
+                    'Manage Vendors',
+                    const VendorsPage(),
                   ),
-                ),
-              ],
+                  _buildGridButton(
+                    context,
+                    'assets/recipe.png',
+                    'Manage Recipes',
+                    const RecipePage(),
+                  ),
+                  _buildGridButton(
+                    context,
+                    'assets/inventory.png',
+                    'Manage Inventory',
+                    const InventoryPage(),
+                  ),
+                  _buildGridButton(
+                    context,
+                    'assets/bakedgoods.png',
+                    'Manage Baked Goods',
+                    ProductsPage(), // Replace with the appropriate page for baked goods
+                  ),
+                ],
+              ),
+            ),
+               Expanded(
+              flex: 1, // Gives 1 part of the available space to the image
+              child: Image.asset(
+                'assets/bread2.png', // Path to your bread image
+                fit: BoxFit.cover,   // Make the image cover the available space
+                width: double.infinity, // Make the image stretch across the screen width
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildGridButton(BuildContext context, String imagePath, String label, Widget page) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => page),
+        );
+      },
+      child: Column(
+        children: [
+          Expanded(
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 20), // Space between vendor button and the bread image
-          Image.asset(
-            'assets/bread2.png',        // Path to your bread image
-            height: 150,                // Adjust height as needed
-            fit: BoxFit.cover,          // Adjust fit based on your layout needs
+          const SizedBox(height: 8), // Space between image and text
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 16,           // Adjust text size as needed
+              color: Colors.white,    // Adjust text color as needed
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
-}
-
-
-
-class InventoryPage extends StatelessWidget {
-  const InventoryPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inventory Management'),
-      ),
-      body: const Center(
-        child: Text(
-          'Inventory Management Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
     );
   }
 }
 
 
-class OrdersPage extends StatelessWidget {
-  const OrdersPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Management'),
-      ),
-      body: const Center(
-        child: Text(
-          'Order Management Page',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
+
