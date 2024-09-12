@@ -1206,17 +1206,22 @@ app.delete('/recipes/name/:name', async (req, res) => {
 
 //Inventory Calls
 
-// GET /inventory: Retrieve all inventory items
+// GET /inventory: Retrieve all inventory items with ingredient names
 app.get('/inventory', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM dbo.tblInventory');
+        const result = await pool.request().query(`
+            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, inv.RecipeID,
+                   ing.Name AS IngredientName
+            FROM dbo.tblInventory inv
+            JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+        `);
         res.json(result.recordset);
     } catch (error) {
-        res.status(200).send(error);
-        
+        res.status(500).send('Error retrieving inventory items: ' + error.message);
     }
 });
+
 
 
 // GET /inventory/name/:name: Retrieve inventory items by partial name match
@@ -1231,7 +1236,13 @@ app.get('/inventory/name/:name', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('name', sql.VarChar, `%${name}%`)  // Using LIKE for partial match
-            .query('SELECT * FROM tblInventory WHERE Name LIKE @name');
+            .query(`
+                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime, inv.RecipeID,
+                       ing.Name AS IngredientName
+                FROM dbo.tblInventory inv
+                JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                WHERE ing.Name LIKE @name
+            `);
 
         if (result.recordset.length > 0) {
             res.json(result.recordset);  // Return all matching items
@@ -1244,13 +1255,15 @@ app.get('/inventory/name/:name', async (req, res) => {
 });
 
 
+
+
 // POST /inventory: Add a new inventory item
 app.post('/inventory', async (req, res) => {
-    const { quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
 
     // Validate input
-    if (quantity === undefined || cost === undefined || !create_datetime) {
-        return res.status(400).send('Quantity, cost, and create date/time are required');
+    if (ingredient_id === undefined || quantity === undefined || cost === undefined || !create_datetime) {
+        return res.status(400).send('IngredientID, quantity, cost, and create date/time are required');
     }
 
     try {
@@ -1269,6 +1282,7 @@ app.post('/inventory', async (req, res) => {
 
         // Insert the new inventory item
         await pool.request()
+            .input('ingredient_id', sql.Int, ingredient_id)
             .input('quantity', sql.Decimal, quantity)
             .input('notes', sql.VarChar, notes)  // Optional field
             .input('cost', sql.Decimal, cost)
@@ -1276,8 +1290,8 @@ app.post('/inventory', async (req, res) => {
             .input('expire_datetime', sql.DateTime, expire_datetime)  // Optional field
             .input('recipe_id', sql.Int, recipe_id)  // Optional field
             .query(`
-                INSERT INTO tblInventory (Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, RecipeID)
-                VALUES (@quantity, @notes, @cost, @create_datetime, @expire_datetime, @recipe_id)
+                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, RecipeID)
+                VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime, @recipe_id)
             `);
         res.status(201).send('Item added');
     } catch (error) {
@@ -1286,14 +1300,15 @@ app.post('/inventory', async (req, res) => {
 });
 
 
+
 // PUT /inventory/:item_id: Update an inventory item by ID
 app.put('/inventory/:item_id', async (req, res) => {
     const { item_id } = req.params;
-    const { quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
 
     // Validate input
-    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && recipe_id === undefined) {
-        return res.status(400).send('At least one field (quantity, cost, create_datetime, expire_datetime, or recipe_id) is required for update');
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && recipe_id === undefined && ingredient_id === undefined) {
+        return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, or recipe_id) is required for update');
     }
 
     try {
@@ -1314,6 +1329,10 @@ app.put('/inventory/:item_id', async (req, res) => {
         let updateQuery = 'UPDATE tblInventory SET ';
         const updateParams = [];
 
+        if (ingredient_id !== undefined) {
+            updateQuery += 'IngredientID = @ingredient_id, ';
+            updateParams.push({ name: 'ingredient_id', value: ingredient_id, type: sql.Int });
+        }
         if (quantity !== undefined) {
             updateQuery += 'Quantity = @quantity, ';
             updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
@@ -1364,6 +1383,7 @@ app.put('/inventory/:item_id', async (req, res) => {
 });
 
 
+
 // DELETE /inventory/name/:item_name: Remove an item by name
 app.delete('/inventory/name/:item_name', async (req, res) => {
     const { item_name } = req.params;
@@ -1376,7 +1396,15 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('item_name', sql.VarChar, item_name)
-            .query('DELETE FROM tblInventory WHERE Name = @item_name');
+            .query(`
+                DELETE FROM tblInventory
+                WHERE EntryID IN (
+                    SELECT inv.EntryID
+                    FROM dbo.tblInventory inv
+                    JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                    WHERE ing.Name = @item_name
+                )
+            `);
 
         if (result.rowsAffected[0] > 0) {
             res.send('Item deleted');
@@ -1387,6 +1415,7 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
 
 
 // POST /sessions/start: Create a new session for a user
