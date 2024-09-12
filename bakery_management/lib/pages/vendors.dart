@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class OrdersPage extends StatelessWidget {
-  const OrdersPage({super.key});
+class VendorsPage extends StatelessWidget {
+  const VendorsPage({super.key});
 
 @override
 Widget build(BuildContext context) {
