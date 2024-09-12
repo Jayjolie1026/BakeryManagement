@@ -226,15 +226,7 @@ class _InventoryPageState extends State<InventoryPage> {
     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
     elevation: 4,
     child: GestureDetector(
-      onTap: () {
-        // Navigate to the detailed recipe page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const showItemDetails(context, item),
-          ),
-        );
-      },
+      onTap: () => showItemDetails(context, item),
       child: Container(
         height: 50,
         padding: EdgeInsets.symmetric(horizontal: 0, vertical: 12),
