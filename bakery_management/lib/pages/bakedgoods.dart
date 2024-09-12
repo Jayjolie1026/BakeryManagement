@@ -3,180 +3,215 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
-Future<List<BakedGood>> fetchBakedGoods() async {
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts'));
-
-  if (response.statusCode == 200) {
-    final List<dynamic> data = json.decode(response.body);
-    return data.map((json) => BakedGood.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to load baked goods');
-  }
-}
-
-class BakedGood {
-  final int id;
-  final String name;
+// Item model for final products
+class Product {
+  final int productID;
   final String description;
   final int maxAmount;
-  final int remakeAmount;
   final int minAmount;
   final int quantity;
   final double price;
 
-  BakedGood({
-    required this.id,
-    required this.name,
+  // Constructor
+  Product({
+    required this.productID,
     required this.description,
     required this.maxAmount,
-    required this.remakeAmount,
     required this.minAmount,
     required this.quantity,
     required this.price,
   });
 
-  factory BakedGood.fromJson(Map<String, dynamic> json) {
-    return BakedGood(
-      id: json['ProductID'],
-      name: json['Name'],
-      description: json['Description'],
-      maxAmount: json['MaxAmount'],
-      remakeAmount: json['RemakeAmount'],
-      minAmount: json['MinAmount'],
-      quantity: json['Quantity'],
-      price: json['Price'],
+  // Factory constructor to create a Product from a JSON object
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      productID: json['ProductID'],
+      description: json['Description'] ?? '', // Default to empty string if null
+      maxAmount: json['MaxAmount'].toInt(),  // Extract MaxAmount
+      minAmount: json['MinAmount'].toInt(),  // Extract MinAmount
+      quantity: json['Quantity'].toInt(),    // Extract Quantity
+      price: json['Price'].toDouble(),        // Extract Price
     );
+  }
+
+  // Convert Product object to JSON format
+  Map<String, dynamic> toJson() => {
+        'ProductID': productID,
+        'Description': description, // Add Description to JSON
+        'MaxAmount': maxAmount,
+        'MinAmount': minAmount,
+        'Quantity': quantity,
+        'Price': price,
+      };
+}
+
+// API class for final products
+class ProductApi {
+  static Future<List<Product>> getProducts(String query) async {
+    final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
+    final response = await http.get(apiUrl);
+
+    if (response.statusCode == 200) {
+      final List products = json.decode(response.body);
+
+      return products.map((json) => Product.fromJson(json)).where((product) {
+        final descriptionLower = product.description.toLowerCase();
+        final searchLower = query.toLowerCase();
+
+        return descriptionLower.contains(searchLower);
+      }).toList();
+    } else {
+      throw Exception('Failed to load products');
+    }
   }
 }
 
+// Products Page
+class ProductsPage extends StatefulWidget {
+  const ProductsPage({super.key});
 
-
-
-
-class BakedGoodsSearchScreen extends StatefulWidget {
   @override
-  _BakedGoodsSearchScreenState createState() => _BakedGoodsSearchScreenState();
+  _ProductsPageState createState() => _ProductsPageState();
 }
 
-class _BakedGoodsSearchScreenState extends State<BakedGoodsSearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  List<BakedGood> _bakedGoods = [];
-  List<BakedGood> _filteredBakedGoods = [];
+class _ProductsPageState extends State<ProductsPage> {
+  List<Product> products = [];
+  String query = '';
+  Timer? debouncer;
 
   @override
   void initState() {
     super.initState();
-    _fetchBakedGoods();
-     _searchController.addListener(() {
-      _filterBakedGoods(_searchController.text);
-    });
+    init();
   }
 
-  void _fetchBakedGoods() async {
-     try {
-      final bakedGoods = await fetchBakedGoods();
-      setState(() {
-        _bakedGoods = bakedGoods;
-        _filteredBakedGoods = bakedGoods; // Initialize with all baked goods
-      });
-    } catch (e) {
-      // Handle the error
-      print('Error fetching baked goods: $e');
+  @override
+  void dispose() {
+    debouncer?.cancel();
+    super.dispose();
+  }
+
+  // Debounce for search bar
+  void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
+    if (debouncer != null) {
+      debouncer!.cancel();
     }
+    debouncer = Timer(duration, callback);
   }
-  
 
-  void _filterBakedGoods(String query) {
-    final filtered = _bakedGoods
-        .where((good) => good.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-    setState(() {
-      _filteredBakedGoods = filtered;
-    });
+  // Initialize products
+  Future init() async {
+    final products = await ProductApi.getProducts(query);
+    setState(() => this.products = products);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Baked Goods'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: _filterBakedGoods,
-            ),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Image.asset(
+            'assets/bakedgoods.png',
+            height: 60,
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredBakedGoods.length,
-              itemBuilder: (context, index) {
-                final good = _filteredBakedGoods[index];
-                return ListTile(
-                  title: Text(good.name),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BakedGoodDetailScreen(good: good),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-
-class BakedGoodDetailScreen extends StatelessWidget {
-  final BakedGood good;
-
-  BakedGoodDetailScreen({required this.good});
-
-  @override
-  Widget build(BuildContext context) {
-    final remakeNeeded = good.quantity < good.minAmount;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(good.name),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Name: ${good.name}', style: TextStyle(fontSize: 18)),
-            Text('Description: ${good.description}', style: TextStyle(fontSize: 16)),
-            Text('Max Amount: ${good.maxAmount}', style: TextStyle(fontSize: 16)),
-            Text('Remake Amount: ${good.remakeAmount}', style: TextStyle(fontSize: 16)),
-            Text('Min Amount: ${good.minAmount}', style: TextStyle(fontSize: 16)),
-            Text('Quantity: ${good.quantity}', style: TextStyle(fontSize: 16)),
-            Text('Price: \$${good.price}', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 20),
-            Text(
-              remakeNeeded ? 'Needs to be remade!' : 'Stock is sufficient',
-              style: TextStyle(
-                fontSize: 18,
-                color: remakeNeeded ? Colors.red : Colors.green,
+          centerTitle: true,
+        ),
+        body: Column(
+          children: <Widget>[
+            buildSearch(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return buildProduct(product);
+                },
               ),
             ),
           ],
         ),
+      );
+
+  // Search bar widget
+  Widget buildSearch() => SearchWidget(
+        text: query,
+        hintText: 'Search by Description',
+        onChanged: searchProduct,
+      );
+
+  // Search for a product by query
+  Future searchProduct(String query) async => debounce(() async {
+        final products = await ProductApi.getProducts(query);
+
+        if (!mounted) return;
+
+        setState(() {
+          this.query = query;
+          this.products = products;
+        });
+      });
+
+  // Build list tile for each product
+  Widget buildProduct(Product product) => ListTile(
+        title: Text(product.description), // Display description
+        subtitle: Text('Price: \$${product.price}'), // Display price
+        trailing: Text('Quantity: ${product.quantity}'),
+      );
+}
+
+// Search widget component
+class SearchWidget extends StatefulWidget {
+  final String text;
+  final ValueChanged<String> onChanged;
+  final String hintText;
+
+  const SearchWidget({
+    super.key,
+    required this.text,
+    required this.onChanged,
+    required this.hintText,
+  });
+
+  @override
+  _SearchWidgetState createState() => _SearchWidgetState();
+}
+
+class _SearchWidgetState extends State<SearchWidget> {
+  final controller = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final styleActive = const TextStyle(color: Colors.black);
+    final styleHint = const TextStyle(color: Colors.black54);
+    final style = widget.text.isEmpty ? styleHint : styleActive;
+
+    return Container(
+      height: 42,
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        border: Border.all(color: Colors.black26),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          icon: Icon(Icons.search, color: style.color),
+          suffixIcon: widget.text.isNotEmpty
+              ? GestureDetector(
+                  child: Icon(Icons.close, color: style.color),
+                  onTap: () {
+                    controller.clear();
+                    widget.onChanged('');
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  },
+                )
+              : null,
+          hintText: widget.hintText,
+          hintStyle: style,
+          border: InputBorder.none,
+        ),
+        style: style,
+        onChanged: widget.onChanged,
       ),
     );
   }

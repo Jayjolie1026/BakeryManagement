@@ -140,7 +140,7 @@ class BakeryHomePage extends StatelessWidget {
                     context,
                     'assets/bakedgoods.png',
                     'Manage Baked Goods',
-                    BakedGoodsSearchScreen(), // Replace with the appropriate page for baked goods
+                    ProductsPage(), // Replace with the appropriate page for baked goods
                   ),
                 ],
               ),
