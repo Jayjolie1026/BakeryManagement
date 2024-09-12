@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const sql = require('mssql');
-const bcrypt = require('bcrypt');
+//const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 //const cors = require('cors'); // Import cors package
 
@@ -22,17 +22,6 @@ app.use(express.json());
 
 
 app.use(express.static(path.join(__dirname, 'public')));
-console.log("before test");
-
-(async () => {
-    try {
-        const pool = await sql.connect(dbConfig);
-        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendors');
-        console.log('Test Query Result:', testQuery.recordset);
-    } catch (error) {
-        console.error('Test Query Error:', error);
-    }
-})();
 
 
 
