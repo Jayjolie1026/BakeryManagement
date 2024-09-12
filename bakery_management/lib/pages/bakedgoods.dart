@@ -154,7 +154,16 @@ class _ProductsPageState extends State<ProductsPage> {
         title: Text(product.name), // Display name
         subtitle: Text('Price: \$${product.price}'), // Display price
         trailing: Text('Quantity: ${product.quantity}'),
-      );
+       onTap: () {
+        // Handle the tap event, e.g., navigate to a detail page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(product: product),
+          ),
+        );
+      },
+    );
 }
 
 // Search widget component
@@ -212,6 +221,35 @@ class _SearchWidgetState extends State<SearchWidget> {
         ),
         style: style,
         onChanged: widget.onChanged,
+      ),
+    );
+  }
+}
+
+// Product Detail Page
+class ProductDetailPage extends StatelessWidget {
+  final Product product;
+
+  const ProductDetailPage({super.key, required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(product.name),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Name: ${product.name}', style: TextStyle(fontSize: 20)),
+            Text('Price: \$${product.price}', style: TextStyle(fontSize: 20)),
+            Text('Quantity: ${product.quantity}', style: TextStyle(fontSize: 20)),
+            Text('Max Amount: ${product.maxAmount}', style: TextStyle(fontSize: 20)),
+            Text('Min Amount: ${product.minAmount}', style: TextStyle(fontSize: 20)),
+          ],
+        ),
       ),
     );
   }

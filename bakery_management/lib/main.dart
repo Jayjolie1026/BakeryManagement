@@ -18,13 +18,19 @@ class BakeryManagementApp extends StatelessWidget {
       title: 'Bakery Management',
       theme: ThemeData(
         primarySwatch: Colors.brown,
+        scaffoldBackgroundColor: const Color(0xFF422308), // Set global background color
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFFEEC07B), // Global AppBar color
+          iconTheme: const IconThemeData(color: Colors.white), // Icon color in the AppBar
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20), // Title text style
+          elevation: 0, // Elevation of the AppBar
+        ),
       ),
-
       home: const SignInPage(),
-
     );
   }
 }
+
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
