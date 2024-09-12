@@ -96,6 +96,33 @@ class InventoryApi {
   }
 }
 
+// API for adding an ingredient
+Future<void> addIngredient(String name, String description, String category, String measurement, double maxAmount, double reorderAmount, double minAmount, int vendorID) async {
+  final url = Uri.parse('https://yourapiurl.com/ingredients');
+  
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'name': name,
+      'description': description,
+      'category': category,
+      'measurement': measurement,
+      'maxAmount': maxAmount,
+      'reorderAmount': reorderAmount,
+      'minAmount': minAmount,
+      'vendorID': vendorID,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    print('Ingredient added successfully');
+  } else {
+    throw Exception('Failed to add ingredient: ${response.body}');
+  }
+}
+
+
 // Inventory Page
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
@@ -135,30 +162,37 @@ class _InventoryPageState extends State<InventoryPage> {
     setState(() => this.items = items);
   }
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Image.asset(
-            'assets/inventory_logo.png',
-            height: 60,
-          ),
-          centerTitle: true,
+@override
+Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(
+        title: Image.asset(
+          'assets/inventory_logo.png',
+          height: 60,
         ),
-        body: Column(
-          children: <Widget>[
-            buildSearch(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return buildItem(item);
-                },
-              ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: <Widget>[
+          buildSearch(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return buildItem(item);
+              },
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showAddIngredientDialog(context), // Open form for new ingredient
+        label: const Text('Add Ingredient'),
+        icon: const Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
+    );
 
   // Search bar widget
   Widget buildSearch() => SearchWidget(
@@ -257,3 +291,111 @@ void checkInventoryLevels(List<Item> items) {
     }
   }
 }
+
+// Function to show a dialog for adding a new ingredient
+void showAddIngredientDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String ingredientName = '';
+      String description = '';
+      String category = '';
+      String measurement = '';
+      double maxAmount = 0.0;
+      double reorderAmount = 0.0;
+      double minAmount = 0.0;
+      int vendorID = 0;
+
+      return AlertDialog(
+        title: const Text('Add Ingredient'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(labelText: 'Ingredient Name'),
+              onChanged: (value) {
+                ingredientName = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Description'),
+              onChanged: (value) {
+                description = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Category'),
+              onChanged: (value) {
+                category = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Measurement'),
+              onChanged: (value) {
+                measurement = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Max Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                maxAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Reorder Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                reorderAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Min Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                minAmount = double.tryParse(value) ?? 0.0;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Vendor ID'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                vendorID = int.tryParse(value) ?? 0;
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          ElevatedButton(
+            child: const Text('Add'),
+            onPressed: () async {
+              try {
+                await addIngredient(
+                  ingredientName,
+                  description,
+                  category,
+                  measurement,
+                  maxAmount,
+                  reorderAmount,
+                  minAmount,
+                  vendorID,
+                );
+                Navigator.of(context).pop();
+                // Optionally, refresh the inventory list
+              } catch (e) {
+                print('Error adding ingredient: $e');
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
