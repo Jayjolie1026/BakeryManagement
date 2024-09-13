@@ -53,18 +53,51 @@ class _SignInPageState extends State<SignInPage> {
         'password': _passwordController.text,
       }),
     );
+    print('Response status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
+    final responseBody = jsonDecode(response.body);
+    print('Decoded response body: $responseBody');
+    final employeeId = responseBody['employee_id'];
+    print('Employee ID: $employeeId');
+
+    final sessionResponse = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/sessions/start'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'employee_id': employeeId,
+      }),
+    );
+    print('Session response status code: ${sessionResponse.statusCode}');
+    print('Session response body: ${sessionResponse.body}');
+
+    if (sessionResponse.statusCode == 201) {
+      // Navigate to the home page after successfully creating a session
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BakeryHomePage()),
       );
+       } else {
+      // Handle session creation failure
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to create session')),
+      );
+    }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid credentials or user not found')),
       );
     }
   }
+ void _navigateToCreateAccount() {
+    // Replace with your Create Account page
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateAccountPage()),
+    );
+  }
+
  @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,8 +145,16 @@ class _SignInPageState extends State<SignInPage> {
                 backgroundColor: const Color(0xFF422308), // Background color
                 foregroundColor: const Color(0xFFEEC07B), // Text color
               ),
-              child: const Text('Sign In'),
-              
+              child: const Text('Sign In'),     
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _navigateToCreateAccount,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF422308), // Background color
+                foregroundColor: const Color(0xFFEEC07B), // Text color
+              ),
+              child: const Text('Create Account'),
             ),
           ],
         ),
@@ -219,5 +260,170 @@ class BakeryHomePage extends StatelessWidget {
 }
 
 
+
+class CreateAccountPage extends StatefulWidget {
+  const CreateAccountPage({super.key});
+
+  @override
+  _CreateAccountPageState createState() => _CreateAccountPageState();
+}
+
+class _CreateAccountPageState extends State<CreateAccountPage> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  
+
+  final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users'); // Replace with your API URL
+
+  Future<void> _createAccount() async {
+    final response = await http.post(
+      _apiUrl,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+        'email': _emailController.text,
+        'phoneNumber': _phoneNumberController.text,
+        'address': _addressController.text,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      Navigator.pop(context); // Go back to the previous page (sign-in page)
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to create account')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        backgroundColor: const Color(0xFF422308),
+        foregroundColor: const Color(0xFFEEC07B),
+        iconTheme: IconThemeData(color: const Color(0xFFEEC07B)),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _firstNameController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'First Name', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _lastNameController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Last Name', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _usernameController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Username',
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
+               focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
+            ),
+            TextField(
+              controller: _passwordController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _emailController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Email', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _phoneNumberController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Phone Number', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _addressController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Address', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _createAccount,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF422308), // Background color
+                foregroundColor: const Color(0xFFEEC07B), // Text color
+              ),
+              child: const Text('Create Account'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 

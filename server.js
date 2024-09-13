@@ -634,16 +634,17 @@ app.post('/login', async (req, res) => {
         // Adjust the query to select the password_hash column
         const result = await request
             .input('username', sql.VarChar, username)
-            .query('SELECT password FROM tblUsers WHERE username = @username'); // Adjusted query
+            .query('SELECT password, EmployeeID FROM tblUsers WHERE username = @username'); // Adjusted query
 
         console.log('testing');
         if (result.recordset.length > 0) {
             const dbPassword = result.recordset[0].password; // Correctly access password_hash
+            const employeeID = result.recordset[0].EmployeeID;
             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
             // Direct comparison of plain-text passwords (for testing purposes)
             if (password === dbPassword) {
-                res.send('Authentication successful');
+                res.json({ message: 'Authentication successful', employee_id: employeeID });
             } else {
                 res.status(401).send('Invalid credentials');
             }
@@ -1485,6 +1486,8 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 
 // POST /sessions/start: Create a new session for a user
 app.post('/sessions/start', async (req, res) => {
+    console.log('Received /sessions/start request');
+    console.log('Request body:', req.body);
     const { employee_id } = req.body;
 
     // Validate input
@@ -1494,6 +1497,8 @@ app.post('/sessions/start', async (req, res) => {
 
     try {
         const pool = await sql.connect(dbConfig);
+        console.log('Employee ID:', employee_id);
+        console.log('CreateDateTime:', new Date());
         const result = await pool.request()
             .input('employee_id', sql.UniqueIdentifier, employee_id)
             .input('create_datetime', sql.DateTime, new Date())
@@ -1501,7 +1506,8 @@ app.post('/sessions/start', async (req, res) => {
                 INSERT INTO tblSessions (EmployeeID, CreateDateTime) 
                 VALUES (@employee_id, @create_datetime)
             `);
-        
+        console.log('Session created successfully'); // Log successful session creation
+        console.log('Result:', result); // Log the result of the query
         res.status(201).json({ session_id: result.recordset.insertId, employee_id });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -1760,8 +1766,12 @@ app.get('/finalproducts/:id', async (req, res) => {
             const product = result.recordset[0];
 
             // Check if Quantity is below RemakeAmount
-            if (product.Quantity < product.RemakeAmount) {
+            if (product.Quantity <= product.RemakeAmount) {
                 product.warning = 'Quantity is below the remake amount. Consider restocking.';
+            }
+
+            if (product.Quantity <= product.MinAmount) {
+                product.warning = 'Quantity is very low. Need to remake IMMEDIATELY';
             }
 
             res.json(product);

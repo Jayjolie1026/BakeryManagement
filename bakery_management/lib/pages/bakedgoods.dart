@@ -432,6 +432,12 @@ Widget build(BuildContext context) {
           Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
           Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
           Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          if (_product.quantity < _product.minAmount) 
+            Text('QUANTITY IS VERY LOW! REMAKE NOW!', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+          if (_product.quantity < _product.remakeAmount) 
+            Text('Quantity is getting low. Please remake!', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+
+          
           const SizedBox(height: 20),
           // Buttons
           Row(
@@ -574,41 +580,97 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
             TextField(
               controller: _nameController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Name', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Name', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
             ),
             TextField(
               controller: _descriptionController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Description', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
             ),
             TextField(
               controller: _maxAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Max Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Max Amount', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _remakeAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Remake Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Remake Amount', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _minAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Min Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Min Amount', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _priceController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Price', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _quantityController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Quantity', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
+              decoration: const InputDecoration(labelText: 'Quantity', 
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
@@ -688,41 +750,97 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
             TextField(
               controller: nameController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Name',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Name',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
             ),
              TextField(
               controller: descriptionController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Description',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Description', 
+               labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+               focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
             ),
             TextField(
               controller: maxAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Max Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Max Amount',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
               keyboardType: TextInputType.number,
             ),
              TextField(
               controller: remakeAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Remake Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Remake Amount', 
+               labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+               focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: minAmountController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Min Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Min Amount', 
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
+               focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+                ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: quantityController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Quantity',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Quantity',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: priceController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Price',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
+              decoration: const InputDecoration(labelText: 'Price',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
           ],
