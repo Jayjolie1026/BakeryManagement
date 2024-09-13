@@ -75,7 +75,7 @@ class ProductApi {
     final response = await http.post(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
+      body: jsonEncode({
         'Name': product.name,
         'Description' : product.description,
         'MaxAmount': product.maxAmount,
