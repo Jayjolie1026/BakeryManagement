@@ -1618,6 +1618,8 @@ app.get('/finalproducts/:id', async (req, res) => {
 
 // POST /finalproducts: Create a new final product
 app.post('/finalproducts', async (req, res) => {
+    console.log('Headers:', req.headers);
+    console.log('Request Body:', req.body);
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
     console.log("a ");
     console.log('Received data:', { name, description, maxAmount, remakeAmount, minAmount, quantity, price });

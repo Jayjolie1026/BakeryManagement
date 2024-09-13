@@ -106,8 +106,6 @@ class ProductApi {
     print('Error occurred: $e');
   }
 
-
-
   }
 
 
