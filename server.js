@@ -1508,7 +1508,10 @@ app.post('/sessions/start', async (req, res) => {
             `);
         console.log('Session created successfully'); // Log successful session creation
         console.log('Result:', result); // Log the result of the query
-        res.status(201).json({ session_id: result.recordset.insertId, employee_id });
+        res.status(201).json({
+            message: 'Session created successfully',
+            employee_id: employee_id
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
