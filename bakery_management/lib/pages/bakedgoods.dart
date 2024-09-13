@@ -9,8 +9,9 @@ class Product {
   final int productID;
   final String name;
   final String description;
-  final int maxAmount;
-  final int minAmount;
+  final double maxAmount;
+  final double remakeAmount;
+  final double minAmount;
   final int quantity;
   final double price;
 
@@ -20,6 +21,7 @@ class Product {
     required this.name,
     required this.description,
     required this.maxAmount,
+    required this.remakeAmount,
     required this.minAmount,
     required this.quantity,
     required this.price,
@@ -31,8 +33,9 @@ class Product {
       productID: json['ProductID'],
       name: json['Name'] ?? '', // Default to empty string if null
       description: json['Description'] ?? '',
-      maxAmount: json['MaxAmount'].toInt(),  // Extract MaxAmount
-      minAmount: json['MinAmount'].toInt(),  // Extract MinAmount
+      maxAmount: json['MaxAmount'].toDouble(),  // Extract MaxAmount
+      remakeAmount: json["RemakeAmount"].toDouble(),
+      minAmount: json['MinAmount'].toDouble(),  // Extract MinAmount
       quantity: json['Quantity'].toInt(),    // Extract Quantity
       price: json['Price'].toDouble(),        // Extract Price
     );
@@ -44,6 +47,7 @@ class Product {
         'Name': name, // Add Name to JSON
         'Description' : description,
         'MaxAmount': maxAmount,
+        'RemakeAmount': remakeAmount,
         'MinAmount': minAmount,
         'Quantity': quantity,
         'Price': price,
@@ -74,12 +78,13 @@ class ProductApi {
     final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
 
     final body = jsonEncode({
-    'name': product.name,
-    'description': product.description,
-    'maxAmount': product.maxAmount,
-    'minAmount': product.minAmount,
-    'quantity': product.quantity, // Include only if this field exists in the DB
-    'price': product.price, // Include only if this field exists in the DB
+    'Name': product.name,
+    'Description': product.description,
+    'MaxAmount': product.maxAmount,
+    'RemakeAmount' : product.remakeAmount,
+    'MinAmount': product.minAmount,
+    'Quantity': product.quantity, // Include only if this field exists in the DB
+    'Price': product.price, // Include only if this field exists in the DB
   });
     
 
@@ -421,6 +426,7 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
   final maxAmountController = TextEditingController();
+  final remakeAmountController = TextEditingController();
   final minAmountController = TextEditingController();
   final quantityController = TextEditingController();
   final priceController = TextEditingController();
@@ -444,6 +450,11 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
             TextField(
               controller: maxAmountController,
               decoration: const InputDecoration(labelText: 'Max Amount'),
+              keyboardType: TextInputType.number,
+            ),
+             TextField(
+              controller: remakeAmountController,
+              decoration: const InputDecoration(labelText: 'Remake Amount'),
               keyboardType: TextInputType.number,
             ),
             TextField(
@@ -476,8 +487,9 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
               productID: 0, // You can adjust this depending on your API requirements
               name: nameController.text,
               description: descriptionController.text,
-              maxAmount: int.tryParse(maxAmountController.text) ?? 0,
-              minAmount: int.tryParse(minAmountController.text) ?? 0,
+              maxAmount: double.tryParse(maxAmountController.text) ?? 0,
+              remakeAmount: double.tryParse(maxAmountController.text) ?? 0,
+              minAmount: double.tryParse(minAmountController.text) ?? 0,
               quantity: int.tryParse(quantityController.text) ?? 0,
               price: double.tryParse(priceController.text) ?? 0.0,
             );
