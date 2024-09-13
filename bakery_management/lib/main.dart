@@ -275,7 +275,13 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _streetAddressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+// Assuming the user selects an address type (e.g., home, work, etc.)
+  int _selectedAddressType = 1; // Default or user-selected
   
 
   final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users'); // Replace with your API URL
@@ -291,15 +297,24 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         'password': _passwordController.text,
         'email': _emailController.text,
         'phoneNumber': _phoneNumberController.text,
-        'address': _addressController.text,
+        'address': {
+        'streetAddress': _streetAddressController.text,
+        'city': _cityController.text,
+        'state': _stateController.text,
+        'postalCode': _postalCodeController.text,
+        'country': _countryController.text,
+        'addressTypeID': _selectedAddressType,
+      }
       }),
     );
+    print("Response status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
 
     if (response.statusCode == 201) {
       Navigator.pop(context); // Go back to the previous page (sign-in page)
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create account')),
+        SnackBar(content: Text('Failed to create account: ${response.body}')),
       );
     }
   }
@@ -397,11 +412,24 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               ),
               ),
             ),
-            TextField(
-              controller: _addressController,
+           TextField(
+            controller: _streetAddressController,
+            style: TextStyle(color: const Color(0xFF6D3200)),
+            decoration: const InputDecoration(labelText: 'Street Address',
+             labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+            ),
+          ),
+          TextField(
+              controller: _cityController,
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Address', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'City',
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
               focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
               ),
@@ -409,7 +437,47 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
               ),
               ),
-            ),
+          ),
+          TextField(
+              controller: _stateController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'State',
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+          ),
+          TextField(
+              controller: _postalCodeController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Postal Code',
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+          ),
+          TextField(
+              controller: _countryController,
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Country',
+               labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+          ),
+
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _createAccount,

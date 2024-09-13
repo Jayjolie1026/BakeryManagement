@@ -388,6 +388,7 @@ app.get('/vendors/:id', async (req, res) => {
 
 // POST /users: Add a new user
 app.post('/users', async (req, res) => {
+    console.log('Request body:', req.body);
     const { firstName, lastName, username, password, email, phoneNumber, address } = req.body;
 
     const newEmployeeID = uuidv4(); // Generate a GUID for the EmployeeID
@@ -396,6 +397,13 @@ app.post('/users', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const pool = await sql.connect(dbConfig);
+        console.log('Inserting into tblUsers:', {
+            employeeID: newEmployeeID,
+            firstName,
+            lastName,
+            username,
+        });
+
         await pool.request()
             .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
             .input('firstName', sql.VarChar, firstName)
@@ -406,6 +414,7 @@ app.post('/users', async (req, res) => {
 
         // Add email, phone number, and address to their respective tables
         if (email) {
+            console.log('Inserting into tblEmails:', { email, employeeID: newEmployeeID });
             await pool.request()
                 .input('email', sql.VarChar, email)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
@@ -413,6 +422,7 @@ app.post('/users', async (req, res) => {
         }
 
         if (phoneNumber) {
+            console.log('Inserting into tblPhoneNumbers:', { phoneNumber, employeeID: newEmployeeID });
             await pool.request()
                 .input('phoneNumber', sql.VarChar, phoneNumber)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
@@ -420,6 +430,16 @@ app.post('/users', async (req, res) => {
         }
 
         if (address) {
+            console.log('Inserting into tblAddresses:', {
+                streetAddress: address.streetAddress,
+                city: address.city,
+                state: address.state,
+                postalCode: address.postalCode,
+                country: address.country,
+                addressTypeID: address.addressTypeID,
+                employeeID: newEmployeeID,
+            });
+            
             await pool.request()
                 .input('streetAddress', sql.VarChar, address.streetAddress)
                 .input('city', sql.VarChar, address.city)
@@ -430,7 +450,7 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .query('INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID) VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID)');
         }
-
+        console.log('User added successfully');
         res.status(201).send('User added successfully');
     } catch (error) {
         res.status(500).send(error.message);
