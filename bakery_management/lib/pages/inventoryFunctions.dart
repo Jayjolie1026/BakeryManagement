@@ -134,7 +134,7 @@ void showItemDetails(BuildContext context, Item item) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Center(
+        title: const Center(
           child: Text(
             'Ingredients',
             style: TextStyle(color: Color.fromARGB(255, 97, 91, 77)),

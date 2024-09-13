@@ -184,7 +184,7 @@ class DetailedRecipePage extends StatelessWidget {
 class RecipePage extends StatelessWidget {
   final Product? product;
   
-  const RecipePage({Key? key, this.product}) : super(key: key);
+  const RecipePage({super.key, this.product});
   
   @override
   Widget build(BuildContext context) {

@@ -286,8 +286,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final styleActive = const TextStyle(color: Colors.black);
-    final styleHint = const TextStyle(color: Colors.black54);
+    const styleActive = TextStyle(color: Colors.black);
+    const styleHint = TextStyle(color: Colors.black54);
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -347,7 +347,7 @@ class ProductDetailPage extends StatelessWidget {
             Container(
               height: 150, // Adjust height as needed
               width: 150, // Adjust width as needed
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 image: DecorationImage(
                   image:  AssetImage('assets/bread2.png'),
@@ -355,14 +355,14 @@ class ProductDetailPage extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Centered Product Details
             Text('ID: ${product.productID}', style: const TextStyle(fontSize: 20)),
             Text('Name: ${product.name}', style: const TextStyle(fontSize: 20)),
             Text('Description: ${product.description}', style: const TextStyle(fontSize: 20)),
             Text('Price: \$${product.price}', style: const TextStyle(fontSize: 20)),
             Text('Quantity: ${product.quantity}', style: const TextStyle(fontSize: 20)),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -372,12 +372,12 @@ class ProductDetailPage extends StatelessWidget {
                     // Call update API
                     await ProductApi.updateProduct(product);
                   },
-                  child: const Text('Update'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                   ),
+                  child: const Text('Update'),
                 ),
-                SizedBox(width: 20),
+                const SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () {
                     // Navigate to recipe page
@@ -388,10 +388,10 @@ class ProductDetailPage extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text('Recipe'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                   ),
+                  child: const Text('Recipe'),
                 ),
               ],
             ),
@@ -445,7 +445,7 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
             TextField(
               controller: priceController,
               decoration: const InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
           ],
         ),

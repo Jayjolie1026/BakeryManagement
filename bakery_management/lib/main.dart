@@ -21,10 +21,10 @@ class BakeryManagementApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.brown,
         scaffoldBackgroundColor: const Color(0xFF422308), // Set global background color
-        appBarTheme: AppBarTheme(
-          backgroundColor: const Color(0xFFEEC07B), // Global AppBar color
-          iconTheme: const IconThemeData(color: Colors.white), // Icon color in the AppBar
-          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 20), // Title text style
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFEEC07B), // Global AppBar color
+          iconTheme: IconThemeData(color: Colors.white), // Icon color in the AppBar
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20), // Title text style
           elevation: 0, // Elevation of the AppBar
         ),
       ),
@@ -148,7 +148,7 @@ class BakeryHomePage extends StatelessWidget {
                     context,
                     'assets/bakedgoods.png',
                     'Manage Baked Goods',
-                    ProductsPage(), // Replace with the appropriate page for baked goods
+                    const ProductsPage(), // Replace with the appropriate page for baked goods
                   ),
                 ],
               ),

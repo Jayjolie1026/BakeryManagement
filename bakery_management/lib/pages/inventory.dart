@@ -101,7 +101,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
   // Build list tile for each inventory item
   Widget buildItem(Item item) => Card(
-    color: Color(0xFFEEC07B),
+    color: const Color(0xFFEEC07B),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(50),
     ),
@@ -111,13 +111,13 @@ class _InventoryPageState extends State<InventoryPage> {
       onTap: () => showItemDetails(context, item),
       child: Container(
         height: 50,
-        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               item.notes, //should be name
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF6D3200),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
