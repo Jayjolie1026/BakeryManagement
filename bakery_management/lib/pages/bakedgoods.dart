@@ -146,6 +146,7 @@ class ProductApi {
 // Products Page
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
+  
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
@@ -175,6 +176,15 @@ class _ProductsPageState extends State<ProductsPage> {
     }
     debouncer = Timer(duration, callback);
   }
+
+  void _updateProduct(Product updatedProduct) {
+  setState(() {
+    final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+    if (index != -1) {
+      products[index] = updatedProduct;
+    }
+  });
+}
 
   // Initialize and load products
   Future<void> init() async {
@@ -248,45 +258,46 @@ class _ProductsPageState extends State<ProductsPage> {
   });
 
   // Build list tile for each product
-  Widget buildProduct(Product product) => Card(
-    color: const Color(0xFFEEC07B),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50), // Circular shape
-    ),
-    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-    elevation: 4,
-    child: GestureDetector(
-      onTap: () async {
-        // Navigate to product detail page on tap
-        final result = await Navigator.push(
-         context,
+ Widget buildProduct(Product product) => Card(
+  color: const Color(0xFFEEC07B),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(50), // Circular shape
+  ),
+  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+  elevation: 4,
+  child: GestureDetector(
+    onTap: () async {
+      // Navigate to product detail page on tap and wait for result
+      final result = await Navigator.push(
+        context,
         MaterialPageRoute(
           builder: (context) => ProductDetailPage(
             product: product,
-            onProductUpdated: () {
-              // Refresh the product list after updating
-              init();
-            },
           ),
         ),
       );
+
+      // If the result is true, refresh the product list
+      if (result == true) {
+        init(); // Refresh the product list
+      }
     },
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-        child: Center(
-          child: Text(
-            product.name,
-            style: const TextStyle(
-              color: Color(0xFF6D3200),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+    child: Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+      child: Center(
+        child: Text(
+          product.name,
+          style: const TextStyle(
+            color: Color(0xFF6D3200),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
 // Search widget component
@@ -358,15 +369,129 @@ class _SearchWidgetState extends State<SearchWidget> {
 // Product Detail Page
 class ProductDetailPage extends StatefulWidget {
   final Product product;
-  final VoidCallback? onProductUpdated;
 
-  const ProductDetailPage({super.key, required this.product,this.onProductUpdated});
+  const ProductDetailPage({super.key, required this.product});
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
+  late Product _product;
+
+  @override
+  void initState() {
+    super.initState();
+    _product = widget.product;
+  }
+
+  void _updateProduct(Product updatedProduct) {
+    setState(() {
+      _product = updatedProduct;
+    });
+  }
+
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(_product.name),
+      backgroundColor: const Color(0xFFF0d1a0),
+    ),
+    backgroundColor: const Color(0xFFF0d1a0),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Centered Image
+          Container(
+            height: 150,
+            width: 150,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: AssetImage('assets/bread2.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Display Product Information
+          Text('Name: ${_product.name}', style: const TextStyle(fontSize: 18)),
+          Text('Description: ${_product.description}', style: const TextStyle(fontSize: 18)),
+          Text('Max Amount: ${_product.maxAmount}', style: const TextStyle(fontSize: 18)),
+          Text('Remake Amount: ${_product.remakeAmount}', style: const TextStyle(fontSize: 18)),
+          Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18)),
+          Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18)),
+          Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 20),
+          // Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  // Navigate to the update page and wait for result
+                  final updatedProduct = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductUpdatePage(
+                        product: _product,
+                        onProductUpdated: _updateProduct,
+                      ),
+                    ),
+                  );
+
+                  // If an updated product was returned, update the state
+                  if (updatedProduct != null) {
+                    _updateProduct(updatedProduct);
+                    Navigator.pop(context, true); // Pass true to indicate an update
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D3200),
+                ),
+                child: const Text('Update'),
+              ),
+              const SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to recipe page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecipePage(product: _product),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D3200),
+                ),
+                child: const Text('Recipe'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+}
+
+
+
+class ProductUpdatePage extends StatefulWidget {
+  final Product product;
+  final ValueChanged<Product> onProductUpdated;
+
+  const ProductUpdatePage({super.key, required this.product, required this.onProductUpdated});
+
+  @override
+  _ProductUpdatePageState createState() => _ProductUpdatePageState();
+}
+
+class _ProductUpdatePageState extends State<ProductUpdatePage> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _maxAmountController;
@@ -403,7 +528,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.product.name),
+        title: const Text('Update Product'),
         backgroundColor: const Color(0xFFF0d1a0),
       ),
       backgroundColor: const Color(0xFFF0d1a0),
@@ -412,19 +537,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Centered Image
-            Container(
-              height: 150,
-              width: 150,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage('assets/bread2.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             // Editable Fields
             TextField(
               controller: _nameController,
@@ -461,58 +573,38 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             const SizedBox(height: 20),
             // Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    // Update the product with new values
-                    final updatedProduct = Product(
-                      productID: widget.product.productID, // Keep the same product ID
-                      name: _nameController.text,
-                      description: _descriptionController.text,
-                      maxAmount: double.parse(_maxAmountController.text),
-                      remakeAmount: double.parse(_remakeAmountController.text),
-                      minAmount: double.parse(_minAmountController.text),
-                      quantity: int.parse(_quantityController.text),
-                      price: double.parse(_priceController.text),
-                    );
+            ElevatedButton(
+              onPressed: () async {
+                // Update the product with new values
+                final updatedProduct = Product(
+                  productID: widget.product.productID, // Keep the same product ID
+                  name: _nameController.text,
+                  description: _descriptionController.text,
+                  maxAmount: double.parse(_maxAmountController.text),
+                  remakeAmount: double.parse(_remakeAmountController.text),
+                  minAmount: double.parse(_minAmountController.text),
+                  quantity: int.parse(_quantityController.text),
+                  price: double.parse(_priceController.text),
+                );
 
-                    // Call update API
-                    await ProductApi.updateProduct(updatedProduct);
+                // Call update API
+                await ProductApi.updateProduct(updatedProduct);
 
-                    // Show success message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Product updated successfully!')),
-                    );
-                     if (widget.onProductUpdated != null) {
-                      widget.onProductUpdated!();
-                    }
-                     // Navigate back to the previous screen
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6D3200),
-                  ),
-                  child: const Text('Update'),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // Navigate to recipe page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RecipePage(product: widget.product),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6D3200),
-                  ),
-                  child: const Text('Recipe'),
-                ),
-              ],
+                // Notify parent widget of the update
+                widget.onProductUpdated(updatedProduct);
+
+                // Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Product updated successfully!')),
+                );
+
+                // Navigate back to the previous page with the updated product
+                Navigator.of(context).pop(updatedProduct);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6D3200),
+              ),
+              child: const Text('Update'),
             ),
           ],
         ),
@@ -520,7 +612,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 }
-
 
 
 void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
