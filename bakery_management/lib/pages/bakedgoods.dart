@@ -71,23 +71,37 @@ class ProductApi {
   }
 
   static Future<void> addFinalProduct(Product product) async {
-    // Replace with your API endpoint
+    final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
+
+    final body = jsonEncode({
+    'name': product.name,
+    'description': product.description,
+    'maxAmount': product.maxAmount,
+    'minAmount': product.minAmount,
+    'quantity': product.quantity, // Include only if this field exists in the DB
+    'price': product.price, // Include only if this field exists in the DB
+  });
+    
+
+  try {
     final response = await http.post(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts'),
+      url,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'Name': product.name,
-        'Description' : product.description,
-        'MaxAmount': product.maxAmount,
-        'MinAmount': product.minAmount,
-        'Quantity': product.quantity,
-        'Price': product.price,
-      }),
+      body: body,
     );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to add final product');
+    if (response.statusCode == 201) {
+      print('Final product created successfully');
+    } else {
+      print('Failed to create final product: ${response.statusCode}');
+      print('Response body: ${response.body}');
     }
+  } catch (e) {
+    print('Error occurred: $e');
+  }
+
+
+
   }
 
 
