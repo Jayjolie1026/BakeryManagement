@@ -1645,6 +1645,7 @@ app.post('/finalproducts', async (req, res) => {
 // PUT /finalproducts/:id: Update a specific final product by ProductID
 app.put('/finalproducts/:id', async (req, res) => {
     const { id } = req.params;
+    console.log(req.body);
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
    
 

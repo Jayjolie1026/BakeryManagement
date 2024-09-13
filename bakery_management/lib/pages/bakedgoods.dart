@@ -125,11 +125,14 @@ class ProductApi {
 
 
  static Future<void> updateProduct(Product product) async {
+  final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}');
   final response = await http.put(
-    Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}'),
+    url,
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode(product.toJson()),
   );
+  print('Response status: ${response.statusCode}');
+  print('Update request body: ${jsonEncode(product.toJson())}');
 
   if (response.statusCode != 200) {
     throw Exception('Failed to update product');
@@ -347,16 +350,53 @@ class _SearchWidgetState extends State<SearchWidget> {
 
 
 // Product Detail Page
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final Product product;
 
   const ProductDetailPage({super.key, required this.product});
 
-   @override
+  @override
+  _ProductDetailPageState createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _maxAmountController;
+  late TextEditingController _remakeAmountController;
+  late TextEditingController _minAmountController;
+  late TextEditingController _priceController;
+  late TextEditingController _quantityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.product.name);
+    _descriptionController = TextEditingController(text: widget.product.description);
+    _maxAmountController = TextEditingController(text: widget.product.maxAmount.toString());
+    _remakeAmountController = TextEditingController(text: widget.product.remakeAmount.toString());
+    _minAmountController = TextEditingController(text: widget.product.minAmount.toString());
+    _priceController = TextEditingController(text: widget.product.price.toString());
+    _quantityController = TextEditingController(text: widget.product.quantity.toString());
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _maxAmountController.dispose();
+    _remakeAmountController.dispose();
+    _minAmountController.dispose();
+    _priceController.dispose();
+    _quantityController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(product.name),
+        title: Text(widget.product.name),
         backgroundColor: const Color(0xFFF0d1a0),
       ),
       backgroundColor: const Color(0xFFF0d1a0),
@@ -367,23 +407,51 @@ class ProductDetailPage extends StatelessWidget {
           children: [
             // Centered Image
             Container(
-              height: 150, // Adjust height as needed
-              width: 150, // Adjust width as needed
+              height: 150,
+              width: 150,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 image: DecorationImage(
-                  image:  AssetImage('assets/bread2.png'),
+                  image: AssetImage('assets/bread2.png'),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            // Centered Product Details
-            Text('ID: ${product.productID}', style: const TextStyle(fontSize: 20)),
-            Text('Name: ${product.name}', style: const TextStyle(fontSize: 20)),
-            Text('Description: ${product.description}', style: const TextStyle(fontSize: 20)),
-            Text('Price: \$${product.price}', style: const TextStyle(fontSize: 20)),
-            Text('Quantity: ${product.quantity}', style: const TextStyle(fontSize: 20)),
+            // Editable Fields
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+            TextField(
+              controller: _maxAmountController,
+              decoration: const InputDecoration(labelText: 'Max Amount'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _remakeAmountController,
+              decoration: const InputDecoration(labelText: 'Remake Amount'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _minAmountController,
+              decoration: const InputDecoration(labelText: 'Min Amount'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _priceController,
+              decoration: const InputDecoration(labelText: 'Price'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _quantityController,
+              decoration: const InputDecoration(labelText: 'Quantity'),
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 20),
             // Buttons
             Row(
@@ -391,11 +459,28 @@ class ProductDetailPage extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () async {
+                    // Update the product with new values
+                    final updatedProduct = Product(
+                      productID: widget.product.productID, // Keep the same product ID
+                      name: _nameController.text,
+                      description: _descriptionController.text,
+                      maxAmount: double.parse(_maxAmountController.text),
+                      remakeAmount: double.parse(_remakeAmountController.text),
+                      minAmount: double.parse(_minAmountController.text),
+                      quantity: int.parse(_quantityController.text),
+                      price: double.parse(_priceController.text),
+                    );
+
                     // Call update API
-                    await ProductApi.updateProduct(product);
+                    await ProductApi.updateProduct(updatedProduct);
+
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Product updated successfully!')),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
+                    backgroundColor: const Color(0xFF6D3200),
                   ),
                   child: const Text('Update'),
                 ),
@@ -406,12 +491,12 @@ class ProductDetailPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RecipePage(product: product),
+                        builder: (context) => RecipePage(product: widget.product),
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: const Color(0xFF6D3200),
                   ),
                   child: const Text('Recipe'),
                 ),
@@ -423,6 +508,7 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 }
+
 
 
 void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
@@ -491,7 +577,7 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
               name: nameController.text,
               description: descriptionController.text,
               maxAmount: double.tryParse(maxAmountController.text) ?? 0,
-              remakeAmount: double.tryParse(maxAmountController.text) ?? 0,
+              remakeAmount: double.tryParse(remakeAmountController.text) ?? 0,
               minAmount: double.tryParse(minAmountController.text) ?? 0,
               quantity: int.tryParse(quantityController.text) ?? 0,
               price: double.tryParse(priceController.text) ?? 0.0,
