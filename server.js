@@ -33,17 +33,6 @@ app.get('/', (req, res) => {
 console.log('Server is starting.');
 
 
-(async () => {
-    try {
-        const pool = await sql.connect(dbConfig);
-        const testQuery = await pool.request().query('SELECT TOP 1 VendorName FROM tblVendors');
-        console.log('Test Query Result:', testQuery.recordset);
-    } catch (error) {
-        console.error('Test Query Error:', error);
-    }
-})();
-
-
 
   // GET /vendors: Retrieve all vendors Populate list underneath search bar
   app.get('/vendors', async (req, res) => {
@@ -1630,13 +1619,14 @@ app.get('/finalproducts/:id', async (req, res) => {
 // POST /finalproducts: Create a new final product
 app.post('/finalproducts', async (req, res) => {
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
-
+    console.log("a");
     // Validate required fields
     if (!name || quantity === undefined || price === undefined) {
         return res.status(400).send('Name, Quantity, and Price are required');
     }
 
     try {
+        console.log("b");
         const pool = await sql.connect(dbConfig);
         await pool.request()
             .input('name', sql.VarChar, name)
