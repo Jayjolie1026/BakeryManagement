@@ -86,7 +86,8 @@ class ProductApi {
     'Quantity': product.quantity, // Include only if this field exists in the DB
     'Price': product.price, // Include only if this field exists in the DB
   });
-    
+    print('Request body: $body');
+
 
   try {
     final response = await http.post(

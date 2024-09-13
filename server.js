@@ -1620,10 +1620,6 @@ app.get('/finalproducts/:id', async (req, res) => {
 app.post('/finalproducts', async (req, res) => {
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
     console.log("a");
-    // Validate required fields
-    if (!name || quantity === undefined || price === undefined) {
-        return res.status(400).send('Name, Quantity, and Price are required');
-    }
 
     try {
         console.log("b");
@@ -1635,7 +1631,7 @@ app.post('/finalproducts', async (req, res) => {
             .input('remakeAmount', sql.Decimal(10,2), remakeAmount || null)
             .input('minAmount', sql.Decimal(10,2), minAmount || null)
             .input('quantity', sql.Int, quantity)
-            .input('price', sql.Decimal(18, 2), price)
+            .input('price', sql.Decimal(10, 2), price)
             .query(`
                 INSERT INTO tblFinalProducts (Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price) 
                 VALUES (@name, @description, @maxAmount, @remakeAmount, @minAmount, @quantity, @price)
@@ -1643,6 +1639,7 @@ app.post('/finalproducts', async (req, res) => {
 
         res.status(201).send('Final product created');
     } catch (error) {
+        console.error('Detailed error:', error);
         res.status(500).send('Error creating final product: ' + error.message);
     }
 });
@@ -1667,7 +1664,7 @@ app.put('/finalproducts/:id', async (req, res) => {
             .input('remakeAmount', sql.Decimal(10,2), remakeAmount || null)
             .input('minAmount', sql.Decimal(10,2), minAmount || null)
             .input('quantity', sql.Int, quantity || null)
-            .input('price', sql.Decimal(18, 2), price || null)
+            .input('price', sql.Decimal(10, 2), price || null)
             .query(`
                 UPDATE tblFinalProducts 
                 SET 
