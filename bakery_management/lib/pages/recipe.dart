@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:bakery_management/pages/bakedgoods.dart';
 
 
 // Item model for recipe items
@@ -181,7 +182,9 @@ class DetailedRecipePage extends StatelessWidget {
 */
 
 class RecipePage extends StatelessWidget {
-  const RecipePage({super.key});
+  final Product? product;
+  
+  const RecipePage({Key? key, this.product}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
