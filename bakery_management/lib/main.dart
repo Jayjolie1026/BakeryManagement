@@ -20,11 +20,9 @@ class BakeryManagementApp extends StatelessWidget {
       title: 'Bakery Management',
       theme: ThemeData(
         primarySwatch: Colors.brown,
-        scaffoldBackgroundColor: const Color(0xFF422308), // Set global background color
+        scaffoldBackgroundColor: const Color(0xFFEEC07B),  // Set global background color
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFEEC07B), // Global AppBar color
           iconTheme: IconThemeData(color: Colors.white), // Icon color in the AppBar
-          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20), // Title text style
           elevation: 0, // Elevation of the AppBar
         ),
       ),
@@ -72,7 +70,8 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In'),
-        backgroundColor: const Color(0xFFEEC07B),
+        backgroundColor: const Color(0xFF422308),
+        foregroundColor: const Color(0xFFEEC07B),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -81,17 +80,40 @@ class _SignInPageState extends State<SignInPage> {
           children: [
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
+              decoration: const InputDecoration(labelText: 'Username',
+              labelStyle: const TextStyle(color: Color(0xFF422308)), // Label color
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Focused border color
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Enabled border color
+              ),
+              ),
+              style: const TextStyle(color: Color(0xFF422308)), // Input text color
             ),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Password',
+               labelStyle: const TextStyle(color: Color(0xFF422308)), // Label color
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Focused border color
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Enabled border color
+              ),
+            ),
+            style: const TextStyle(color: Color(0xFF422308)), // Input text color),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _signIn,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF422308), // Background color
+                foregroundColor: const Color(0xFFEEC07B), // Text color
+              ),
               child: const Text('Sign In'),
+              
             ),
           ],
         ),

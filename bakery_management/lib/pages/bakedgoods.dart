@@ -208,6 +208,7 @@ class _ProductsPageState extends State<ProductsPage> {
       ),
       centerTitle: true,
       backgroundColor: const Color(0xFFF0d1a0),
+      iconTheme: IconThemeData(color: const Color(0xFF6D3200)),
     ),
     backgroundColor: const Color(0xFFF0d1a0),
     body: Column(
@@ -233,7 +234,8 @@ class _ProductsPageState extends State<ProductsPage> {
       }),
       label: const Text('Add Product'),
       icon: const Icon(Icons.add),
-      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+      backgroundColor: const Color(0xFF6D3200),
+      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
@@ -243,6 +245,7 @@ class _ProductsPageState extends State<ProductsPage> {
     text: query,
     hintText: 'Search by Name',
     onChanged: searchProduct,
+    
   );
 
   // Search for a product by query
@@ -259,7 +262,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
   // Build list tile for each product
  Widget buildProduct(Product product) => Card(
-  color: const Color(0xFFEEC07B),
+  color: const Color(0xFF6D3200),
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(50), // Circular shape
   ),
@@ -289,7 +292,7 @@ class _ProductsPageState extends State<ProductsPage> {
         child: Text(
           product.name,
           style: const TextStyle(
-            color: Color(0xFF6D3200),
+            color: const Color.fromARGB(255, 243, 217, 162),
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -329,7 +332,7 @@ class _SearchWidgetState extends State<SearchWidget> {
   @override
   Widget build(BuildContext context) {
     const styleActive = TextStyle(color: Colors.black);
-    const styleHint = TextStyle(color: Colors.black54);
+    const styleHint = TextStyle(color:const Color(0xFFEEC07B));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -337,12 +340,14 @@ class _SearchWidgetState extends State<SearchWidget> {
       margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFFD8C4AA),
+        color: Color(0xFF6D3200),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
         controller: controller,
+        cursorColor: const Color(0xFFEEC07B),
         decoration: InputDecoration(
+          iconColor: const Color(0xFFEEC07B),
           icon: Icon(Icons.search, color: style.color),
           suffixIcon: widget.text.isNotEmpty
               ? GestureDetector(
@@ -397,6 +402,8 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       title: Text(_product.name),
       backgroundColor: const Color(0xFFF0d1a0),
+      foregroundColor:  const Color(0xFF6D3200),
+      iconTheme: IconThemeData(color: const Color(0xFF6D3200)),
     ),
     backgroundColor: const Color(0xFFF0d1a0),
     body: Padding(
@@ -418,13 +425,13 @@ Widget build(BuildContext context) {
           ),
           const SizedBox(height: 20),
           // Display Product Information
-          Text('Name: ${_product.name}', style: const TextStyle(fontSize: 18)),
-          Text('Description: ${_product.description}', style: const TextStyle(fontSize: 18)),
-          Text('Max Amount: ${_product.maxAmount}', style: const TextStyle(fontSize: 18)),
-          Text('Remake Amount: ${_product.remakeAmount}', style: const TextStyle(fontSize: 18)),
-          Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18)),
-          Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18)),
-          Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18)),
+          Text('Name: ${_product.name}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Description: ${_product.description}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Max Amount: ${_product.maxAmount}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Remake Amount: ${_product.remakeAmount}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
+          Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18, color: const Color(0xFF6D3200))),
           const SizedBox(height: 20),
           // Buttons
           Row(
@@ -451,8 +458,20 @@ Widget build(BuildContext context) {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFFF0d1a0),
                 ),
-                child: const Text('Update'),
+                child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                      'assets/update.png', // Replace with your icon asset
+                       height: 20, // Adjust height as needed
+                      width: 20,  // Adjust width as needed
+                  ),
+                  const SizedBox(width: 8), // Spacing between image and text
+                  const Text('Update'),
+                ],
+              ),
               ),
               const SizedBox(width: 20),
               ElevatedButton(
@@ -467,8 +486,20 @@ Widget build(BuildContext context) {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFFF0d1a0),
                 ),
-                child: const Text('Recipe'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/recipe.png', // Replace with your icon asset
+                      height: 20, // Adjust height as needed
+                      width: 20,  // Adjust width as needed
+                    ),
+                    const SizedBox(width: 8), // Spacing between image and text
+                    const Text('Recipe'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -530,6 +561,8 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
       appBar: AppBar(
         title: const Text('Update Product'),
         backgroundColor: const Color(0xFFF0d1a0),
+        foregroundColor: const Color(0xFF6D3200),
+        iconTheme: IconThemeData(color: const Color(0xFF6D3200)),
       ),
       backgroundColor: const Color(0xFFF0d1a0),
       body: Padding(
@@ -540,35 +573,42 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
             // Editable Fields
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Name', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
             ),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
             ),
             TextField(
               controller: _maxAmountController,
-              decoration: const InputDecoration(labelText: 'Max Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Max Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _remakeAmountController,
-              decoration: const InputDecoration(labelText: 'Remake Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Remake Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _minAmountController,
-              decoration: const InputDecoration(labelText: 'Min Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Min Amount', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Price', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _quantityController,
-              decoration: const InputDecoration(labelText: 'Quantity'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Quantity', labelStyle: TextStyle(color: Color(0xFF6D3200)),),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
@@ -603,8 +643,20 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6D3200),
+                foregroundColor: const Color(0xFFF0d1a0),
               ),
-              child: const Text('Update'),
+              child:  Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                      'assets/update.png', // Replace with your icon asset
+                       height: 20, // Adjust height as needed
+                      width: 20,  // Adjust width as needed
+                  ),
+                  const SizedBox(width: 8), // Spacing between image and text
+                  const Text('Update'),
+                ],
+              ),
             ),
           ],
         ),
@@ -626,6 +678,8 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
+      titleTextStyle: TextStyle(color: const Color(0xFF6D3200)), 
       title: const Text('Add New Product'),
       content: SingleChildScrollView(
         child: Column(
@@ -633,35 +687,42 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Name',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
             ),
              TextField(
               controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Description',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
             ),
             TextField(
               controller: maxAmountController,
-              decoration: const InputDecoration(labelText: 'Max Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Max Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
               keyboardType: TextInputType.number,
             ),
              TextField(
               controller: remakeAmountController,
-              decoration: const InputDecoration(labelText: 'Remake Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Remake Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: minAmountController,
-              decoration: const InputDecoration(labelText: 'Min Amount'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Min Amount',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: quantityController,
-              decoration: const InputDecoration(labelText: 'Quantity'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Quantity',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Price',  labelStyle: TextStyle(color: Color(0xFF6D3200)), ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
             ),
           ],
@@ -670,6 +731,10 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
+           style: TextButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Text color of the button
+            foregroundColor: const Color(0xFFF0d1a0),
+          ),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
@@ -694,6 +759,10 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
             // Close the dialog
             Navigator.of(context).pop();
           },
+           style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Background color of the button
+            foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
+          ),
           child: const Text('Add'),
         ),
       ],
