@@ -118,11 +118,6 @@ class ProductApi {
 
 
 
- 
-
-
-
-
 // Products Page
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -139,7 +134,7 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   void initState() {
     super.initState();
-    init();
+    init(); // Call the init method when the widget is initialized
   }
 
   @override
@@ -149,115 +144,120 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   // Debounce for search bar
-  void debounce(VoidCallback callback,
-      {Duration duration = const Duration(milliseconds: 1000)}) {
+  void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
     if (debouncer != null) {
       debouncer!.cancel();
     }
     debouncer = Timer(duration, callback);
   }
 
- Future<void> init() async {
-  try {
-    final products = await ProductApi.getProducts(query);
-    if (mounted) { // Check if the widget is still mounted
-      setState(() => this.products = products);
+  // Initialize and load products
+  Future<void> init() async {
+    try {
+      final products = await ProductApi.getProducts(query);
+      if (mounted) { // Check if the widget is still mounted
+        setState(() => this.products = products);
+      }
+    } catch (e) {
+      // Handle the error if needed
+      print('Failed to load products: $e');
     }
-  } catch (e) {
-    // Handle the error if needed
-    print('Failed to load products: $e');
   }
-}
-
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Image.asset(
-            'assets/bakedgoods.png',
-            height: 60,
-          ),
-          centerTitle: true,
-          backgroundColor: const Color(0xFFF0d1a0),
-        ),
-        backgroundColor: const Color(0xFFF0d1a0),
-        body: Column(
-          children: <Widget>[
-            buildSearch(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return buildProduct(product);
-                },
-              ),
-            ),
-          ],
-        ),
-         floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showAddProductDialog(context), // Open form for new product
-        label: const Text('Add Product'),
-        icon: const Icon(Icons.add),
-        backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+    appBar: AppBar(
+      title: Image.asset(
+        'assets/bakedgoods.png',
+        height: 60,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      );
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF0d1a0),
+    ),
+    backgroundColor: const Color(0xFFF0d1a0),
+    body: Column(
+      children: <Widget>[
+        buildSearch(),
+        Expanded(
+          child: ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return buildProduct(product);
+            },
+          ),
+        ),
+      ],
+    ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () => showAddProductDialog(context, () {
+        // Refresh the product list after adding a new product
+        setState(() {
+          init(); // Call init to reload products
+        });
+      }),
+      label: const Text('Add Product'),
+      icon: const Icon(Icons.add),
+      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+  );
 
   // Search bar widget
   Widget buildSearch() => SearchWidget(
-        text: query,
-        hintText: 'Search by Name',
-        onChanged: searchProduct,
-      );
+    text: query,
+    hintText: 'Search by Name',
+    onChanged: searchProduct,
+  );
 
   // Search for a product by query
   Future searchProduct(String query) async => debounce(() async {
-        final products = await ProductApi.getProducts(query);
+    final products = await ProductApi.getProducts(query);
 
-        if (!mounted) return;
+    if (!mounted) return;
 
-        setState(() {
-          this.query = query;
-          this.products = products;
-        });
-      });
+    setState(() {
+      this.query = query;
+      this.products = products;
+    });
+  });
 
   // Build list tile for each product
   Widget buildProduct(Product product) => Card(
-        color: const Color(0xFFEEC07B),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(50), // Circular shape
-        ),
-        margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-        elevation: 4,
-        child: GestureDetector(
-          onTap: () {
-            // Navigate to product detail page on tap
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailPage(product: product),
-              ),
-            );
-          },
-          child: Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-            child: Center(
-              child: Text(
-                product.name,
-                style: const TextStyle(
-                  color: Color(0xFF6D3200),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+    color: const Color(0xFFEEC07B),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50), // Circular shape
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () {
+        // Navigate to product detail page on tap
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(product: product),
+          ),
+        );
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            product.name,
+            style: const TextStyle(
+              color: Color(0xFF6D3200),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
+
 // Search widget component
 class SearchWidget extends StatefulWidget {
   final String text;
@@ -403,7 +403,7 @@ class ProductDetailPage extends StatelessWidget {
 }
 
 
-void showAddProductDialog(BuildContext context) {
+void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
   final maxAmountController = TextEditingController();
@@ -470,6 +470,8 @@ void showAddProductDialog(BuildContext context) {
 
             // Add the new product using the API
             await ProductApi.addFinalProduct(product);
+            onProductAdded(); // Refresh the product list
+
 
             // Close the dialog
             Navigator.of(context).pop();
