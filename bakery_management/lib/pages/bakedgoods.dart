@@ -78,13 +78,13 @@ class ProductApi {
     final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
 
     final body = jsonEncode({
-    "Name": "a",
-    "Description": "b",
-    "MaxAmount": 1.0,
-    "RemakeAmount": 1.0,
-    "MinAmount": 3.0,
-    "Quantity": 4,
-    "Price": 5.0
+    "name": "a",
+    "description": "b",
+    "maxAmount": 1.0,
+    "remakeAmount": 1.0,
+    "minAmount": 3.0,
+    "quantity": 4,
+    "price": 5.0
   });
     print('Request body: $body');
 
