@@ -78,13 +78,13 @@ class ProductApi {
     final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
 
     final body = jsonEncode({
-    'Name': product.name,
-    'Description': product.description,
-    'MaxAmount': product.maxAmount,
-    'RemakeAmount' : product.remakeAmount,
-    'MinAmount': product.minAmount,
-    'Quantity': product.quantity, // Include only if this field exists in the DB
-    'Price': product.price, // Include only if this field exists in the DB
+    "Name": "a",
+    "Description": "b",
+    "MaxAmount": 1.0,
+    "RemakeAmount": 1.0,
+    "MinAmount": 3.0,
+    "Quantity": 4,
+    "Price": 5.0
   });
     print('Request body: $body');
 
