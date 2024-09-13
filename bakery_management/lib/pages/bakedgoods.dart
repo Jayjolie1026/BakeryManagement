@@ -6,7 +6,7 @@ import 'package:bakery_management/pages/recipe.dart';
 
 // Product model for final products
 class Product {
-  final int productID;
+  int? productID;
   final String name;
   final String description;
   final double maxAmount;
@@ -17,7 +17,7 @@ class Product {
 
   // Constructor
   Product({
-    required this.productID,
+    this.productID,
     required this.name,
     required this.description,
     required this.maxAmount,
@@ -78,13 +78,13 @@ class ProductApi {
     final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
 
     final body = jsonEncode({
-    "name": "a",
-    "description": "b",
-    "maxAmount": 1.0,
-    "remakeAmount": 1.0,
-    "minAmount": 3.0,
-    "quantity": 4,
-    "price": 5.0
+   "name": product.name,
+    "description": product.description,
+    "maxAmount": product.maxAmount,
+    "remakeAmount": product.remakeAmount,
+    "minAmount": product.minAmount,
+    "quantity": product.quantity,
+    "price": product.price
   });
     print('Request body: $body');
 
@@ -98,6 +98,10 @@ class ProductApi {
 
     if (response.statusCode == 201) {
       print('Final product created successfully');
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      product.productID = responseData['ProductID'];
+
+      print('Final product created successfully with ProductID: ${product.productID}');
     } else {
       print('Failed to create final product: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -124,7 +128,7 @@ class ProductApi {
   final response = await http.put(
     Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}'),
     headers: {'Content-Type': 'application/json'},
-    body: json.encode(product.toJson()),
+    body: jsonEncode(product.toJson()),
   );
 
   if (response.statusCode != 200) {

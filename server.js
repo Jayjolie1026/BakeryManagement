@@ -1618,14 +1618,9 @@ app.get('/finalproducts/:id', async (req, res) => {
 
 // POST /finalproducts: Create a new final product
 app.post('/finalproducts', async (req, res) => {
-    console.log('Headers:', req.headers);
-    console.log('Request Body:', req.body);
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
-    console.log("a ");
-    console.log('Received data:', { name, description, maxAmount, remakeAmount, minAmount, quantity, price });
 
     try {
-        console.log("b");
         const pool = await sql.connect(dbConfig);
         await pool.request()
             .input('name', sql.VarChar, name)
@@ -1651,11 +1646,7 @@ app.post('/finalproducts', async (req, res) => {
 app.put('/finalproducts/:id', async (req, res) => {
     const { id } = req.params;
     const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
-
-    // Check if at least one field is provided for update
-    if (!name && description === undefined && maxAmount === undefined && remakeAmount === undefined && minAmount === undefined && quantity === undefined && price === undefined) {
-        return res.status(400).send('At least one field is required for update');
-    }
+   
 
     try {
         const pool = await sql.connect(dbConfig);
