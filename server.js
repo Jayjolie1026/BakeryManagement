@@ -1646,20 +1646,19 @@ app.post('/finalproducts', async (req, res) => {
 app.put('/finalproducts/:id', async (req, res) => {
     const { id } = req.params;
     console.log(req.body);
-    const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
-   
+    const { Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price } = req.body;
 
     try {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('id', sql.Int, id)
-            .input('name', sql.VarChar, name || null)
-            .input('description', sql.Text, description || null)
-            .input('maxAmount', sql.Decimal(10,2), maxAmount || null)
-            .input('remakeAmount', sql.Decimal(10,2), remakeAmount || null)
-            .input('minAmount', sql.Decimal(10,2), minAmount || null)
-            .input('quantity', sql.Int, quantity || null)
-            .input('price', sql.Decimal(10, 2), price || null)
+            .input('name', sql.VarChar, Name || null)
+            .input('description', sql.Text, Description || null)
+            .input('maxAmount', sql.Decimal(10, 2), MaxAmount || null)
+            .input('remakeAmount', sql.Decimal(10, 2), RemakeAmount || null)
+            .input('minAmount', sql.Decimal(10, 2), MinAmount || null)
+            .input('quantity', sql.Int, Quantity || null)
+            .input('price', sql.Decimal(10, 2), Price || null)
             .query(`
                 UPDATE tblFinalProducts 
                 SET 
@@ -1682,6 +1681,7 @@ app.put('/finalproducts/:id', async (req, res) => {
         res.status(500).send('Error updating final product: ' + error.message);
     }
 });
+
 
 // DELETE /finalproducts/:id: Delete a specific final product by ProductID
 app.delete('/finalproducts/:id', async (req, res) => {
