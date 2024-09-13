@@ -256,15 +256,21 @@ class _ProductsPageState extends State<ProductsPage> {
     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
     elevation: 4,
     child: GestureDetector(
-      onTap: () {
+      onTap: () async {
         // Navigate to product detail page on tap
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
+        final result = await Navigator.push(
+         context,
+        MaterialPageRoute(
+          builder: (context) => ProductDetailPage(
+            product: product,
+            onProductUpdated: () {
+              // Refresh the product list after updating
+              init();
+            },
           ),
-        );
-      },
+        ),
+      );
+    },
       child: Container(
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
@@ -352,8 +358,9 @@ class _SearchWidgetState extends State<SearchWidget> {
 // Product Detail Page
 class ProductDetailPage extends StatefulWidget {
   final Product product;
+  final VoidCallback? onProductUpdated;
 
-  const ProductDetailPage({super.key, required this.product});
+  const ProductDetailPage({super.key, required this.product,this.onProductUpdated});
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
@@ -478,6 +485,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Product updated successfully!')),
                     );
+                     if (widget.onProductUpdated != null) {
+                      widget.onProductUpdated!();
+                    }
+                     // Navigate back to the previous screen
+                    Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6D3200),
