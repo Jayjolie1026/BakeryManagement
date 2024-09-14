@@ -298,7 +298,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         'lastName': _lastNameController.text,
         'username': _usernameController.text,
         'password': _passwordController.text,
-         'email': {
+        'email': {
         'emailAddress': _emailController.text,
         'emailTypeID': _selectedEmailType,  // Add dropdown or fixed value for email type
       },

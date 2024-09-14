@@ -418,9 +418,9 @@ app.post('/users', async (req, res) => {
         if (email) {
             console.log('Inserting into tblEmails:', { email, employeeID: newEmployeeID });
             await pool.request()
-                .input('email', sql.VarChar, email)
+                .input('emailAddress', sql.VarChar, email.emailAddress)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
-                .input('typeID', sql.Int, emailTypeID) // The ID from tblEmailTypes
+                .input('typeID', sql.Int, email.emailTypeID) // The ID from tblEmailTypes
                 .input('valid', sql.Bit, 1) // Assuming email is valid by default
                 .query('INSERT INTO tblEmails (EmailAddress, EmployeeID, TypeID, Valid) VALUES (@email, @employeeID, @typeID, @valid)');
         }
@@ -428,10 +428,10 @@ app.post('/users', async (req, res) => {
         if (phoneNumber) {
             console.log('Inserting into tblPhoneNumbers:', { phoneNumber, employeeID: newEmployeeID });
             await pool.request()
-                .input('phoneNumber', sql.VarChar, phoneNumber)
-                .input('areaCode', sql.VarChar, areaCode)
+                .input('phoneNumber', sql.VarChar, phoneNumber.number)
+                .input('areaCode', sql.VarChar, phoneNumber.areaCode)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
-                .input('typeID', sql.Int, phoneTypeID)
+                .input('typeID', sql.Int, phoneNumber.phoneTypeID)
                 .input('valid', sql.Bit, 1)
                 .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID, TypeID, Valid) VALUES (@phoneNumber, @employeeID, @typeID, @valid)');
         }
