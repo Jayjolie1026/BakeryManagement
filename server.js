@@ -420,6 +420,8 @@ app.post('/users', async (req, res) => {
             await pool.request()
                 .input('email', sql.VarChar, email)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .input('typeID', sql.Int, emailTypeID) // The ID from tblEmailTypes
+                .input('valid', sql.Bit, 1) // Assuming email is valid by default
                 .query('INSERT INTO tblEmails (EmailAddress, EmployeeID) VALUES (@email, @employeeID)');
         }
 
@@ -427,7 +429,10 @@ app.post('/users', async (req, res) => {
             console.log('Inserting into tblPhoneNumbers:', { phoneNumber, employeeID: newEmployeeID });
             await pool.request()
                 .input('phoneNumber', sql.VarChar, phoneNumber)
+                .input('areaCode', sql.VarChar, areaCode)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .input('typeID', sql.Int, phoneTypeID)
+                .input('valid', sql.Bit, 1)
                 .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID) VALUES (@phoneNumber, @employeeID)');
         }
 

@@ -274,6 +274,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _areaCodeController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _streetAddressController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
@@ -282,6 +283,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _countryController = TextEditingController();
 // Assuming the user selects an address type (e.g., home, work, etc.)
   int _selectedAddressType = 1; // Default or user-selected
+  int _selectedPhoneType =1;
+  int _selectedEmailType = 1;
   
 
   final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users'); // Replace with your API URL
@@ -295,8 +298,15 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         'lastName': _lastNameController.text,
         'username': _usernameController.text,
         'password': _passwordController.text,
-        'email': _emailController.text,
-        'phoneNumber': _phoneNumberController.text,
+         'email': {
+        'emailAddress': _emailController.text,
+        'emailTypeID': _selectedEmailType,  // Add dropdown or fixed value for email type
+      },
+        'phoneNumber': {
+        'areaCode': _areaCodeController.text,  // Separate area code
+        'number': _phoneNumberController.text,
+        'phoneTypeID': _selectedPhoneType,  // Add dropdown or fixed value for phone type
+      },
         'address': {
         'streetAddress': _streetAddressController.text,
         'city': _cityController.text,
@@ -403,17 +413,35 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               ),
             ),
             TextField(
-              controller: _phoneNumberController,
+              controller: _areaCodeController,  // Controller for the area code
               style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Phone Number', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              decoration: const InputDecoration(
+                labelText: 'Area Code',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              keyboardType: TextInputType.number,  // Set input type to number for area code
+            ),
+
+            TextField(
+              controller: _phoneNumberController,  // Controller for the remaining phone number
+              style: TextStyle(color: const Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
               ),
-              ),
+              keyboardType: TextInputType.phone,  // Set input type to phone for phone number
             ),
            TextField(
             controller: _streetAddressController,
