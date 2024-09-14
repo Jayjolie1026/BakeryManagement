@@ -647,46 +647,46 @@ app.get('/users/employeeid/:id', async (req, res) => {
 
 
 // POST /login: Authenticate user without hashing (for testing purposes only)
-app.post('/login', async (req, res) => {
-    console.log('Request Body:', req.body);
-    const { username, password } = req.body;
+// app.post('/login', async (req, res) => {
+//     console.log('Request Body:', req.body);
+//     const { username, password } = req.body;
 
-    try {
-        const pool = await sql.connect(dbConfig);
-        if (pool.connected) {
-            console.log('Connected to Azure SQL Server');
-        }
+//     try {
+//         const pool = await sql.connect(dbConfig);
+//         if (pool.connected) {
+//             console.log('Connected to Azure SQL Server');
+//         }
 
-        const request = new sql.Request();
-        // Adjust the query to select the password_hash column
-        const result = await request
-            .input('username', sql.VarChar, username)
-            .query('SELECT password, EmployeeID FROM tblUsers WHERE username = @username'); // Adjusted query
+//         const request = new sql.Request();
+//         // Adjust the query to select the password_hash column
+//         const result = await request
+//             .input('username', sql.VarChar, username)
+//             .query('SELECT password, EmployeeID FROM tblUsers WHERE username = @username'); // Adjusted query
 
-        console.log('testing');
-        if (result.recordset.length > 0) {
-            const dbPassword = result.recordset[0].password; // Correctly access password_hash
-            const employeeID = result.recordset[0].EmployeeID;
-            console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
+//         console.log('testing');
+//         if (result.recordset.length > 0) {
+//             const dbPassword = result.recordset[0].password; // Correctly access password_hash
+//             const employeeID = result.recordset[0].EmployeeID;
+//             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
-            // Direct comparison of plain-text passwords (for testing purposes)
-            if (password === dbPassword) {
-                res.json({ message: 'Authentication successful', employee_id: employeeID });
-            } else {
-                res.status(401).send('Invalid credentials');
-            }
-        } else {
-            res.status(404).send('User not found');
-        }
-    } catch (error) {
-        res.status(200).send(error);
-    }
-});
-
-
+//             // Direct comparison of plain-text passwords (for testing purposes)
+//             if (password === dbPassword) {
+//                 res.json({ message: 'Authentication successful', employee_id: employeeID });
+//             } else {
+//                 res.status(401).send('Invalid credentials');
+//             }
+//         } else {
+//             res.status(404).send('User not found');
+//         }
+//     } catch (error) {
+//         res.status(200).send(error);
+//     }
+// });
 
 
-/* // POST /login: Authenticate user with hashed passwords
+
+
+ // POST /login: Authenticate user with hashed passwords
 app.post('/login', async (req, res) => {
     console.log('Request Body:', req.body);
     const { username, password } = req.body;
@@ -726,7 +726,7 @@ app.post('/login', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
- */
+ 
 
 
 
