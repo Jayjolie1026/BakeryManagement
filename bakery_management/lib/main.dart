@@ -98,70 +98,90 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign In'),
-        backgroundColor: const Color(0xFF422308),
-        foregroundColor: const Color(0xFFEEC07B),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username',
-              labelStyle: const TextStyle(color: Color(0xFF422308)), // Label color
-              focusedBorder: const UnderlineInputBorder(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text("Create Account"),
+      centerTitle: true,
+      backgroundColor: const Color(0xFF422308),
+      foregroundColor: const Color(0xFFEEC07B),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Add the image here
+          Image.asset(
+            'assets/chatlogo.png',
+            height: 300,
+          ),
+          const SizedBox(height: 20), // Spacing between image and form fields
+          
+          // Username TextField
+          TextField(
+            controller: _usernameController,
+            decoration: const InputDecoration(
+              labelText: 'Username',
+              labelStyle: TextStyle(color: Color(0xFF422308)), // Label color
+              focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF422308)), // Focused border color
               ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF422308)), // Enabled border color
-              ),
-              ),
-              style: const TextStyle(color: Color(0xFF422308)), // Input text color
-            ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password',
-               labelStyle: const TextStyle(color: Color(0xFF422308)), // Label color
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF422308)), // Focused border color
-              ),
-              enabledBorder: const UnderlineInputBorder(
+              enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF422308)), // Enabled border color
               ),
             ),
-            style: const TextStyle(color: Color(0xFF422308)), // Input text color),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _signIn,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF422308), // Background color
-                foregroundColor: const Color(0xFFEEC07B), // Text color
+            style: const TextStyle(color: Color(0xFF422308)), // Input text color
+          ),
+          
+          // Password TextField
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Password',
+              labelStyle: TextStyle(color: Color(0xFF422308)), // Label color
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Focused border color
               ),
-              child: const Text('Sign In'),     
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _navigateToCreateAccount,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF422308), // Background color
-                foregroundColor: const Color(0xFFEEC07B), // Text color
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF422308)), // Enabled border color
               ),
-              child: const Text('Create Account'),
             ),
-          ],
-        ),
+            style: const TextStyle(color: Color(0xFF422308)), // Input text color
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Sign In Button
+          ElevatedButton(
+            onPressed: _signIn,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF422308), // Background color
+              foregroundColor: const Color(0xFFEEC07B), // Text color
+            ),
+            child: const Text('Sign In'),
+          ),
+          
+          const SizedBox(height: 10),
+          
+          // Create Account Button
+          ElevatedButton(
+            onPressed: _navigateToCreateAccount,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF422308), // Background color
+              foregroundColor: const Color(0xFFEEC07B), // Text color
+            ),
+            child: const Text('Create Account'),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+
 
 class BakeryHomePage extends StatelessWidget {
   const BakeryHomePage({super.key});
@@ -170,10 +190,16 @@ class BakeryHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset(
-          'assets/chatlogo.png',
-          height: 75,
+        title: null, // Remove the title to use FlexibleSpaceBar
+      flexibleSpace: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+          child: Image.asset(
+            'assets/chatlogo.png',
+            height: 70,
+          ),
         ),
+      ),
         centerTitle: true,
         backgroundColor: const Color(0xFFEEC07B),
       ),
