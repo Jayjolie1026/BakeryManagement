@@ -701,17 +701,17 @@ app.post('/login', async (req, res) => {
         // Adjust the query to select the password and EmployeeID
         const result = await request
             .input('username', sql.VarChar, username)
-            .query('SELECT PasswordHash, EmployeeID FROM tblUsers WHERE Username = @username'); // Adjusted query to include EmployeeID
+            .query('SELECT Password, EmployeeID FROM tblUsers WHERE Username = @username'); // Adjusted query to include EmployeeID
 
         console.log('Testing');
         if (result.recordset.length > 0) {
-            const dbPasswordHash = result.recordset[0].PasswordHash; // Access PasswordHash
+            const dbPasswordHash = result.recordset[0].Password; // Access PasswordHash
             const employeeID = result.recordset[0].EmployeeID; // Access EmployeeID
 
-            console.log(`Password hash from DB: ${dbPasswordHash}`); // Log password hash for verification
+            console.log(`Password hash from DB: ${dbPassword}`); // Log password hash for verification
 
             // Compare provided password with hashed password from the database
-            const match = await bcrypt.compare(password, dbPasswordHash);
+            const match = await bcrypt.compare(password, dbPassword);
 
             if (match) {
                 // Respond with EmployeeID if the password matches
