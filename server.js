@@ -433,7 +433,7 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .input('typeID', sql.Int, phoneNumber.phoneTypeID)
                 .input('valid', sql.Bit, 1)
-                .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID, TypeID, Valid) VALUES (@phoneNumber, @areaCode, @employeeID, @typeID, @valid)');
+                .query('INSERT INTO tblPhoneNumbers (Number, AreaCode, EmployeeID, TypeID, Valid) VALUES (@phoneNumber, @areaCode, @employeeID, @typeID, @valid)');
         }
 
         if (address) {
