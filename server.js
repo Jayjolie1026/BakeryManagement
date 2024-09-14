@@ -705,7 +705,7 @@ app.post('/login', async (req, res) => {
 
         console.log('Testing');
         if (result.recordset.length > 0) {
-            const dbPasswordHash = result.recordset[0].Password; // Access PasswordHash
+            const dbPassword = result.recordset[0].Password; // Access PasswordHash
             const employeeID = result.recordset[0].EmployeeID; // Access EmployeeID
 
             console.log(`Password hash from DB: ${dbPassword}`); // Log password hash for verification
