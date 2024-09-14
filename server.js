@@ -422,7 +422,7 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .input('typeID', sql.Int, emailTypeID) // The ID from tblEmailTypes
                 .input('valid', sql.Bit, 1) // Assuming email is valid by default
-                .query('INSERT INTO tblEmails (EmailAddress, EmployeeID) VALUES (@email, @employeeID)');
+                .query('INSERT INTO tblEmails (EmailAddress, EmployeeID, TypeID, Valid) VALUES (@email, @employeeID, @typeID, @valid)');
         }
 
         if (phoneNumber) {
@@ -433,7 +433,7 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .input('typeID', sql.Int, phoneTypeID)
                 .input('valid', sql.Bit, 1)
-                .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID) VALUES (@phoneNumber, @employeeID)');
+                .query('INSERT INTO tblPhoneNumbers (Number, EmployeeID, TypeID, Valid) VALUES (@phoneNumber, @employeeID, @typeID, @valid)');
         }
 
         if (address) {
@@ -698,14 +698,15 @@ app.post('/login', async (req, res) => {
         }
 
         const request = new sql.Request();
-        // Adjust the query to select the password_hash column
+        // Adjust the query to select the password and EmployeeID
         const result = await request
             .input('username', sql.VarChar, username)
-            .query('SELECT PasswordHash FROM tblUsers WHERE Username = @username'); // Adjusted query
+            .query('SELECT PasswordHash, EmployeeID FROM tblUsers WHERE Username = @username'); // Adjusted query to include EmployeeID
 
         console.log('Testing');
         if (result.recordset.length > 0) {
-            const dbPasswordHash = result.recordset[0].PasswordHash; // Correctly access PasswordHash
+            const dbPasswordHash = result.recordset[0].PasswordHash; // Access PasswordHash
+            const employeeID = result.recordset[0].EmployeeID; // Access EmployeeID
 
             console.log(`Password hash from DB: ${dbPasswordHash}`); // Log password hash for verification
 
@@ -713,7 +714,8 @@ app.post('/login', async (req, res) => {
             const match = await bcrypt.compare(password, dbPasswordHash);
 
             if (match) {
-                res.send('Authentication successful');
+                // Respond with EmployeeID if the password matches
+                res.json({ message: 'Authentication successful', employee_id: employeeID });
             } else {
                 res.status(401).send('Invalid credentials');
             }
@@ -721,9 +723,10 @@ app.post('/login', async (req, res) => {
             res.status(404).send('User not found');
         }
     } catch (error) {
-        res.status(200).send(error.message);
+        res.status(500).send(error.message);
     }
-}); */
+});
+ */
 
 
 
