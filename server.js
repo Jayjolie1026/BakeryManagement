@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
 const sql = require('mssql');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+
 //const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 //const cors = require('cors'); // Import cors package
