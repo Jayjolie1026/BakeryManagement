@@ -1531,10 +1531,10 @@ app.post('/sessions/start', async (req, res) => {
         console.log('CreateDateTime:', new Date());
         const result = await pool.request()
             .input('employee_id', sql.UniqueIdentifier, employee_id)
-            .input('create_datetime', sql.DateTime, new Date())
+            .input('last_activity_datetime', sql.DateTime, new Date()) // Add LastActivityDateTime
             .query(`
-                INSERT INTO tblSessions (EmployeeID, CreateDateTime) 
-                VALUES (@employee_id, @create_datetime)
+                INSERT INTO tblSessions (EmployeeID, CreateDateTime, LastActivityDateTime) 
+                VALUES (@employee_id, @create_datetime, @last_activity_datetime)
             `);
         console.log('Session created successfully'); // Log successful session creation
         console.log('Result:', result); // Log the result of the query
@@ -1572,6 +1572,23 @@ app.put('/sessions/:session_id/update', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+app.use('/sessions/validate', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .query(`
+                DELETE FROM tblSessions 
+                WHERE LastActivityDateTime < DATEADD(MINUTE, -30, GETDATE())
+            `);
+        
+        res.send('Inactive sessions removed');
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 
 
 // GET /sessions: Retrieve all active sessions

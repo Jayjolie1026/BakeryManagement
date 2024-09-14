@@ -102,7 +102,7 @@ class _SignInPageState extends State<SignInPage> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: const Text("Create Account"),
+      title: const Text("Welcome to Big Baller Bakery!"),
       centerTitle: true,
       backgroundColor: const Color(0xFF422308),
       foregroundColor: const Color(0xFFEEC07B),
@@ -115,7 +115,7 @@ Widget build(BuildContext context) {
           // Add the image here
           Image.asset(
             'assets/chatlogo.png',
-            height: 300,
+            height: 207,
           ),
           const SizedBox(height: 20), // Spacing between image and form fields
           
@@ -307,15 +307,107 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _postalCodeController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
+
+  String?_selectedState;
+  final List<String> _states = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 
+    'CO', 'CT', 'DE', 'FL', 'GA', 
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 
+    'KY', 'LA', 'ME', 'MD', 'MA', 
+    'MI', 'MN', 'MS', 'MO', 'MT', 
+    'NE', 'NV', 'NH', 'NJ', 'NM', 
+    'NY', 'NC', 'ND', 'OH', 'OK', 
+    'OR', 'PA', 'RI', 'SC', 'SD', 
+    'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 
+    'WV', 'WI', 'WY'
+  ];
+
+
+ @override
+  void dispose() {
+    _emailController.dispose();
+    _areaCodeController.dispose();
+    _phoneNumberController.dispose();
+    super.dispose();
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool _isValidPhoneNumber(String areaCode, String number) {
+    print('Area Code: $areaCode');
+    print('Number: $number');
+    
+    if (number.length < 7) {
+      print('Number is too short');
+      return false;
+    }
+    
+    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+    print('Formatted Number: $formattedNumber');
+    return phoneNumberRegex.hasMatch(formattedNumber);
+  }
+
+  bool isValidPostalCode(String postalCode) {
+    final postalCodeRegex = RegExp(r'^\d{5}$'); // Matches exactly 5 digits
+    return postalCodeRegex.hasMatch(postalCode);
+  }
+
+  bool isValidPassword(String password) {
+    final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    return passwordRegex.hasMatch(password);
+  }
+
+
+
 // Assuming the user selects an address type (e.g., home, work, etc.)
-  int _selectedAddressType = 1; // Default or user-selected
-  int _selectedPhoneType =1;
-  int _selectedEmailType = 1;
-  
+  final int _selectedAddressType = 1; // Default or user-selected
+  final int _selectedPhoneType =1;
+  final int _selectedEmailType = 1;
 
   final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users'); // Replace with your API URL
 
   Future<void> _createAccount() async {
+  final email = _emailController.text;
+  final areaCode = _areaCodeController.text;
+  final phoneNumber = _phoneNumberController.text;
+  final postalCode = _postalCodeController.text;
+  final password = _passwordController.text;
+
+  
+  
+   if (!_isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid email format')),
+      );
+      return;
+    }
+
+    if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid phone number format')),
+      );
+      return;
+    }
+
+    if (!isValidPostalCode(postalCode)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
+      );
+      return;
+    }
+
+  if (!isValidPassword(password)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
+    );
+    return;
+  }
+  
+
     final response = await http.post(
       _apiUrl,
       headers: {'Content-Type': 'application/json'},
@@ -365,190 +457,225 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         title: const Text('Create Account'),
         backgroundColor: const Color(0xFF422308),
         foregroundColor: const Color(0xFFEEC07B),
-        iconTheme: IconThemeData(color: const Color(0xFFEEC07B)),
+        iconTheme: const IconThemeData(color: Color(0xFFEEC07B)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _firstNameController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'First Name', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _lastNameController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Last Name', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _usernameController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Username',
-               labelStyle: TextStyle(color: Color(0xFF6D3200)),
-               focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-               ),
-            ),
-            TextField(
-              controller: _passwordController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _emailController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Email', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _areaCodeController,  // Controller for the area code
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Area Code',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child : Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextField(
+                  controller: _firstNameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'First Name', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
+                  ),
+                  enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
                 ),
-              ),
-              keyboardType: TextInputType.number,  // Set input type to number for area code
-            ),
-
-            TextField(
-              controller: _phoneNumberController,  // Controller for the remaining phone number
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
+                TextField(
+                  controller: _lastNameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Last Name', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
+                  ),
+                  enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Username',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _passwordController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Password', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Email', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _areaCodeController,  // Controller for the area code
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(
+                    labelText: 'Area Code',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,  // Set input type to number for area code
+                ),
+
+                TextField(
+                  controller: _phoneNumberController,  // Controller for the remaining phone number
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,  // Set input type to phone for phone number
+                ),
+              TextField(
+                controller: _streetAddressController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Street Address',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
                 ),
               ),
-              keyboardType: TextInputType.phone,  // Set input type to phone for phone number
-            ),
-           TextField(
-            controller: _streetAddressController,
-            style: TextStyle(color: const Color(0xFF6D3200)),
-            decoration: const InputDecoration(labelText: 'Street Address',
-             labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              TextField(
+                  controller: _cityController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'City',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
+              SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
+                child: Theme(
+                  data: ThemeData(
+                    hintColor: Color(0xFFEEC07B), // Set the color of the hint text
+                  ),
+                  child: DropdownButton<String>(
+                    value: _selectedState,
+                    hint: Text(
+                      'Select State',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Hint text color
+                      ),
+                    ),
+                    items: _states.map((state) {
+                      return DropdownMenuItem<String>(
+                        value: state,
+                        child: Text(
+                          state,
+                          style: TextStyle(color: Color(0xFF6D3200)), // Dropdown item text color
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedState = newValue;
+                         _stateController.text = newValue ?? '';
+                      });
+                    },
+                    dropdownColor: Color(0xFFEEC07B), // Background color of the dropdown menu
+                    style: TextStyle(
+                      color: Color(0xFFEEC07B), // Text color of the selected item
+                      fontSize: 16, // Text size of the selected item
+                    ),
+                    underline: Container(
+                      height: 2,
+                      color: Color(0xFF6D3200), // Underline color
+                    ),
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: Color(0xFF6D3200), // Arrow color
+                      ),
+                  ),
+                ),
+              ),     
+              TextField(
+                  controller: _postalCodeController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Postal Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
               ),
-            ),
-          ),
-          TextField(
-              controller: _cityController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'City',
-               labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
+              TextField(
+                  controller: _countryController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'County',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-          ),
-          TextField(
-              controller: _stateController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'State',
-               labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-          ),
-          TextField(
-              controller: _postalCodeController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Postal Code',
-               labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-          ),
-          TextField(
-              controller: _countryController,
-              style: TextStyle(color: const Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Country',
-               labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: const Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-          ),
 
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _createAccount,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF422308), // Background color
-                foregroundColor: const Color(0xFFEEC07B), // Text color
-              ),
-              child: const Text('Create Account'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _createAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308), // Background color
+                  foregroundColor: const Color(0xFFEEC07B), // Text color
+                ),
+                child: const Text('Create Account'),
+         ),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
-
-
+}
