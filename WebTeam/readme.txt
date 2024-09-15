@@ -25,3 +25,21 @@ Color theme:
 Icons:
 fa-book: Font Awesome Icons
 https://fontawesome.com/v4/
+
+            <img src="final_logo.png" alt="Bigballer Bakery logo" height="150" width="190" length="100">
+            <ul class="navbar__menu">
+                <li class="navbar__item">
+                    <a href="/" class="navbar__links"><i class="fa fa-archive" aria-hidden="true"></i> Inventory </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="recipe.html" class="navbar__links"><i class="fa fa-book" aria-hidden="true"></i> Recipe </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="/" class="navbar__links"><i class="fa fa-tasks" aria-hidden="true"></i> Task </a>
+                </li>
+                <li class="navbar__item">
+                    <a href="account.html" class="navbar__links"><i class="fa fa-address-card" aria-hidden="true"></i> Employee </a>
+                </li>
+                <li class="navbar__btn">
+                    <a href="/" class="button"> Sign up </a>
+                </li>
