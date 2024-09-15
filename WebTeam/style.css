@@ -161,7 +161,7 @@ body {
     position: sticky;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-left: 1050px; /* Adjust spacing from the text section */
+    margin-left: 1250px; /* Adjust spacing from the text section */
     margin-bottom: 100px;
     margin-top: -378px;
 }
@@ -210,72 +210,3 @@ body {
     margin-bottom: 10px;
 }
 
-/* Employee Profile Page Styles */
-.container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-    color: #6E0D25;
-    margin-bottom: 20px;
-}
-
-.employee-info {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
-}
-
-.employee-info p {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-}
-
-.employee-info span {
-    font-weight: bold;
-}
-
-.search-bar {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.search-bar input {
-    width: 70%;
-    padding: 10px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.search-bar button {
-    padding: 10px 20px;
-    background-color: #774E24;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.search-bar button:hover {
-    background-color: #9c2a3b;
-}
-
-.search-results {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.search-results .employee-item {
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-    margin-bottom: 10px;
-}
