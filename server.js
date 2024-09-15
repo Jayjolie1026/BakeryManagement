@@ -1528,9 +1528,11 @@ app.post('/sessions/start', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
         console.log('Employee ID:', employee_id);
+        const createDateTime = new Date();
         console.log('CreateDateTime:', new Date());
         const result = await pool.request()
             .input('employee_id', sql.UniqueIdentifier, employee_id)
+            .input('create_datetime', sql.DateTime, createDateTime)
             .input('last_activity_datetime', sql.DateTime, new Date()) // Add LastActivityDateTime
             .query(`
                 INSERT INTO tblSessions (EmployeeID, CreateDateTime, LastActivityDateTime) 
