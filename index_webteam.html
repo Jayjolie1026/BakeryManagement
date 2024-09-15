@@ -1,14 +1,11 @@
-<!--Author: (Ploy) Siyapa Chanhorm (home page/ login page)
-    Date: August 29, 2024
-    File: index.html
-    Purpose: create the structure and content of frontpage/homepage
--->                          
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flour & Fantasy Bakery</title>
+    <title>Big Baller Bakery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
+    integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
     <!--Link to CSS-->
     <link rel="stylesheet" href="style.css" />
 </head>
@@ -18,30 +15,22 @@
     <nav class="navbar">
         <div class="navbar__container">
             <!--logo image-->
-            <img src="logo1.png" alt="Flour & Fantasy logo" height="75" width="300" length="100">
-            <div class="navbar__toggle" id="mobile-menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
+            <img src="final_logo.png" alt="Bigballer Bakery logo" height="150" width="190" length="100">
             <ul class="navbar__menu">
                 <li class="navbar__item">
-                    <a href="/" class="navbar__links"> Home </a>
+                    <a href="/" class="navbar__links"><i class="fa fa-archive" aria-hidden="true"></i> Inventory </a>
                 </li>
                 <li class="navbar__item">
-                    <a href="/" class="navbar__links"> Inventory </a>
+                    <a href="/" class="navbar__links"><i class="fa fa-book" aria-hidden="true"></i> Recipe </a>
                 </li>
                 <li class="navbar__item">
-                    <a href="/" class="navbar__links"> Recipe </a>
+                    <a href="/" class="navbar__links"><i class="fa fa-tasks" aria-hidden="true"></i> Task </a>
                 </li>
                 <li class="navbar__item">
-                    <a href="/" class="navbar__links"> Employee </a>
-                </li>
-                <li class="navbar__item">
-                    <a href="/" class="navbar__links"> About </a>
+                    <a href="account.html" class="navbar__links"><i class="fa fa-address-card" aria-hidden="true"></i> Employee </a>
                 </li>
                 <li class="navbar__btn">
-                    <a href="/" class="button"> Sign in </a>
+                    <a href="/" class="button"> Sign up </a>
                 </li>
             </ul>
         </div>    
@@ -49,21 +38,43 @@
     <!--front page end-->
     
     <!--header section begin-->
-        <div class="main">
-            <div class="main__container">
-                <div class="main___content">
-                <h1>Where Every Slice is a Story</h1>
-                <h2>Too good for only one bite</h2>
-                <button class="main__btn"><a href="/">Get started</a></button>
-                </div>
-                <div class="main__img--container">
-                    <img src="bread2.png" alt="Bread pic in home page" id="main__img">
-                </div>
+    <div class="main">
+        <div class="main__container">
+            <div class="main__content">
+                <h1>"Where Every Slice is a Story"</h1>
+                <h2>Too good for one bite</h2>
+            </div>
+            <div class="main__img">
+                <img src="bread2.png" alt="Bread pic in home page" id="main__img">
             </div>
         </div>
+    </div>
     <!--header section end-->
+    
+    <!-- Sign-in Form Section (Right) -->
+    <div class="signin__container">
+        <h1>Sign In</h1>
+        
+        <!-- Updated form with id="loginForm" -->
+        <form id="loginForm" action="#" method="post" class="signin-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your email" required>
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            
+            <button type="submit" class="button">Sign In</button>
+        </form>
+        
+        <!-- Div to display login response messages -->
+        <div id="responseMessage"></div>
+        
+        <a href="/" class="button1">Forget password</a>
+        <a href="pages/register.html" class="button1">Register</a>
+    </div>
 
     <!--Link to JS-->
     <script src="main.js"></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
