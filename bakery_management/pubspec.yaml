@@ -58,12 +58,16 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
+  fonts:
+    - family: MyFont
+      fonts:
+        - asset: assets/fonts/SofadiOne-Regular.ttf
   assets:
     - assets/logo1.png
     - assets/bread2.png
     - assets/inventory_logo.png
     - assets/vendor.png
+    - assets/vendor2.png
     - assets/bagel3.jpg
     - assets/recipe.png
     - assets/bakedgoods.png
@@ -71,6 +75,9 @@ flutter:
     - assets/recipe.png
     - assets/chatlogo.png
     - assets/update.png
+    - assets/bakedgoods2.png
+    - assets/inventory2.png
+    - assets/recipe2.png
 
 
   # To add assets to your application, add an assets section, like this:

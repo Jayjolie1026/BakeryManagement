@@ -479,12 +479,12 @@ Widget build(BuildContext context) {
                   backgroundColor: const Color(0xFF6D3200),
                   foregroundColor: const Color(0xFFF0d1a0),
                 ),
-                child: Row(
+                child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add),
-                  const SizedBox(width: 8), // Spacing between image and text
-                  const Text('Update'),
+                  Icon(Icons.add),
+                  SizedBox(width: 8), // Spacing between image and text
+                  Text('Update'),
                 ],
               ),
               ),
@@ -716,12 +716,12 @@ class _ProductUpdatePageState extends State<ProductUpdatePage> {
                 backgroundColor: const Color(0xFF6D3200),
                 foregroundColor: const Color(0xFFF0d1a0),
               ),
-              child:  Row(
+              child:  const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                   const Icon(Icons.add),
-                  const SizedBox(width: 8), // Spacing between image and text
-                  const Text('Update'),
+                   Icon(Icons.add),
+                  SizedBox(width: 8), // Spacing between image and text
+                  Text('Update'),
                 ],
               ),
             ),

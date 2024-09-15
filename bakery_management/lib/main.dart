@@ -19,6 +19,7 @@ class BakeryManagementApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bakery Management',
       theme: ThemeData(
+        fontFamily: 'MyFont',
         primarySwatch: Colors.brown,
         scaffoldBackgroundColor: const Color(0xFFEEC07B),  // Set global background color
         appBarTheme: const AppBarTheme(
@@ -201,9 +202,9 @@ class BakeryHomePage extends StatelessWidget {
         ),
       ),
         centerTitle: true,
-        backgroundColor: const Color(0xFFEEC07B),
+        backgroundColor: const Color(0xFF422308), //const Color(0xFF422308)
       ),
-      backgroundColor: const Color(0xFF422308),
+      backgroundColor: const Color(0xFFEEC07B),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -217,26 +218,26 @@ class BakeryHomePage extends StatelessWidget {
                 children: [
                   _buildGridButton(
                     context,
-                    'assets/vendor.png',
-                    'Manage Vendors',
+                    'assets/vendor2.png',
+                    '',
                     const VendorsPage(),
                   ),
                   _buildGridButton(
                     context,
-                    'assets/recipe.png',
-                    'Manage Recipes',
+                    'assets/recipe2.png',
+                    '',
                     const RecipePage(),
                   ),
                   _buildGridButton(
                     context,
-                    'assets/inventory.png',
-                    'Manage Inventory',
+                    'assets/inventory2.png',
+                    '',
                     const InventoryPage(),
                   ),
                   _buildGridButton(
                     context,
-                    'assets/bakedgoods.png',
-                    'Manage Baked Goods',
+                    'assets/bakedgoods2.png',
+                    '',
                     const ProductsPage(), // Replace with the appropriate page for baked goods
                   ),
                 ],
@@ -381,28 +382,28 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   
    if (!_isValidEmail(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid email format')),
+        const SnackBar(content: Text('Invalid email format')),
       );
       return;
     }
 
     if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid phone number format')),
+        const SnackBar(content: Text('Invalid phone number format')),
       );
       return;
     }
 
     if (!isValidPostalCode(postalCode)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
+        const SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
       );
       return;
     }
 
   if (!isValidPassword(password)) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
+      const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
     );
     return;
   }
@@ -589,16 +590,16 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   ),
                   ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Align(
                 alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
                 child: Theme(
                   data: ThemeData(
-                    hintColor: Color(0xFFEEC07B), // Set the color of the hint text
+                    hintColor: const Color(0xFFEEC07B), // Set the color of the hint text
                   ),
                   child: DropdownButton<String>(
                     value: _selectedState,
-                    hint: Text(
+                    hint: const Text(
                       'Select State',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Hint text color
@@ -609,7 +610,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         value: state,
                         child: Text(
                           state,
-                          style: TextStyle(color: Color(0xFF6D3200)), // Dropdown item text color
+                          style: const TextStyle(color: Color(0xFF6D3200)), // Dropdown item text color
                         ),
                       );
                     }).toList(),
@@ -619,16 +620,16 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                          _stateController.text = newValue ?? '';
                       });
                     },
-                    dropdownColor: Color(0xFFEEC07B), // Background color of the dropdown menu
-                    style: TextStyle(
+                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                    style: const TextStyle(
                       color: Color(0xFFEEC07B), // Text color of the selected item
                       fontSize: 16, // Text size of the selected item
                     ),
                     underline: Container(
                       height: 2,
-                      color: Color(0xFF6D3200), // Underline color
+                      color: const Color(0xFF6D3200), // Underline color
                     ),
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.arrow_drop_down,
                         color: Color(0xFF6D3200), // Arrow color
                       ),
