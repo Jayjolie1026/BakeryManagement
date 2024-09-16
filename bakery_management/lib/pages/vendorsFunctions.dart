@@ -6,18 +6,26 @@ import 'dart:convert';
 
 // Fetch vendor details from the API
 Future<Vendor> fetchVendorDetails(int id) async {
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'));
+  try {
+    final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'));
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> json = jsonDecode(response.body);
-    print('Vendor Details JSON: $json'); // Debugging line
-    return Vendor.fromJson(json);
-  } else {
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      print('Vendor Details JSON: $json'); // Debugging line
+      return Vendor.fromJson(json);
+    } else {
+      print('Failed to load vendor details. Status code: ${response.statusCode}');
+      throw Exception('Failed to load vendor details');
+    }
+  } catch (e) {
+    print('Error: $e');
     throw Exception('Failed to load vendor details');
   }
 }
 
-// Show vendor details in a dialog
 void showVendorDetails(BuildContext context, Vendor vendor) {
   showDialog(
     context: context,

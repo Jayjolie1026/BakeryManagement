@@ -158,28 +158,3 @@ class EditVendorPage extends StatelessWidget {
   }
 }
 
-// Vendor Details Page (Example implementation)
-class VendorDetailsPage extends StatelessWidget {
-  final Vendor vendor;
-
-  const VendorDetailsPage({super.key, required this.vendor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(vendor.vendorName),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Vendor ID: ${vendor.vendorID}'),
-            // Display other vendor details as needed
-          ],
-        ),
-      ),
-    );
-  }
-}

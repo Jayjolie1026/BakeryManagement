@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 // Define the Address class
 class Address {
   final int addressID;
@@ -95,6 +93,7 @@ class Vendor {
   });
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
+    print('Vendor JSON: $json');
     return Vendor(
       vendorID: json['VendorID'] ?? 0,
       vendorName: json['VendorName'] ?? '',
