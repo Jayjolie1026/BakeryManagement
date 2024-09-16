@@ -40,7 +40,7 @@ console.log('Server is starting.');
   app.get('/vendors', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const vendors = await pool.request().query('SELECT VendorName FROM tblVendors');
+        const vendors = await pool.request().query('SELECT * FROM tblVendors');
         res.json(vendors.recordset);
     } catch (error) {
         res.status(500).send(error.message);
@@ -51,9 +51,9 @@ console.log('Server is starting.');
 app.post('/vendors', async (req, res) => {
     const {
         VendorName,
-        EmailAddress,
-        PhoneNumber,
         AreaCode,
+        PhoneNumber,
+        EmailAddress,
         StreetAddress,
         City,
         State,
