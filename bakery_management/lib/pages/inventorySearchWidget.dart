@@ -22,8 +22,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color: Colors.black);
-    const styleHint = TextStyle(color: Colors.black54);
+    const styleActive = TextStyle(color:Color(0xFFEEC07B));
+    const styleHint = TextStyle(color:Color(0xFFEEC07B));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -31,26 +31,24 @@ class _SearchWidgetState extends State<SearchWidget> {
       margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFFD8C4AA),
+        color: const Color(0xFF6D3200),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
         controller: controller,
         decoration: InputDecoration(
           icon: Icon(Icons.search, color: style.color),
-          suffixIcon: widget.text.isNotEmpty
-              ? GestureDetector(
+          suffixIcon: widget.text.isNotEmpty ? GestureDetector(
             child: Icon(Icons.close, color: style.color),
             onTap: () {
               controller.clear();
               widget.onChanged('');
               FocusScope.of(context).requestFocus(FocusNode());
             },
-          )
-              : null,
-          hintText: widget.hintText,
-          hintStyle: style,
-          border: InputBorder.none,
+          ) : null,
+        hintText: widget.hintText,
+        hintStyle: style,
+        border: InputBorder.none,
         ),
         style: style,
         onChanged: widget.onChanged,
