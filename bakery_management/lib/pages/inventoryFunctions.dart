@@ -192,3 +192,4 @@ void showItemDetails(BuildContext context, Item item) {
     },
   );
 }
+

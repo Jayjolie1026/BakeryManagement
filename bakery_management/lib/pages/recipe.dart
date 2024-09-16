@@ -4,6 +4,7 @@ import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
 import 'recipeFunctions.dart';
 import 'inventorySearchWidget.dart';
+import 'package:http/http.dart' as http;
 
 
 
@@ -61,13 +62,27 @@ class _RecipePageState extends State<RecipePage> {
     body: Column(
       children: <Widget>[
         buildSearch(),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return buildItem(item);
+            },
+          ),
+        ),
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: () => showAddRecipeDialog(context), // Open form for new recipe
-      label: const Text('Add Recipe'),
-      icon: const Icon(Icons.add),
-      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddRecipePage()),
+      );
+    },
+    label: const Text('Add Recipe'),
+    icon: const Icon(Icons.add),
+    backgroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
@@ -90,4 +105,43 @@ class _RecipePageState extends State<RecipePage> {
       this.items = items;
     });
   });
+  
+  // Build list tile for each inventory item
+  Widget buildItem(Item item) => Card(
+    color: const Color(0xFFEEC07B),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50),
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () {
+        // Navigate to the DetailedRecipePage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipeListPage(searchQuery: ''),
+            //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
+          ),
+        );
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              item.name, //should be name
+              style: const TextStyle(
+                color: Color(0xFF6D3200),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        )
+      ),
+    ),
+  );
 }
