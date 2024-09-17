@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
+import 'package:intl/intl.dart';
 
 // Function to show a dialog for adding a new ingredient
 void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
@@ -11,21 +14,45 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
   final reorderAmountController = TextEditingController();
   final minAmountController = TextEditingController();
   final costController = TextEditingController();
-  // final createDateTimeController = TextEditingController();
-  // final expireDateTimeController = TextEditingController();
 
-  // Future<void> _selectDate(BuildContext context) async {
-  //   final DateTime? picked = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(2000),
-  //     lastDate: DateTime(2100),
-  //   );
-  //
-  //   if (picked != null) {
-  //     createDateTimeController.text = picked.toIso8601String();
-  //   }
-  // }
+  // ensure its initialized
+  DateTime createDateTime = DateTime.now();
+  DateTime expireDateTime = DateTime.now().add(const Duration(days: 7));
+
+  void _selectDate(BuildContext context, bool isCreateDate) async {
+    DateTime now = DateTime.now();
+    DateTime initialDate = isCreateDate ? (createDateTime ?? now) : (expireDateTime ?? now);
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      TimeOfDay initialTime = isCreateDate ? (createDateTime != null ? TimeOfDay.fromDateTime(createDateTime!) : TimeOfDay.now()) : (expireDateTime != null ? TimeOfDay.fromDateTime(expireDateTime!) : TimeOfDay.now());
+      TimeOfDay? selectedTime = await showTimePicker(
+        context: context,
+        initialTime: initialTime,
+      );
+
+      if (selectedTime != null) {
+        DateTime selectedDateTime = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+          selectedTime.hour,
+          selectedTime.minute,
+        );
+
+        if (isCreateDate) {
+          createDateTime = selectedDateTime;
+        } else {
+          expireDateTime = selectedDateTime;
+        }
+      }
+    }
+  }
 
   showDialog(
     context: context,
@@ -137,39 +164,43 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
                 ),
                 keyboardType: TextInputType.number,
               ),
-              // TextField(
-              //   controller: createDateTimeController,
-              //   style: const TextStyle(color: Color(0xFF6D3200)),
-              //   decoration: const InputDecoration(labelText: 'Create Date',
-              //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              //     focusedBorder: UnderlineInputBorder(
-              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              //     ),
-              //     enabledBorder: UnderlineInputBorder(
-              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              //     ),
-              //   ),
-              //   readOnly: true,
-              //   onTap: () => _selectDate(context),
-              // ),
-              // TextField(
-              //   controller: expireDateTimeController,
-              //   style: const TextStyle(color: Color(0xFF6D3200)),
-              //   decoration: const InputDecoration(labelText: 'Expiration Data',
-              //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              //     focusedBorder: UnderlineInputBorder(
-              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              //     ),
-              //     enabledBorder: UnderlineInputBorder(
-              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              //     ),
-              //   ),
-              //   readOnly: true,
-              //   onTap: () => _selectDate(context),
-              // ),
+              const SizedBox(height: 16),
+              Container(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Color(0xFF6D3200),
+                          side: const BorderSide(
+                            color: Color(0xFF6D3200), // Border color
+                            width: 1.5, // Border width
+                          ),
+                        ),
+                        onPressed: () => _selectDate(context, true),
+                        child: const Text('Created'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF6D3200),
+                          side: const BorderSide(
+                            color: Color(0xFF6D3200), // Border color
+                            width: 1.5, // Border width
+                          ),
+                        ),
+                        onPressed: () => _selectDate(context, false),
+                        child: const Text('Expires'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        )
+        ),
       ),
 
       actions: [
@@ -193,14 +224,13 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
               reorderAmount: double.tryParse(reorderAmountController.text) ?? 0,
               minAmount: double.tryParse(minAmountController.text) ?? 0,
               cost: double.tryParse(costController.text) ?? 0.0,
-              // createDateTime: DateTime.tryParse(createDateTimeController.text) ?? DateTime.now(),
-              // expireDateTime: DateTime.tryParse(expireDateTimeController.text) ?? DateTime.now(),
+              createDateTime: createDateTime,
+              expireDateTime: expireDateTime,
             );
 
             // Add the new product using the API
             await InventoryApi.addItem(item);
             onItemAdded(); // Refresh the product list
-
 
             // Close the dialog
             Navigator.of(context).pop();

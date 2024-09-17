@@ -4,8 +4,8 @@ class Item {
   final int quantity;
   final double cost;
   final String notes;
-  // DateTime createDateTime;
-  // DateTime expireDateTime;
+  final DateTime createDateTime;
+  final DateTime expireDateTime;
   final int employeeID; // Optional if included in API response
   final int recipeID;   // Optional if included in API response
   final String ingredientName;
@@ -20,8 +20,8 @@ class Item {
     required this.quantity,
     required this.cost,
     required this.notes,
-    // DateTime? createDateTime,
-    // DateTime? expireDateTime,
+    required this.createDateTime,
+    required this.expireDateTime,
     this.employeeID = 0, // Default to 0 if not included in API response
     this.recipeID = 0,   // Default to 0 if not included in API response
     required this.ingredientName, // Initialize IngredientName
@@ -37,8 +37,8 @@ class Item {
       quantity: json['Quantity'].toInt(),
       cost: json['Cost'].toDouble(),
       notes: json['Notes'] ?? '', // Default to empty string if null
-      // createDateTime: DateTime.parse(json['CreateDateTime']),
-      // expireDateTime: DateTime.parse(json['ExpireDateTime']),
+      createDateTime: DateTime.parse(json['CreateDateTime']),
+      expireDateTime: DateTime.parse(json['ExpireDateTime']),
       employeeID: json['EmployeeID'] ?? 0, // Use default if null
       recipeID: json['RecipeID'] ?? 0,     // Use default if null
       ingredientName: json['IngredientName'] ?? '', // Extract IngredientName
@@ -54,8 +54,8 @@ class Item {
     'Quantity': quantity,
     'Cost': cost,
     'Notes': notes,
-    // 'CreateDateTime': createDateTime.toIso8601String(),
-    // 'ExpireDateTime': expireDateTime.toIso8601String(),
+    'CreateDateTime': createDateTime.toIso8601String(),
+    'ExpireDateTime': expireDateTime.toIso8601String(),
     'EmployeeID': employeeID,
     'RecipeID': recipeID,
     'IngredientName': ingredientName, // Add IngredientName to JSON

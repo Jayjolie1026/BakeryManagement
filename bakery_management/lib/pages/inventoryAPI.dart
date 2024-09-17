@@ -33,8 +33,8 @@ class InventoryApi {
       "reorderAmount": item.reorderAmount,
       "minAmount": item.minAmount,
       "cost": item.cost,
-      // "createDateTime": item.createDateTime,
-      // "expireDateTime": item.expireDateTime,
+      "createDateTime": item.createDateTime.toIso8601String(),
+      "expireDateTime": item.expireDateTime.toIso8601String(),
     });
 
     print('Request body: $body');

@@ -4,6 +4,7 @@ import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
 import 'inventoryFunctions.dart';
 import 'inventorySearchWidget.dart';
+import 'package:intl/intl.dart';
 
 // Inventory Page
 class InventoryPage extends StatefulWidget {
@@ -171,6 +172,11 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     });
   }
 
+  String formatDate(DateTime dateTime) {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return formatter.format(dateTime);
+  }
+
   Widget _buildQuantityWarning(Item item) {
     if (item.quantity < item.minAmount) {
       return const Text(
@@ -221,8 +227,8 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             Text('Reorder Amount: ${_item.reorderAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
             Text('Min Amount: ${_item.minAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
             Text('Cost: ${_item.cost}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-            // Text('Creation Date: ${formatDate(_item.createDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-            // Text('Expiration Date: ${formatDate(_item.expireDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+            Text('Created: ${formatDate(_item.createDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+            Text('Expires: ${formatDate(_item.expireDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
 
             _buildQuantityWarning(_item),
             const SizedBox(height: 20),
@@ -289,8 +295,8 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
   late TextEditingController _reorderAmountController;
   late TextEditingController _minAmountController;
   late TextEditingController _costController;
-  // late TextEditingController _createDateTimeController;
-  // late TextEditingController _expireDateTimeController;
+  late DateTime _createDateTime;
+  late DateTime _expireDateTime;
 
   @override
   void initState() {
@@ -302,8 +308,8 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
     _reorderAmountController = TextEditingController(text: widget.item.reorderAmount.toString());
     _minAmountController = TextEditingController(text: widget.item.minAmount.toString());
     _costController = TextEditingController(text: widget.item.cost.toString());
-    // _createDateTimeController = TextEditingController(text: widget.item.createDateTime.toString());
-    // _expireDateTimeController = TextEditingController(text: widget.item.expireDateTime.toString());
+    _createDateTime = widget.item.createDateTime;
+    _expireDateTime = widget.item.expireDateTime;
   }
 
   @override
@@ -318,6 +324,27 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
     // _createDateTimeController.dispose();
     // _expireDateTimeController.dispose();
     super.dispose();
+  }
+
+  // Format DateTime for display
+  String ormatDate(DateTime dateTime) {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    return formatter.format(dateTime);
+  }
+
+  // Show DatePicker to select Date
+  Future<void> _selectDate(BuildContext context, DateTime initialDate, ValueChanged<DateTime> onDateSelected) async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (selectedDate != null && selectedDate != initialDate) {
+      setState(() {
+        onDateSelected(selectedDate);
+      });
+    }
   }
 
   @override
@@ -432,34 +459,22 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
               ),
               keyboardType: TextInputType.number,
             ),
-            // TextField(
-            //   controller: _createDateTimeController,
-            //   style: const TextStyle(color: Color(0xFF6D3200)),
-            //   decoration: const InputDecoration(labelText: 'Create Date',
-            //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
-            //     focusedBorder: UnderlineInputBorder(
-            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-            //     ),
-            //     enabledBorder: UnderlineInputBorder(
-            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-            //     ),
-            //   ),
-            //   keyboardType: TextInputType.number,
-            // ),
-            // TextField(
-            //   controller: _expireDateTimeController,
-            //   style: const TextStyle(color: Color(0xFF6D3200)),
-            //   decoration: const InputDecoration(labelText: 'Expire Data',
-            //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
-            //     focusedBorder: UnderlineInputBorder(
-            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-            //     ),
-            //     enabledBorder: UnderlineInputBorder(
-            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-            //     ),
-            //   ),
-            //   keyboardType: TextInputType.number,
-            // ),
+            const SizedBox(height: 16),
+            Text('Create Date: ${formatDate(_createDateTime)}'),
+            TextButton(
+              onPressed: () => _selectDate(context, _createDateTime, (date) {
+                _createDateTime = date;
+              }),
+              child: const Text('Change Create Date')
+            ),
+            const SizedBox(height: 16),
+            Text('Expire Date: ${formatDate(_expireDateTime)}'),
+            TextButton(
+                onPressed: () => _selectDate(context, _expireDateTime, (date) {
+                  _expireDateTime = date;
+                }),
+                child: const Text('Change Expire Date')
+            ),
             const SizedBox(height: 20),
             // Buttons
             ElevatedButton(
@@ -474,8 +489,8 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
                   reorderAmount: double.parse(_reorderAmountController.text),
                   minAmount: double.parse(_minAmountController.text),
                   cost: double.parse(_costController.text),
-                  // createDateTime: DateTime.parse(_createDateTimeController as String),
-                  // expireDateTime: DateTime.parse(_expireDateTimeController as String),
+                  createDateTime: _createDateTime,
+                  expireDateTime: _expireDateTime,
                 );
 
                 // Call update API
