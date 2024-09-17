@@ -2,120 +2,217 @@ import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
 
-// Function to check quantity vs reorder amount
-void checkInventoryLevels(List<Item> items) {
-  for (var item in items) {
-    if (item.quantity < item.reorderAmount) {
-      // Display a warning or alert
-      print('Warning: ${item.ingredientName} is below the reorder amount!');
-    }
-  }
-}
-
 // Function to show a dialog for adding a new ingredient
-void showAddIngredientDialog(BuildContext context) {
+void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
+  final nameController = TextEditingController();
+  final notesController = TextEditingController();
+  final quantityController = TextEditingController();
+  final maxAmountController = TextEditingController();
+  final reorderAmountController = TextEditingController();
+  final minAmountController = TextEditingController();
+  final costController = TextEditingController();
+  // final createDateTimeController = TextEditingController();
+  // final expireDateTimeController = TextEditingController();
+
+  // Future<void> _selectDate(BuildContext context) async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: DateTime.now(),
+  //     firstDate: DateTime(2000),
+  //     lastDate: DateTime(2100),
+  //   );
+  //
+  //   if (picked != null) {
+  //     createDateTimeController.text = picked.toIso8601String();
+  //   }
+  // }
+
   showDialog(
     context: context,
-    builder: (BuildContext context) {
-      String ingredientName = '';
-      String description = '';
-      String category = '';
-      String measurement = '';
-      double maxAmount = 0.0;
-      double reorderAmount = 0.0;
-      double minAmount = 0.0;
-      int vendorID = 0;
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
+      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)),
+      title: const Text('Add New Item'),
+      content: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Ingredient Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+              TextField(
+                controller: notesController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Notes',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+              TextField(
+                controller: quantityController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: maxAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Max Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: reorderAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Reorder Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: minAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Min Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: costController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Cost',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              // TextField(
+              //   controller: createDateTimeController,
+              //   style: const TextStyle(color: Color(0xFF6D3200)),
+              //   decoration: const InputDecoration(labelText: 'Create Date',
+              //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              //     focusedBorder: UnderlineInputBorder(
+              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              //     ),
+              //     enabledBorder: UnderlineInputBorder(
+              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              //     ),
+              //   ),
+              //   readOnly: true,
+              //   onTap: () => _selectDate(context),
+              // ),
+              // TextField(
+              //   controller: expireDateTimeController,
+              //   style: const TextStyle(color: Color(0xFF6D3200)),
+              //   decoration: const InputDecoration(labelText: 'Expiration Data',
+              //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              //     focusedBorder: UnderlineInputBorder(
+              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              //     ),
+              //     enabledBorder: UnderlineInputBorder(
+              //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              //     ),
+              //   ),
+              //   readOnly: true,
+              //   onTap: () => _selectDate(context),
+              // ),
+            ],
+          ),
+        )
+      ),
 
-      return AlertDialog(
-        title: const Text('Add Ingredient'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Ingredient Name'),
-              onChanged: (value) {
-                ingredientName = value;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Description'),
-              onChanged: (value) {
-                description = value;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Category'),
-              onChanged: (value) {
-                category = value;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Measurement'),
-              onChanged: (value) {
-                measurement = value;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Max Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                maxAmount = double.tryParse(value) ?? 0.0;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Reorder Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                reorderAmount = double.tryParse(value) ?? 0.0;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Min Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                minAmount = double.tryParse(value) ?? 0.0;
-              },
-            ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Vendor ID'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                vendorID = int.tryParse(value) ?? 0;
-              },
-            ),
-          ],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Text color of the button
+            foregroundColor: const Color(0xFFF0d1a0),
+          ),
+          child: const Text('Cancel'),
         ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+        ElevatedButton(
+          onPressed: () async {
+            // Create a new Item instance
+            final item = Item(
+              entryID: 0, // You can adjust this depending on your API requirements
+              ingredientName: nameController.text,
+              notes: notesController.text,
+              quantity: int.tryParse(quantityController.text) ?? 0,
+              maxAmount: double.tryParse(maxAmountController.text) ?? 0,
+              reorderAmount: double.tryParse(reorderAmountController.text) ?? 0,
+              minAmount: double.tryParse(minAmountController.text) ?? 0,
+              cost: double.tryParse(costController.text) ?? 0.0,
+              // createDateTime: DateTime.tryParse(createDateTimeController.text) ?? DateTime.now(),
+              // expireDateTime: DateTime.tryParse(expireDateTimeController.text) ?? DateTime.now(),
+            );
+
+            // Add the new product using the API
+            await InventoryApi.addItem(item);
+            onItemAdded(); // Refresh the product list
+
+
+            // Close the dialog
+            Navigator.of(context).pop();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Background color of the button
+            foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
           ),
-          ElevatedButton(
-            child: const Text('Add'),
-            onPressed: () async {
-              try {
-                await addIngredient(
-                  ingredientName,
-                  description,
-                  category,
-                  measurement,
-                  maxAmount,
-                  reorderAmount,
-                  minAmount,
-                  vendorID,
-                );
-                Navigator.of(context).pop();
-                // Optionally, refresh the inventory list
-              } catch (e) {
-                print('Error adding ingredient: $e');
-              }
-            },
-          ),
-        ],
-      );
-    },
+          child: const Text('Add'),
+        ),
+      ],
+    ),
   );
 }
 
@@ -126,69 +223,4 @@ String formatDate(DateTime dateTime) {
   final year = dateTime.year.toString();
 
   return '$year-$month-$day'; // Format as YYYY-MM-DD
-}
-
-// Function to show a dialog with item details
-void showItemDetails(BuildContext context, Item item) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Center(
-          child: Text(
-            'Ingredients',
-            style: TextStyle(color: Color.fromARGB(255, 97, 91, 77)),
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Placeholder image at the top
-            Image.network(
-              'https://via.placeholder.com/150', // Placeholder image URL
-              height: 150,
-              width: 150,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 16),
-            // Item details
-            Text('Entry ID: ${item.entryID}'),
-            Text('PO Number: ${item.entryID}'), // Assuming PO Number is same as Entry ID for now
-            Text('Entry Date: ${formatDate(item.createDateTime)}'),
-            Text('Expiration Date: ${formatDate(item.expireDateTime)}'),
-            Text('Quantity: ${item.quantity}'),
-            Text('Cost: \$${item.cost.toStringAsFixed(2)}'),
-            Text('Notes: ${item.notes}'),
-          ],
-        ),
-        actions: [
-          // Container to add space between the buttons and the dialog edges
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Update button
-                TextButton.icon(
-                  icon: const Icon(Icons.update, color: Color.fromARGB(255, 97, 91, 77)), // Change icon color
-                  label: const Text('Update', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
-                  onPressed: () {
-                    // Action for Update button
-                  },
-                ),
-                // Vendor button
-                TextButton.icon(
-                  icon: const Icon(Icons.store, color: Color.fromARGB(255, 97, 91, 77)),
-                  label: const Text('Vendor', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
-                  onPressed: () {
-                    // Action for Vendor button
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    },
-  );
 }

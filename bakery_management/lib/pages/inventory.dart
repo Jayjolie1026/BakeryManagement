@@ -71,7 +71,12 @@ class _InventoryPageState extends State<InventoryPage> {
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: () => showAddIngredientDialog(context), // Open form for new ingredient
+      onPressed: () => showAddIngredientDialog(context, () {
+        // Refresh the inventory list after adding new item
+        setState(() {
+          init();
+        });
+      }), // Open form for new ingredient
       label: const Text('Add Ingredient'),
       icon: const Icon(Icons.add),
       backgroundColor: const Color.fromARGB(255, 243, 217, 162),
@@ -216,11 +221,10 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             Text('Reorder Amount: ${_item.reorderAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
             Text('Min Amount: ${_item.minAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
             Text('Cost: ${_item.cost}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-            Text('Entry Date: ${formatDate(_item.createDateTime)}'),
-            Text('Expiration Date: ${formatDate(_item.expireDateTime)}'),
+            // Text('Creation Date: ${formatDate(_item.createDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+            // Text('Expiration Date: ${formatDate(_item.expireDateTime)}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+
             _buildQuantityWarning(_item),
-
-
             const SizedBox(height: 20),
             // Buttons
             Row(
@@ -228,22 +232,22 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    // // Navigate to the update page and wait for result
-                    // final updatedProduct = await Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => ProductUpdatePage(
-                    //       product: _item,
-                    //       onProductUpdated: _updateProduct,
-                    //     ),
-                    //   ),
-                    // );
-                    //
-                    // // If an updated product was returned, update the state
-                    // if (updatedProduct != null) {
-                    //   _updateProduct(updatedProduct);
-                    //   Navigator.pop(context, true); // Pass true to indicate an update
-                    // }
+                    // Navigate to the update page and wait for result
+                    final updatedItem = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ItemUpdatePage(
+                          item: _item,
+                          onItemUpdated: _updateItem,
+                        ),
+                      ),
+                    );
+
+                    // If an updated product was returned, update the state
+                    if (updatedItem != null) {
+                      _updateItem(updatedItem);
+                      Navigator.pop(context, true); // Pass true to indicate an update
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6D3200),
@@ -258,7 +262,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
               ],
             ),
           ],
@@ -268,3 +271,243 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   }
 }
 
+class ItemUpdatePage extends StatefulWidget {
+  final Item item;
+  final ValueChanged<Item> onItemUpdated;
+
+  const ItemUpdatePage({super.key, required this.item, required this.onItemUpdated});
+
+  @override
+  _ItemUpdatePageState createState() => _ItemUpdatePageState();
+}
+
+class _ItemUpdatePageState extends State<ItemUpdatePage> {
+  late TextEditingController _nameController;
+  late TextEditingController _notesController;
+  late TextEditingController _quantityController;
+  late TextEditingController _maxAmountController;
+  late TextEditingController _reorderAmountController;
+  late TextEditingController _minAmountController;
+  late TextEditingController _costController;
+  // late TextEditingController _createDateTimeController;
+  // late TextEditingController _expireDateTimeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.item.ingredientName);
+    _notesController = TextEditingController(text: widget.item.notes);
+    _quantityController = TextEditingController(text: widget.item.quantity.toString());
+    _maxAmountController = TextEditingController(text: widget.item.maxAmount.toString());
+    _reorderAmountController = TextEditingController(text: widget.item.reorderAmount.toString());
+    _minAmountController = TextEditingController(text: widget.item.minAmount.toString());
+    _costController = TextEditingController(text: widget.item.cost.toString());
+    // _createDateTimeController = TextEditingController(text: widget.item.createDateTime.toString());
+    // _expireDateTimeController = TextEditingController(text: widget.item.expireDateTime.toString());
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _notesController.dispose();
+    _quantityController.dispose();
+    _maxAmountController.dispose();
+    _reorderAmountController.dispose();
+    _minAmountController.dispose();
+    _costController.dispose();
+    // _createDateTimeController.dispose();
+    // _expireDateTimeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Update item'),
+        backgroundColor: const Color(0xFFF0d1a0),
+        foregroundColor: const Color(0xFF6D3200),
+        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
+      ),
+      backgroundColor: const Color(0xFFF0d1a0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Editable Fields
+            TextField(
+              controller: _nameController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Ingredient Name',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            TextField(
+              controller: _notesController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Notes',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            TextField(
+              controller: _quantityController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Quantity',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _maxAmountController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Max Amount',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _reorderAmountController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Reorder Amount',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _minAmountController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Min Amount',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _costController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Cost',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            // TextField(
+            //   controller: _createDateTimeController,
+            //   style: const TextStyle(color: Color(0xFF6D3200)),
+            //   decoration: const InputDecoration(labelText: 'Create Date',
+            //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
+            //     focusedBorder: UnderlineInputBorder(
+            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+            //     ),
+            //     enabledBorder: UnderlineInputBorder(
+            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+            //     ),
+            //   ),
+            //   keyboardType: TextInputType.number,
+            // ),
+            // TextField(
+            //   controller: _expireDateTimeController,
+            //   style: const TextStyle(color: Color(0xFF6D3200)),
+            //   decoration: const InputDecoration(labelText: 'Expire Data',
+            //     labelStyle: TextStyle(color: Color(0xFF6D3200)),
+            //     focusedBorder: UnderlineInputBorder(
+            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+            //     ),
+            //     enabledBorder: UnderlineInputBorder(
+            //       borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+            //     ),
+            //   ),
+            //   keyboardType: TextInputType.number,
+            // ),
+            const SizedBox(height: 20),
+            // Buttons
+            ElevatedButton(
+              onPressed: () async {
+                // Update the item with new values
+                final updatedItem = Item(
+                  entryID: widget.item.entryID, // Keep the same item ID
+                  ingredientName: _nameController.text,
+                  quantity: int.parse(_quantityController.text),
+                  notes: _notesController.text,
+                  maxAmount: double.parse(_maxAmountController.text),
+                  reorderAmount: double.parse(_reorderAmountController.text),
+                  minAmount: double.parse(_minAmountController.text),
+                  cost: double.parse(_costController.text),
+                  // createDateTime: DateTime.parse(_createDateTimeController as String),
+                  // expireDateTime: DateTime.parse(_expireDateTimeController as String),
+                );
+
+                // Call update API
+                await InventoryApi.updateItem(updatedItem);
+
+                // Notify parent widget of the update
+                widget.onItemUpdated(updatedItem);
+
+                // Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Item updated successfully!')),
+                );
+
+                // Navigate back to the previous page with the updated product
+                Navigator.of(context).pop(updatedItem);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6D3200),
+                foregroundColor: const Color(0xFFF0d1a0),
+              ),
+              child:  const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add),
+                  SizedBox(width: 8), // Spacing between image and text
+                  Text('Update'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
