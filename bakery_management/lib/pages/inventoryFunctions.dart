@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
-import 'package:intl/intl.dart';
 
 // Function to show a dialog for adding a new ingredient
 void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
@@ -15,13 +12,13 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
   final minAmountController = TextEditingController();
   final costController = TextEditingController();
 
-  // ensure its initialized
+// Ensure they are initialized
   DateTime createDateTime = DateTime.now();
   DateTime expireDateTime = DateTime.now().add(const Duration(days: 7));
 
   void _selectDate(BuildContext context, bool isCreateDate) async {
-    DateTime now = DateTime.now();
-    DateTime initialDate = isCreateDate ? (createDateTime ?? now) : (expireDateTime ?? now);
+    DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
+
     DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -30,7 +27,10 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
     );
 
     if (selectedDate != null) {
-      TimeOfDay initialTime = isCreateDate ? (createDateTime != null ? TimeOfDay.fromDateTime(createDateTime!) : TimeOfDay.now()) : (expireDateTime != null ? TimeOfDay.fromDateTime(expireDateTime!) : TimeOfDay.now());
+      TimeOfDay initialTime = isCreateDate
+          ? TimeOfDay.fromDateTime(createDateTime)
+          : TimeOfDay.fromDateTime(expireDateTime);
+
       TimeOfDay? selectedTime = await showTimePicker(
         context: context,
         initialTime: initialTime,
