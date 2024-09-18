@@ -69,3 +69,42 @@ Future<void> addVendor(
     throw Exception('Failed to add vendor: ${response.body}');
   }
 }
+
+Future<void> updateVendor(
+  int vendorID,
+  String vendorName,
+  String vendorAreaCode,
+  String vendorPhoneNum,
+  String vendorEmail,
+  String streetAddress,
+  String city,
+  String state,
+  String postalCode,
+  String country,
+) async {
+  final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$vendorID');
+
+  final response = await http.put(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'VendorID': vendorID,
+      'VendorName': vendorName,
+      'EmailAddress': vendorEmail,
+      'AreaCode': vendorAreaCode,
+      'PhoneNumber': vendorPhoneNum,
+      'StreetAddress': streetAddress,
+      'City': city,
+      'State': state,
+      'PostalCode': postalCode,
+      'Country': country,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    print('Vendor updated successfully');
+  } else {
+    throw Exception('Failed to update vendor: ${response.body}');
+  }
+}
+
