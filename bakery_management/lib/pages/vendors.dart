@@ -20,7 +20,7 @@ class _VendorsPageState extends State<VendorsPage> {
   @override
   void initState() {
     super.initState();
-    init();
+    _refreshVendors();
   }
 
   @override
@@ -29,7 +29,6 @@ class _VendorsPageState extends State<VendorsPage> {
     super.dispose();
   }
 
-  // Debounce for search bar
   void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
     if (debouncer != null) {
       debouncer!.cancel();
@@ -37,15 +36,20 @@ class _VendorsPageState extends State<VendorsPage> {
     debouncer = Timer(duration, callback);
   }
 
-  // Initialize vendor items
-  Future<void> init() async {
-    final vendors = await VendorsApi().fetchVendors();
-    setState(() => this.vendors = vendors);
-  }
-
-  // Handle refresh from vendor details page
   Future<void> _refreshVendors() async {
-    await init();
+    setState(() {
+      query = ''; // Clear the search query
+      vendors = []; // Clear the existing vendor list
+    });
+
+    try {
+      final updatedVendors = await VendorsApi().fetchVendors();
+      setState(() {
+        vendors = updatedVendors; // Update the vendor list with fresh data
+      });
+    } catch (e) {
+      print('Error fetching vendors: $e');
+    }
   }
 
   @override
@@ -53,13 +57,13 @@ class _VendorsPageState extends State<VendorsPage> {
     appBar: AppBar(
       toolbarHeight: 125,
       title: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
             'assets/vendor.png',
             height: 100,
           ),
-          const SizedBox(height: 10), // Add space below the image
+          const SizedBox(height: 10),
         ],
       ),
       centerTitle: true,
@@ -71,7 +75,7 @@ class _VendorsPageState extends State<VendorsPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80.0), // Adds padding to avoid overlap with the button
+            padding: const EdgeInsets.only(bottom: 80.0),
             itemCount: vendors.length,
             itemBuilder: (context, index) {
               final vendor = vendors[index];
@@ -82,76 +86,75 @@ class _VendorsPageState extends State<VendorsPage> {
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-      onPressed: () {
-        showAddVendorDialog(context, () async {
-          await init(); // Refresh the vendor list
-        });
+      onPressed: () async {
+        await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
       },
       label: const Text('Add Vendors'),
       icon: const Icon(Icons.add),
       backgroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 
-  // Search bar widget
   Widget buildSearch() => SearchWidget(
     text: query,
     hintText: 'Search by Vendor',
     onChanged: searchVendor,
   );
 
-  // Search for a vendor by query
   Future<void> searchVendor(String query) async => debounce(() async {
-    final vendors = await VendorsApi().fetchVendors();
+    try {
+      final vendors = await VendorsApi().fetchVendors();
+      if (!mounted) return;
 
-    if (!mounted) return;
-
-    setState(() {
-      this.query = query;
-      this.vendors = vendors.where((vendor) => vendor.vendorName.toLowerCase().contains(query.toLowerCase())).toList();
-    });
+      setState(() {
+        this.query = query;
+        this.vendors = vendors.where((vendor) => vendor.vendorName.toLowerCase().contains(query.toLowerCase())).toList();
+      });
+    } catch (e) {
+      print('Error searching vendors: $e');
+    }
   });
 
-  // List of vendors
   Widget buildItem(Vendor vendor) => Card(
-    color: const Color(0xFFEEC07B),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50),
-    ),
-    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-    elevation: 4,
-    child: GestureDetector(
-      onTap: () async {
-        // Navigate to the vendor details page and await result
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VendorDetailsPage(vendor: vendor),
-          ),
-        );
-        // If the result is true (indicating deletion), refresh the vendor list
-        if (result == true) {
-          _refreshVendors();
-        }
-      },
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-        child: Center(
-          child: Text(
-            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor', // Ensure something is displayed
-            style: const TextStyle(
-              color: Color(0xFF6D3200),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+  color: const Color(0xFFEEC07B),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(50),
+  ),
+  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+  elevation: 4,
+  child: GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VendorDetailsPage(vendor: vendor),
+        ),
+      );
+      if (result == true) {
+        _refreshVendors(); // Refresh the list if there were changes
+      }
+    },
+    child: Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+      child: Center(
+        child: Text(
+          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+          style: const TextStyle(
+            color: Color(0xFF6D3200),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     ),
-  );
+  ),
+);
 }
+
+
+
 
 class VendorDetailsPage extends StatelessWidget {
   final Vendor vendor;
@@ -169,12 +172,35 @@ class VendorDetailsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => handleRemoveVendor(context, vendor.vendorID),
+            onPressed: () async {
+              final shouldDelete = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirm Delete'),
+                  content: const Text('Are you sure you want to delete this vendor?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (shouldDelete == true) {
+                await handleRemoveVendor(context, vendor.vendorID);
+                Navigator.of(context).pop(true); // Return true to indicate deletion
+              }
+            },
           ),
         ],
       ),
       body: FutureBuilder<Vendor>(
-        future: fetchVendorDetails(vendor.vendorID), // Fetch vendor details using vendor ID
+        future: fetchVendorDetails(vendor.vendorID),
         builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -224,7 +250,16 @@ class VendorDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () => handleEditVendor(context, vendor),
+                      onPressed: () async {
+                        final updated = await handleEditVendor(context, vendor);
+                        if (updated) {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => VendorDetailsPage(vendor: vendor),
+                            ),
+                          );
+                        }
+                      },
                       style: ButtonStyle(
                         foregroundColor: MaterialStateProperty.all(Colors.blue),
                       ),
@@ -232,23 +267,43 @@ class VendorDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () => handleRemoveVendor(context, vendor.vendorID),
+                      onPressed: () async {
+                        final updated = await handleRemoveVendor(context, vendor.vendorID);
+                        if (updated) {
+                          Navigator.of(context).pop(true);
+                        }
+                      },
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.all(Colors.red),
+                        foregroundColor: MaterialStateProperty.all(Colors.blue),
                       ),
                       child: const Text('Remove Vendor'),
+                    ),
+                        Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close the page
+                          },
+                          child: const Text('Close'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(Colors.grey),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             );
-          } else {
-            return const Center(child: Text('No vendor data available.'));
           }
+          return const Center(child: Text('No vendor details available'));
         },
       ),
     );
   }
 }
+
 
 
