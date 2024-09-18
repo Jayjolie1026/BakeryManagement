@@ -68,141 +68,152 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Ingredient Name',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                ),
-              ),
-              TextField(
-                controller: notesController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Notes',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              Flexible(
+                child: TextField(
+                  controller: nameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Ingredient Name',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
                 ),
               ),
-              TextField(
-                controller: quantityController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Quantity',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              Flexible(
+                child: TextField(
+                  controller: notesController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Notes',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
                 ),
-                keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: maxAmountController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Max Amount',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              Flexible(
+                child: TextField(
+                  controller: quantityController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Quantity',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: reorderAmountController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Reorder Amount',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              Flexible(
+                child: TextField(
+                  controller: maxAmountController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Max Amount',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: minAmountController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Min Amount',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              Flexible(
+                child: TextField(
+                  controller: reorderAmountController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Reorder Amount',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: costController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Cost',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              Flexible(
+                child: TextField(
+                  controller: minAmountController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Min Amount',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
                   ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                keyboardType: TextInputType.number,
+              ),
+              Flexible(
+                child: TextField(
+                  controller: costController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Cost',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
               ),
               const SizedBox(height: 16),
-              Container(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Color(0xFF6D3200),
-                          side: const BorderSide(
-                            color: Color(0xFF6D3200), // Border color
-                            width: 1.5, // Border width
-                          ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Color(0xFF6D3200),
+                        side: const BorderSide(
+                          color: Color(0xFF6D3200), // Border color
+                          width: 1.5, // Border width
                         ),
-                        onPressed: () => _selectDate(context, true),
-                        child: const Text('Created'),
                       ),
+                      onPressed: () => _selectDate(context, true),
+                      child: const Text('Created'),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF6D3200),
-                          side: const BorderSide(
-                            color: Color(0xFF6D3200), // Border color
-                            width: 1.5, // Border width
-                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF6D3200),
+                        side: const BorderSide(
+                          color: Color(0xFF6D3200), // Border color
+                          width: 1.5, // Border width
                         ),
-                        onPressed: () => _selectDate(context, false),
-                        child: const Text('Expires'),
                       ),
+                      onPressed: () => _selectDate(context, false),
+                      child: const Text('Expires'),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
-
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
