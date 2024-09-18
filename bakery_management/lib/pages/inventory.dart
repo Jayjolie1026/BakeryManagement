@@ -80,7 +80,8 @@ class _InventoryPageState extends State<InventoryPage> {
       }), // Open form for new ingredient
       label: const Text('Add Ingredient'),
       icon: const Icon(Icons.add),
-      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+      backgroundColor: const Color(0xFF6D3200),
+      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
@@ -104,44 +105,39 @@ class _InventoryPageState extends State<InventoryPage> {
     });
   });
 
-  // Build list tile for each inventory item
-  Widget buildItem(Item item) => Card(
-    color: const Color(0xFF6D3200),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50),
-    ),
-    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-    elevation: 4,
-    child: GestureDetector(
-      onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ItemDetailPage(
-              item: item,
-            ),
-          ),
-        );
+// Build list tile for each inventory item
+  Widget buildItem(Item item) => GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemDetailPage(item: item),
+        ),
+      );
       if (result == true) {
         init();
       }
     },
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+      elevation: 4,
       child: Container(
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              item.ingredientName,
-              style: const TextStyle(
-                color: Color.fromARGB(255, 243, 217, 162),
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+        child: Center(  // Use Center to ensure the text is aligned properly within the card
+          child: Text(
+            item.ingredientName,
+            style: const TextStyle(
+              color: Color.fromARGB(255, 243, 217, 162),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        )
+          ),
+        ),
       ),
     ),
   );
