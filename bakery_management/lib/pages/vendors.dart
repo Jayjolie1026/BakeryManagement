@@ -244,7 +244,7 @@ class VendorDetailsPage extends StatelessWidget {
                               ),
                               TextSpan(
                                 text: vendor.phoneNumbers.isNotEmpty
-                                  ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 7)} '
+                                  ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)} '
                                   : 'No phone number available',
                                 style: const TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
