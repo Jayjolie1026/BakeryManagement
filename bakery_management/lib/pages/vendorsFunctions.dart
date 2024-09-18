@@ -167,101 +167,215 @@ void showAddVendorDialog(BuildContext context, VoidCallback onVendorAdded) {
   );
 }
 
-// Function to edit vendor details
-void editVendor(BuildContext context, Vendor vendor) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => EditVendorPage(vendor: vendor.vendorID),
-    ),
+void handleEditVendor(BuildContext context, Vendor vendor) {
+  // Controllers to pre-fill the data
+  TextEditingController nameController = TextEditingController(text: vendor.vendorName);
+  TextEditingController areaCodeController = TextEditingController(text: vendor.phoneNumbers.isNotEmpty ? vendor.phoneNumbers.first.areaCode : '');
+  TextEditingController phoneController = TextEditingController(text: vendor.phoneNumbers.isNotEmpty ? vendor.phoneNumbers.first.phoneNumber : '');
+  TextEditingController emailController = TextEditingController(text: vendor.emails.isNotEmpty ? vendor.emails.first.emailAddress : '');
+  TextEditingController streetController = TextEditingController(text: vendor.addresses.isNotEmpty ? vendor.addresses.first.streetAddress : '');
+  TextEditingController cityController = TextEditingController(text: vendor.addresses.isNotEmpty ? vendor.addresses.first.city : '');
+  TextEditingController stateController = TextEditingController(text: vendor.addresses.isNotEmpty ? vendor.addresses.first.state : '');
+  TextEditingController postalCodeController = TextEditingController(text: vendor.addresses.isNotEmpty ? vendor.addresses.first.postalCode : '');
+  TextEditingController countryController = TextEditingController(text: vendor.addresses.isNotEmpty ? vendor.addresses.first.country : '');
+
+  // Show the edit dialog
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Edit Vendor Info'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: areaCodeController,
+                decoration: const InputDecoration(labelText: 'Area Code'),
+                keyboardType: TextInputType.phone,
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+              ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              TextField(
+                controller: streetController,
+                decoration: const InputDecoration(labelText: 'Street Address'),
+              ),
+              TextField(
+                controller: cityController,
+                decoration: const InputDecoration(labelText: 'City'),
+              ),
+              TextField(
+                controller: stateController,
+                decoration: const InputDecoration(labelText: 'State'),
+              ),
+              TextField(
+                controller: postalCodeController,
+                decoration: const InputDecoration(labelText: 'Postal Code'),
+              ),
+              TextField(
+                controller: countryController,
+                decoration: const InputDecoration(labelText: 'Country'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cancel and close dialog
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Show confirmation dialog before saving changes
+              final shouldEdit = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Confirm Edit'),
+                    content: const Text('Are you sure you want to save the changes?'),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false), // User cancelled
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true), // Confirm edit
+                        child: const Text('Confirm'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              if (shouldEdit == true) {
+                // Perform the update operation with new values
+                await updateVendor(
+                  vendor.vendorID,
+                  nameController.text,
+                  areaCodeController.text,
+                  phoneController.text,
+                  emailController.text,
+                  streetController.text,
+                  cityController.text,
+                  stateController.text,
+                  postalCodeController.text,
+                  countryController.text
+                );
+
+                // Show a success dialog
+                await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Success'),
+                      content: const Text('Vendor details have been updated.'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(), // Close success dialog
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                // Refresh the page
+                    Navigator.of(context).pop(); // Close the edit dialog
+                    Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => VendorDetailsPage(vendor: vendor,)), // Replace with your page/widget
+                    );
+              }
+            },
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
   );
 }
 
-Future<void> handleRemoveVendor(BuildContext context, Vendor vendor) async {
-  if (vendor.vendorID == null) {
-    // Handle case where vendorID is null
-    await showDialog(
+  Future<void> handleRemoveVendor(BuildContext context, int id) async {
+    final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
-        content: const Text('Vendor ID is null, cannot delete vendor.'),
+        title: const Text('Confirm Deletion'),
+        content: const Text('Are you sure you want to delete this vendor?'),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
-    return;
-  }
 
-  final shouldDelete = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Confirm Deletion'),
-      content: const Text('Are you sure you want to delete this vendor?'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
-  );
+    if (shouldDelete == true) {
+      try {
+        final response = await http.delete(
+          Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'),
+        );
 
-  if (shouldDelete == true) {
-    try {
-      final response = await http.delete(
-        Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendor.vendorID}'),
-      );
-
-      if (response.statusCode == 200) {
+        if (response.statusCode == 200) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Vendor has been deleted successfully.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the success dialog
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const VendorsPage(), // Redirect to VendorsPage
+                      ),
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          throw Exception('Failed to remove vendor');
+        }
+      } catch (e) {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('Vendor has been deleted successfully.'),
+            title: const Text('Error'),
+            content: Text('Failed to remove vendor: $e'),
             actions: <Widget>[
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the success dialog
-                  Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => VendorsPage(),
-                  ),
-                  (Route<dynamic> route) => false, // Remove all previous routes
-                  );
-                },
+                onPressed: () => Navigator.of(context).pop(),
                 child: const Text('OK'),
               ),
             ],
           ),
         );
-      } else {
-        throw Exception('Failed to remove vendor');
       }
-    } catch (e) {
-      await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('Failed to remove vendor: $e'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
     }
   }
-}
+
+
 
 
 

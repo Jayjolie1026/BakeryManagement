@@ -1,12 +1,12 @@
 // Define the Address class
 class Address {
-  final int addressID;
-  final String streetAddress;
-  final String city;
-  final String state;
-  final String postalCode;
-  final String country;
-  final String addressType;
+  int addressID;
+  String streetAddress;
+  String city;
+  String state;
+  String postalCode;
+  String country;
+  String addressType;
 
   Address({
     required this.addressID,
@@ -33,10 +33,10 @@ class Address {
 
 // Define the PhoneNumber class
 class PhoneNumber {
-  final int phoneNumberID;
-  final String areaCode;
-  final String phoneNumber;
-  final String phoneType;
+  int phoneNumberID;
+  String areaCode;
+  String phoneNumber;
+  String phoneType;
 
   PhoneNumber({
     required this.phoneNumberID,
@@ -57,9 +57,9 @@ class PhoneNumber {
 
 // Define the Email class
 class Email {
-  final int emailID;
-  final String emailAddress;
-  final String emailType;
+  int emailID;
+  String emailAddress;
+  String emailType;
 
   Email({
     required this.emailID,
@@ -78,11 +78,11 @@ class Email {
 
 // Define the Vendor class
 class Vendor {
-  final int vendorID;
-  final String vendorName;
-  final List<PhoneNumber> phoneNumbers;
-  final List<Email> emails;
-  final List<Address> addresses;
+  int vendorID;
+  String vendorName;
+  List<PhoneNumber> phoneNumbers;
+  List<Email> emails;
+  List<Address> addresses;
 
   Vendor({
     required this.vendorID,

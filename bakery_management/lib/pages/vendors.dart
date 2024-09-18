@@ -1,12 +1,9 @@
-import 'dart:convert';
-
 import 'package:bakery_management/pages/vendorsAPI.dart';
 import 'package:flutter/material.dart';
 import 'vendorsFunctions.dart';
 import 'vendorsItemClass.dart';
 import 'dart:async';
 import 'inventorySearchWidget.dart';
-import 'package:http/http.dart' as http;
 
 class VendorsPage extends StatefulWidget {
   const VendorsPage({super.key});
@@ -172,12 +169,12 @@ class VendorDetailsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () => handleRemoveVendor(context, vendor.vendorID!),
+            onPressed: () => handleRemoveVendor(context, vendor.vendorID),
           ),
         ],
       ),
       body: FutureBuilder<Vendor>(
-        future: fetchVendorDetails(vendor.vendorID!), // Fetch vendor details using vendor ID
+        future: fetchVendorDetails(vendor.vendorID), // Fetch vendor details using vendor ID
         builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -227,21 +224,19 @@ class VendorDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        // Add your edit functionality here
-                      },
-                      child: const Text('Edit Vendor Info'),
+                      onPressed: () => handleEditVendor(context, vendor),
                       style: ButtonStyle(
                         foregroundColor: MaterialStateProperty.all(Colors.blue),
                       ),
+                      child: const Text('Edit Vendor Info'),
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () => handleRemoveVendor(context, vendor.vendorID!),
-                      child: const Text('Remove Vendor'),
+                      onPressed: () => handleRemoveVendor(context, vendor.vendorID),
                       style: ButtonStyle(
                         foregroundColor: MaterialStateProperty.all(Colors.red),
                       ),
+                      child: const Text('Remove Vendor'),
                     ),
                   ],
                 ),
@@ -251,93 +246,6 @@ class VendorDetailsPage extends StatelessWidget {
             return const Center(child: Text('No vendor data available.'));
           }
         },
-      ),
-    );
-  }
-  Future<void> handleRemoveVendor(BuildContext context, int id) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: const Text('Are you sure you want to delete this vendor?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete == true) {
-      try {
-        final response = await http.delete(
-          Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'),
-        );
-
-        if (response.statusCode == 200) {
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Success'),
-              content: const Text('Vendor has been deleted successfully.'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the success dialog
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const VendorsPage(), // Redirect to VendorsPage
-                      ),
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          throw Exception('Failed to remove vendor');
-        }
-      } catch (e) {
-        await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to remove vendor: $e'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    }
-  }
-}
-
-// New page to edit a vendor
-class EditVendorPage extends StatelessWidget {
-  const EditVendorPage({super.key, required int vendor});
-
-  @override
-  Widget build(BuildContext context) {
-    // Implement this page to handle vendor editing
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Vendor'),
-      ),
-      body: const Center(
-        child: Text(
-          'Vendor info here',
-          style: TextStyle(fontSize: 20),
-        ),
       ),
     );
   }
