@@ -169,139 +169,177 @@ class VendorDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0D1A0),
-      appBar: AppBar(
-        title: const Text('Vendor Details'),
-        backgroundColor: const Color(0xFFF0D1A0),
-        foregroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () async {
-              final shouldDelete = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Confirm Delete'),
-                  content: const Text('Are you sure you want to delete this vendor?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Delete'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (shouldDelete == true) {
-                await handleRemoveVendor(context, vendor.vendorID);
-                Navigator.of(context).pop(true); // Return true to indicate deletion
-              }
-            },
-          ),
-        ],
-      ),
       body: FutureBuilder<Vendor>(
         future: fetchVendorDetails(vendor.vendorID),
         builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: const Color(0xFF6D3200))));
           } else if (snapshot.hasData) {
             final vendor = snapshot.data!;
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Vendor: ${vendor.vendorName}',
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      vendor.phoneNumbers.isNotEmpty
-                        ? 'Phone: \n(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber}'
-                        : 'Phone: No phone number available',
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      vendor.emails.isNotEmpty
-                        ? 'Email: \n${vendor.emails.first.emailAddress}'
-                        : 'Email: No email provided',
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      vendor.addresses.isNotEmpty
-                        ? 'Address: \n${vendor.addresses.first.streetAddress} \n${vendor.addresses.first.city}, ${vendor.addresses.first.state} \n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
-                        : 'Address: No address provided',
-                      style: const TextStyle(color: Colors.black, fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final updatedVendor = await handleEditVendor(context, vendor);
-                        if (updatedVendor) {
-                          Navigator.of(context).pop(true); // Return true to indicate update
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      ),
-                      child: const Text('Edit Vendor Info'),
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final updated = await handleRemoveVendor(context, vendor.vendorID);
-                        if (updated) {
-                          Navigator.of(context).pop(true);
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      ),
-                      child: const Text('Remove Vendor'),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the page
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const SizedBox(height: 50),
+                        Image.asset(
+                          'assets/vendor.png', // Replace with your image asset
+                          height: 100,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Vendor: ${vendor.vendorName}',
+                          style: const TextStyle(
+                            color: Color(0xFF6D3200), // Dark brown
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'ID: ${vendor.vendorID}',
+                          style: const TextStyle(
+                            color: Color(0xFF6D3200), // Dark brown
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Phone:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.phoneNumbers.isNotEmpty
+                                  ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber}'
+                                  : 'No phone number available',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Email:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.emails.isNotEmpty
+                                  ? vendor.emails.first.emailAddress
+                                  : 'No email provided',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Address:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.addresses.isNotEmpty
+                                  ? '${vendor.addresses.first.streetAddress}\n${vendor.addresses.first.city}, ${vendor.addresses.first.state}\n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
+                                  : 'No address provided',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final updatedVendor = await handleEditVendor(context, vendor);
+                            if (updatedVendor) {
+                              Navigator.of(context).pop(true); // Return true to indicate update
+                            }
                           },
-                          child: const Text('Close'),
                           style: ButtonStyle(
                             backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
                             foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                           ),
+                          child: const Text('Edit Vendor Info'),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final updated = await handleRemoveVendor(context, vendor.vendorID);
+                            if (updated) {
+                              Navigator.of(context).pop(true);
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                          ),
+                          child: const Text('Remove Vendor'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 150),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the page
+                        },
+                        child: const Text('Close'),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           }
-          return const Center(child: Text('No vendor details available'));
+          return const Center(child: Text('No vendor details available', style: TextStyle(color: Color(0xFF6D3200))));
         },
       ),
     );
