@@ -31,7 +31,7 @@ void showVendorDetails(BuildContext context, Vendor vendor) {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => VendorDetailsPage(vendorID: vendor.vendorID),
+      builder: (context) => VendorDetailsPage(vendor: vendor),
     ),
   );
 }
@@ -136,20 +136,7 @@ void showAddVendorDialog(BuildContext context, VoidCallback onVendorAdded) {
           ElevatedButton(
             child: const Text('Add'),
             onPressed: () async {
-              if (vendorName.isEmpty ||
-                  vendorAreaCode.isEmpty ||
-                  vendorPhoneNum.isEmpty ||
-                  vendorEmail.isEmpty ||
-                  streetAddress.isEmpty ||
-                  city.isEmpty ||
-                  state.isEmpty ||
-                  postalCode.isEmpty ||
-                  country.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill out all fields')),
-                );
-                return;
-              }
+
 
               try {
                 // Add vendor using the provided details
@@ -190,58 +177,92 @@ void editVendor(BuildContext context, Vendor vendor) {
   );
 }
 
-// Function to remove vendor
-Future<void> removeVendor(BuildContext context, Vendor vendor) async {
-  final response = await http.delete(
-    Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendor.vendorID}'),
+Future<void> handleRemoveVendor(BuildContext context, Vendor vendor) async {
+  if (vendor.vendorID == null) {
+    // Handle case where vendorID is null
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: const Text('Vendor ID is null, cannot delete vendor.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+
+  final shouldDelete = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Confirm Deletion'),
+      content: const Text('Are you sure you want to delete this vendor?'),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
   );
 
-  if (response.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Vendor removed successfully'),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            Navigator.of(context).pop(); // Close the snackbar
-          },
-        ),
-      ),
-    );
-    // Show confirmation dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Vendor Removed'),
-          content: const Text('The vendor has been successfully removed.'),
-          actions: [
+  if (shouldDelete == true) {
+    try {
+      final response = await http.delete(
+        Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendor.vendorID}'),
+      );
+
+      if (response.statusCode == 200) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('Vendor has been deleted successfully.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the success dialog
+                  Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => VendorsPage(),
+                  ),
+                  (Route<dynamic> route) => false, // Remove all previous routes
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        throw Exception('Failed to remove vendor');
+      }
+    } catch (e) {
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Failed to remove vendor: $e'),
+          actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pop(); // Go back to previous screen
-                // Optionally, refresh the page
-                // Navigator.of(context).pushReplacement(MaterialPageRoute(
-                //   builder: (context) => VendorListPage(), // Replace with your vendor list page
-                // ));
-              },
-              child: const Text('Close'),
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
             ),
           ],
-        );
-      },
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Failed to remove vendor'),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            Navigator.of(context).pop(); // Close the snackbar
-          },
         ),
-      ),
-    );
+      );
+    }
   }
 }
+
+
+
+
