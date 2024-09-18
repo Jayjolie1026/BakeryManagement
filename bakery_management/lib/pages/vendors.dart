@@ -89,10 +89,17 @@ class _VendorsPageState extends State<VendorsPage> {
       onPressed: () async {
         await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
       },
-      label: const Text('Add Vendors'),
-      icon: const Icon(Icons.add),
-      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
-    ),
+      label: const Text(
+        'Add Vendors',
+        style: TextStyle(
+          color: Color(0xFFEEC07B), // Light brown text color
+        ),
+      ),
+      icon: const Icon(
+    Icons.add,
+    color: Color(0xFFEEC07B), // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF6D3200),),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 
@@ -117,7 +124,7 @@ class _VendorsPageState extends State<VendorsPage> {
   });
 
   Widget buildItem(Vendor vendor) => Card(
-  color: const Color(0xFFEEC07B),
+  color: const Color(0xFF6D3200),
   shape: RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(50),
   ),
@@ -142,7 +149,7 @@ class _VendorsPageState extends State<VendorsPage> {
         child: Text(
           vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
           style: const TextStyle(
-            color: Color(0xFF6D3200),
+            color: Color(0xFFEEC07B),
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -152,9 +159,6 @@ class _VendorsPageState extends State<VendorsPage> {
   ),
 );
 }
-
-
-
 
 class VendorDetailsPage extends StatelessWidget {
   final Vendor vendor;
@@ -251,17 +255,14 @@ class VendorDetailsPage extends StatelessWidget {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () async {
-                        final updated = await handleEditVendor(context, vendor);
-                        if (updated) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (context) => VendorDetailsPage(vendor: vendor),
-                            ),
-                          );
+                        final updatedVendor = await handleEditVendor(context, vendor);
+                        if (updatedVendor) {
+                          Navigator.of(context).pop(true); // Return true to indicate update
                         }
                       },
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.all(Colors.blue),
+                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                       ),
                       child: const Text('Edit Vendor Info'),
                     ),
@@ -274,11 +275,12 @@ class VendorDetailsPage extends StatelessWidget {
                         }
                       },
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.all(Colors.blue),
+                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                       ),
                       child: const Text('Remove Vendor'),
                     ),
-                        Align(
+                    Align(
                       alignment: Alignment.bottomCenter,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -288,7 +290,8 @@ class VendorDetailsPage extends StatelessWidget {
                           },
                           child: const Text('Close'),
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(Colors.grey),
+                            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                           ),
                         ),
                       ),
@@ -304,6 +307,3 @@ class VendorDetailsPage extends StatelessWidget {
     );
   }
 }
-
-
-

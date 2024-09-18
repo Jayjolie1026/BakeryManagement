@@ -27,8 +27,7 @@ Future<Vendor> fetchVendorDetails(int id) async {
   }
 }
 
-// Show dialog to add a new vendor
-Future <void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdded) async {
+Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdded) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -44,71 +43,107 @@ Future <void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdd
       String country = '';
 
       return AlertDialog(
-        title: const Text('Add Vendor'),
+        backgroundColor: const Color(0xFFEEC07B), // Light brown background
+        title: const Text(
+          'Add Vendor',
+          style: TextStyle(
+            color: Color(0xFF6D3200), // Dark brown text
+          ),
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: 'Vendor ID'),
+                decoration: InputDecoration(
+                  labelText: 'Vendor ID',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   vendorID = int.tryParse(value) ?? 0;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   vendorName = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Area Code'),
+                decoration: InputDecoration(
+                  labelText: 'Area Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.phone,
                 onChanged: (value) {
                   vendorAreaCode = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.phone,
                 onChanged: (value) {
                   vendorPhoneNum = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (value) {
                   vendorEmail = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Street Address'),
+                decoration: InputDecoration(
+                  labelText: 'Street Address',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   streetAddress = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'City'),
+                decoration: InputDecoration(
+                  labelText: 'City',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   city = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'State'),
+                decoration: InputDecoration(
+                  labelText: 'State',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   state = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Postal Code'),
+                decoration: InputDecoration(
+                  labelText: 'Postal Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   postalCode = value;
                 },
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Country'),
+                decoration: InputDecoration(
+                  labelText: 'Country',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 onChanged: (value) {
                   country = value;
                 },
@@ -118,13 +153,17 @@ Future <void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdd
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel'),
+            child: const Text('Cancel' , style: TextStyle(color: Colors.black)),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           ElevatedButton(
             child: const Text('Add'),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+              foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+            ),
             onPressed: () async {
               try {
                 // Add vendor using the provided details
@@ -155,7 +194,6 @@ Future <void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdd
   );
 }
 
-
 Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
   // Controllers to pre-fill the data
   final nameController = TextEditingController(text: vendor.vendorName);
@@ -172,49 +210,80 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Edit Vendor Info'),
+        backgroundColor: const Color(0xFFEEC07B), // Light brown background
+        title: const Text(
+          'Edit Vendor Info',
+          style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
               TextField(
                 controller: areaCodeController,
-                decoration: const InputDecoration(labelText: 'Area Code'),
+                decoration: InputDecoration(
+                  labelText: 'Area Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.phone,
               ),
               TextField(
                 controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.phone,
               ),
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
                 keyboardType: TextInputType.emailAddress,
               ),
               TextField(
                 controller: streetController,
-                decoration: const InputDecoration(labelText: 'Street Address'),
+                decoration: InputDecoration(
+                  labelText: 'Street Address',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
               TextField(
                 controller: cityController,
-                decoration: const InputDecoration(labelText: 'City'),
+                decoration: InputDecoration(
+                  labelText: 'City',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
               TextField(
                 controller: stateController,
-                decoration: const InputDecoration(labelText: 'State'),
+                decoration: InputDecoration(
+                  labelText: 'State',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
               TextField(
                 controller: postalCodeController,
-                decoration: const InputDecoration(labelText: 'Postal Code'),
+                decoration: InputDecoration(
+                  labelText: 'Postal Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
               TextField(
                 controller: countryController,
-                decoration: const InputDecoration(labelText: 'Country'),
+                decoration: InputDecoration(
+                  labelText: 'Country',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                ),
               ),
             ],
           ),
@@ -222,7 +291,7 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Cancel' , style: TextStyle(color: Colors.black)),
           ),
           TextButton(
             onPressed: () async {
@@ -230,16 +299,24 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: const Text('Confirm Edit'),
+                    backgroundColor: const Color(0xFFEEC07B), // Light brown background
+                    title: const Text(
+                      'Confirm Edit',
+                      style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+                    ),
                     content: const Text('Are you sure you want to save the changes?'),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Cancel'),
+                        child: const Text('Cancel' , style: TextStyle(color: Colors.black)),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         child: const Text('Confirm'),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                        ),
                       ),
                     ],
                   );
@@ -257,19 +334,27 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
                   cityController.text,
                   stateController.text,
                   postalCodeController.text,
-                  countryController.text
+                  countryController.text,
                 );
 
                 await showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('Success'),
+                      backgroundColor: const Color(0xFFEEC07B), // Light brown background
+                      title: const Text(
+                        'Success',
+                        style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+                      ),
                       content: const Text('Vendor details have been updated.'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('OK'),
+                          style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                        ),
                         ),
                       ],
                     );
@@ -280,6 +365,10 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
               }
             },
             child: const Text('Save Changes'),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+              foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+            ),
           ),
         ],
       );
@@ -293,16 +382,24 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
   final shouldDelete = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Confirm Deletion'),
+      backgroundColor: const Color(0xFFEEC07B), // Light brown background
+      title: const Text(
+        'Confirm Deletion',
+        style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+      ),
       content: const Text('Are you sure you want to delete this vendor?'),
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: const Text('Cancel', style: TextStyle(color: Colors.black)),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Delete'),
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+            foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+          ),
         ),
       ],
     ),
@@ -318,7 +415,11 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success'),
+            backgroundColor: const Color(0xFFEEC07B), // Light brown background
+            title: const Text(
+              'Success',
+              style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+            ),
             content: const Text('Vendor has been deleted successfully.'),
             actions: <Widget>[
               TextButton(
@@ -326,6 +427,10 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
                   Navigator.of(context).pop(); // Close the success dialog
                 },
                 child: const Text('OK'),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
+                  foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                ),
               ),
             ],
           ),
@@ -338,7 +443,11 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Error'),
+          backgroundColor: const Color(0xFFEEC07B), // Light brown background
+          title: const Text(
+            'Error',
+            style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+          ),
           content: Text('Failed to remove vendor: $e'),
           actions: <Widget>[
             TextButton(
@@ -354,10 +463,3 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
 
   return false; // Indicate cancellation
 }
-
-
-
-
-
-
-
