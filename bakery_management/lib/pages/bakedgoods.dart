@@ -146,7 +146,6 @@ class ProductApi {
 // Products Page
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
-  
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
@@ -178,13 +177,13 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   void _updateProduct(Product updatedProduct) {
-  setState(() {
-    final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-    if (index != -1) {
-      products[index] = updatedProduct;
-    }
-  });
-}
+    setState(() {
+      final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+      if (index != -1) {
+        products[index] = updatedProduct;
+      }
+    });
+  }
 
   // Initialize and load products
   Future<void> init() async {
@@ -202,20 +201,30 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Image.asset(
-        'assets/bakedgoods.png',
-        height: 60,
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/bakedgoods.png',
+            height: 100,  // Matching the height from VendorsPage
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
       centerTitle: true,
-      backgroundColor: const Color(0xFFF0d1a0),
-      iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Dark brown back button color
+      ),
     ),
-    backgroundColor: const Color(0xFFF0d1a0),
+    backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
         buildSearch(),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80.0),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
@@ -232,10 +241,18 @@ class _ProductsPageState extends State<ProductsPage> {
           init(); // Call init to reload products
         });
       }),
-      label: const Text('Add Product'),
-      icon: const Icon(Icons.add),
-      backgroundColor: const Color(0xFF6D3200),
-      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+      label: const Text(
+        'Add Product',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),  // Light brown text color
+          fontSize: 17,
+        ),
+      ),
+      icon: const Icon(
+        Icons.add,
+        color: Color(0xFFEEC07B),  // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF6D3200),  // Dark brown background
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
@@ -245,7 +262,6 @@ class _ProductsPageState extends State<ProductsPage> {
     text: query,
     hintText: 'Search by Name',
     onChanged: searchProduct,
-    
   );
 
   // Search for a product by query
@@ -261,47 +277,48 @@ class _ProductsPageState extends State<ProductsPage> {
   });
 
   // Build list tile for each product
- Widget buildProduct(Product product) => Card(
-  color: const Color(0xFF6D3200),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(50), // Circular shape
-  ),
-  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-  elevation: 4,
-  child: GestureDetector(
-    onTap: () async {
-      // Navigate to product detail page on tap and wait for result
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailPage(
-            product: product,
+  Widget buildProduct(Product product) => Card(
+    color: const Color(0xFF6D3200),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50), // Circular shape
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () async {
+        // Navigate to product detail page on tap and wait for result
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(
+              product: product,
+            ),
           ),
-        ),
-      );
+        );
 
-      // If the result is true, refresh the product list
-      if (result == true) {
-        init(); // Refresh the product list
-      }
-    },
-    child: Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-      child: Center(
-        child: Text(
-          product.name,
-          style: const TextStyle(
-            color: Color.fromARGB(255, 243, 217, 162),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        // If the result is true, refresh the product list
+        if (result == true) {
+          init(); // Refresh the product list
+        }
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            product.name,
+            style: const TextStyle(
+              color: Color(0xFFEEC07B),  // Light brown text color
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     ),
-  ),
-);
+  );
 }
+
 
 // Search widget component
 class SearchWidget extends StatefulWidget {
@@ -331,8 +348,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color:Color(0xFFEEC07B));
-    const styleHint = TextStyle(color:Color(0xFFEEC07B));
+    const styleActive = TextStyle(color: Colors.black);
+    const styleHint = TextStyle(color: Colors.black);
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -340,7 +357,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFF6D3200),
+        color: const Color(0xFFD8C4AA),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
@@ -371,7 +388,6 @@ class _SearchWidgetState extends State<SearchWidget> {
 }
 
 
-// Product Detail Page
 class ProductDetailPage extends StatefulWidget {
   final Product product;
 
@@ -395,135 +411,307 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       _product = updatedProduct;
     });
   }
-  // Warning function
-Widget _buildQuantityWarning(Product product) {
-  if (product.quantity < product.minAmount) {
-    return const Text(
-      'QUANTITY IS VERY LOW! REMAKE NOW!',
-      style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-    );
-  } else if (product.quantity < product.remakeAmount) {
-    return const Text(
-      'Quantity is getting low. Please remake!',
-      style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-    );
-  }
-  return const SizedBox(); // Return an empty widget if no warnings
-}
 
+  Widget _buildQuantityWarning(Product product) {
+    if (product.quantity < product.minAmount) {
+      return const Text(
+        'QUANTITY IS VERY LOW! REMAKE NOW!',
+        style: TextStyle(
+          fontSize: 20,
+          color: Color(0xFF6D3200),
+        ),
+        textAlign: TextAlign.center,
+      );
+    } else if (product.quantity < product.remakeAmount) {
+      return const Text(
+        'Quantity is getting low. Please remake!',
+        style: TextStyle(
+          fontSize: 20,
+          color: Color(0xFF6D3200),
+        ),
+        textAlign: TextAlign.center,
+      );
+    }
+    return const SizedBox(); // Return an empty widget if no warnings
+  }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(_product.name),
-      backgroundColor: const Color(0xFFF0d1a0),
-      foregroundColor:  const Color(0xFF6D3200),
-      iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
-    ),
-    backgroundColor: const Color(0xFFF0d1a0),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Centered Image
-          Container(
-            height: 150,
-            width: 150,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage('assets/bread2.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _product.name,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold, // Bold product name
           ),
-          const SizedBox(height: 20),
-          // Display Product Information
-          Text('Name: ${_product.name}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Description: ${_product.description}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Max Amount: ${_product.maxAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Remake Amount: ${_product.remakeAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          _buildQuantityWarning(_product),
-
-          
-          const SizedBox(height: 20),
-          // Buttons
-          Row(
+        ),
+        backgroundColor: const Color(0xFFF0D1A0),
+        foregroundColor: const Color(0xFF6D3200),
+        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
+      ),
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  // Navigate to the update page and wait for result
-                  final updatedProduct = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductUpdatePage(
-                        product: _product,
-                        onProductUpdated: _updateProduct,
+              // Centered Image
+              Container(
+                height: 150,
+                width: 150,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                    image: AssetImage('assets/bread2.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              // Display Product Information
+              Text(
+                '${_product.name}',
+                style: const TextStyle(
+                  fontSize: 25,
+                  color: Color(0xFF6D3200),
+                  fontWeight: FontWeight.bold, // Bold product name
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: '${_product.description}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
                       ),
                     ),
-                  );
-
-                  // If an updated product was returned, update the state
-                  if (updatedProduct != null) {
-                    _updateProduct(updatedProduct);
-                    Navigator.pop(context, true); // Pass true to indicate an update
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0d1a0),
-                ),
-                child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add),
-                  SizedBox(width: 8), // Spacing between image and text
-                  Text('Update'),
-                ],
-              ),
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to recipe page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipePage(product: _product),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0d1a0),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/recipe.png', // Replace with your icon asset
-                      height: 20, // Adjust height as needed
-                      width: 20,  // Adjust width as needed
-                    ),
-                    const SizedBox(width: 8), // Spacing between image and text
-                    const Text('Recipe'),
                   ],
                 ),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Max Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.maxAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Remake Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.remakeAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Min Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.minAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Quantity:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Price:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.price}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              _buildQuantityWarning(_product),
+              // Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Navigate to the update page and wait for result
+                      final updatedProduct = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductUpdatePage(
+                            product: _product,
+                            onProductUpdated: _updateProduct,
+                          ),
+                        ),
+                      );
+
+                      // If an updated product was returned, update the state
+                      if (updatedProduct != null) {
+                        _updateProduct(updatedProduct);
+                        Navigator.pop(context, true); // Pass true to indicate an update
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFFF0D1A0),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add),
+                        SizedBox(width: 8), // Spacing between icon and text
+                        Text('Update'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to recipe page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipePage(product: _product),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFFF0D1A0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/recipe.png', // Replace with your icon asset
+                          height: 20, // Adjust height as needed
+                          width: 20,  // Adjust width as needed
+                        ),
+                        const SizedBox(width: 8), // Spacing between icon and text
+                        const Text('Recipe'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the page
+                    },
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 17, // Font size
+                        color: Color(0xFFEEC07B), // Light brown text
+                      ),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                      foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      )),
+                    ),
+                  ),
+                ),
+              )
+
             ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
-}
+
 
 
 
