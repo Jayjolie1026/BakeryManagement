@@ -109,7 +109,7 @@ Widget build(BuildContext context) {
       backgroundColor: const Color(0xFF422308),
       foregroundColor: const Color(0xFFEEC07B),
     ),
-    body: Padding(
+    body: SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
