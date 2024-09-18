@@ -321,13 +321,11 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
     _reorderAmountController.dispose();
     _minAmountController.dispose();
     _costController.dispose();
-    // _createDateTimeController.dispose();
-    // _expireDateTimeController.dispose();
     super.dispose();
   }
 
   // Format DateTime for display
-  String ormatDate(DateTime dateTime) {
+  String formatDate(DateTime dateTime) {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     return formatter.format(dateTime);
   }
