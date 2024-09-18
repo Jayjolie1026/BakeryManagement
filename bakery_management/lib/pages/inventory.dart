@@ -291,6 +291,7 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
   late TextEditingController _reorderAmountController;
   late TextEditingController _minAmountController;
   late TextEditingController _costController;
+  late TextEditingController _vendorIDController;
   late DateTime _createDateTime;
   late DateTime _expireDateTime;
 
@@ -304,6 +305,7 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
     _reorderAmountController = TextEditingController(text: widget.item.reorderAmount.toString());
     _minAmountController = TextEditingController(text: widget.item.minAmount.toString());
     _costController = TextEditingController(text: widget.item.cost.toString());
+    _vendorIDController = TextEditingController(text: widget.item.vendorID.toString());
     _createDateTime = widget.item.createDateTime;
     _expireDateTime = widget.item.expireDateTime;
   }
@@ -453,6 +455,20 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
               ),
               keyboardType: TextInputType.number,
             ),
+            TextField(
+              controller: _vendorIDController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Vendor ID',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 16),
             Text('Create Date: ${formatDate(_createDateTime)}'),
             TextButton(
@@ -485,6 +501,7 @@ class _ItemUpdatePageState extends State<ItemUpdatePage> {
                   cost: double.parse(_costController.text),
                   createDateTime: _createDateTime,
                   expireDateTime: _expireDateTime,
+                  vendorID: int.parse(_vendorIDController.text),
                 );
 
                 // Call update API

@@ -11,6 +11,7 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
   final reorderAmountController = TextEditingController();
   final minAmountController = TextEditingController();
   final costController = TextEditingController();
+  final vendorIDController = TextEditingController();
 
 // Ensure they are initialized
   DateTime createDateTime = DateTime.now();
@@ -178,6 +179,22 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
                   keyboardType: TextInputType.number,
                 ),
               ),
+              Flexible(
+                child: TextField(
+                  controller: vendorIDController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Vendor ID',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -235,6 +252,7 @@ void showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) {
               reorderAmount: double.tryParse(reorderAmountController.text) ?? 0,
               minAmount: double.tryParse(minAmountController.text) ?? 0,
               cost: double.tryParse(costController.text) ?? 0.0,
+              vendorID: int.tryParse(vendorIDController.text) ?? 0,
               createDateTime: createDateTime,
               expireDateTime: expireDateTime,
             );

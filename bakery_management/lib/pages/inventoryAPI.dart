@@ -35,6 +35,7 @@ class InventoryApi {
       "cost": item.cost,
       "createDateTime": item.createDateTime.toIso8601String(),
       "expireDateTime": item.expireDateTime.toIso8601String(),
+      "vendorID": item.vendorID,
     });
 
     print('Request body: $body');
