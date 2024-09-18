@@ -1,311 +1,334 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class VendorsPage extends StatelessWidget {
+import 'package:bakery_management/pages/vendorsAPI.dart';
+import 'package:flutter/material.dart';
+import 'vendorsFunctions.dart';
+import 'vendorsItemClass.dart';
+import 'dart:async';
+import 'inventorySearchWidget.dart';
+import 'package:http/http.dart' as http;
+
+class VendorsPage extends StatefulWidget {
   const VendorsPage({super.key});
 
-@override
-Widget build(BuildContext context) {
-  // Sample vendor names
-  final List<String> vendorNames = List.generate(10, (index) => 'Vendor ${index + 1}');
+  @override
+  _VendorsPageState createState() => _VendorsPageState();
+}
 
-  return Scaffold(
+class _VendorsPageState extends State<VendorsPage> {
+  List<Vendor> vendors = [];
+  String query = '';
+  Timer? debouncer;
+
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  @override
+  void dispose() {
+    debouncer?.cancel();
+    super.dispose();
+  }
+
+  // Debounce for search bar
+  void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
+    if (debouncer != null) {
+      debouncer!.cancel();
+    }
+    debouncer = Timer(duration, callback);
+  }
+
+  // Initialize vendor items
+  Future<void> init() async {
+    final vendors = await VendorsApi().fetchVendors();
+    setState(() => this.vendors = vendors);
+  }
+
+  // Handle refresh from vendor details page
+  Future<void> _refreshVendors() async {
+    await init();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text(
-        'Order Managements',
-        style: TextStyle(
-          color: Color(0xFF422308), // Set the text color
-        ),
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+        children: [
+          Image.asset(
+            'assets/vendor.png',
+            height: 100,
+          ),
+          const SizedBox(height: 10), // Add space below the image
+        ],
       ),
       centerTitle: true,
-      backgroundColor: const Color(0xFFd8c4aa),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: const Color(0xFF422308), // Color of the back arrow
-        onPressed: () {
-          Navigator.pop(context); // Go back to the previous screen
-        },
-      ),
+      backgroundColor: const Color(0xFFF0D1A0),
     ),
-    backgroundColor: const Color(0xFFF0d1a0),
+    backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
-      children: [
-        const SizedBox(height: 20),
-        // Image section
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Image.asset(
-            'assets/vendor.png', // Replace with your image path
-            height: 150, // Adjust the height to fit the AppBar
-            fit: BoxFit.contain, // Ensures the image scales without being cut off
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Centered search bar
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search for a vendor...', // Placeholder text
-              prefixIcon: const Icon(Icons.search), // Search icon inside the field
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              filled: true, // Give the search bar a background color
-              fillColor: const Color(0xFFd8c4aa),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20), // Space between search bar and other content
+      children: <Widget>[
+        buildSearch(),
         Expanded(
           child: ListView.builder(
-            itemCount: vendorNames.length,
+            padding: const EdgeInsets.only(bottom: 80.0), // Adds padding to avoid overlap with the button
+            itemCount: vendors.length,
             itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  // Navigate to the DetailedVendorPage when the box is tapped
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DetailedVendorPage(),
-                    ),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0), // Space between rows
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFeec07b), // Background color for each entry
-                    borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                  ),
-                  child: Center(
-                    child: Text(
-                      vendorNames[index],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
+              final vendor = vendors[index];
+              return buildItem(vendor);
             },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0), // Padding around the button
-          child: ElevatedButton(
-            onPressed: () {
-              // Define the action when the button is pressed
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddVendorPage(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              foregroundColor: const Color(0xFFeec07b), // Text color of the button
-              backgroundColor: const Color(0xFF422308), // Background color of the button
-              minimumSize: const Size(double.infinity, 70), // Button width and height
-              padding: const EdgeInsets.symmetric(horizontal: 20), // Padding inside the button
-            ),
-            child: const Text(
-              'Add a Vendor',
-              style: TextStyle(fontSize: 20),
-            ),
           ),
         ),
       ],
     ),
-  );
-}
-}
-
-// New page to add a vendor
-class AddVendorPage extends StatelessWidget {
-  const AddVendorPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Vendor'),
-      ),
-      body: const Center(
-        child: Text(
-          'Add Vendor here',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
-
-// New page to remove a vendor
-class RemoveVendorPage extends StatelessWidget {
-  const RemoveVendorPage({super.key});
-
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Remove Vendor'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), // Add some padding around the body
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
-          children: [
-            const Center(
-              child: Text(
-                'Choose which vendor to remove:',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-            const SizedBox(height: 10), // Space between the text and image
-            GestureDetector(
-              onTap: () {
-                // Navigate to the detailed vendor page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DetailedVendorPage(),
-                  ),
-                );
-              },
-              child: Image.asset(
-                'assets/vendor.png', // Replace with your image path
-                width: 100, // Set image width
-                height: 100, // Set image height
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DetailedVendorPage extends StatelessWidget {
-  const DetailedVendorPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-      title: const Text(
-        'Order Managements',
-        style: TextStyle(
-          color: Color(0xFF422308), // Set the text color
-        ),
-      ),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFd8c4aa),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: const Color(0xFF422308), // Color of the back arrow
-        onPressed: () {
-          Navigator.pop(context); // Go back to the previous screen
-        },
-      ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () {
+        showAddVendorDialog(context, () async {
+          await init(); // Refresh the vendor list
+        });
+      },
+      label: const Text('Add Vendors'),
+      icon: const Icon(Icons.add),
+      backgroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView( // Use SingleChildScrollView to handle scrolling if content is long
-              padding: const EdgeInsets.all(16.0), // Add padding to the body
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
-                children: [
-                  // Image section
-                  Image.asset(
-                    'assets/vendor.png', // Replace with your image path
-                    width: double.infinity, // Make the image take up full width
-                    height: 200, // Set a fixed height for the image
-                    fit: BoxFit.cover, // Make the image cover the available space
-                  ),
-                  const SizedBox(height: 20), // Space between the image and the headers
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
+  );
 
-                  // Phone Number header
-                  const Text(
-                    'Phone Number',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10), // Space between the header and content
+  // Search bar widget
+  Widget buildSearch() => SearchWidget(
+    text: query,
+    hintText: 'Search by Vendor',
+    onChanged: searchVendor,
+  );
 
-                  // Placeholder for phone number
-                  const Text(
-                    'Loading phone...', // Placeholder text
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 20), // Space between phone number and email
+  // Search for a vendor by query
+  Future<void> searchVendor(String query) async => debounce(() async {
+    final vendors = await VendorsApi().fetchVendors();
 
-                  // Email header
-                  const Text(
-                    'Email',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10), // Space between the header and content
+    if (!mounted) return;
 
-                  // Placeholder for email
-                  const Text(
-                    'Loading email...', // Placeholder text
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ],
-              ),
+    setState(() {
+      this.query = query;
+      this.vendors = vendors.where((vendor) => vendor.vendorName.toLowerCase().contains(query.toLowerCase())).toList();
+    });
+  });
+
+  // List of vendors
+  Widget buildItem(Vendor vendor) => Card(
+    color: const Color(0xFFEEC07B),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50),
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () async {
+        // Navigate to the vendor details page and await result
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VendorDetailsPage(vendor: vendor),
+          ),
+        );
+        // If the result is true (indicating deletion), refresh the vendor list
+        if (result == true) {
+          _refreshVendors();
+        }
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor', // Ensure something is displayed
+            style: const TextStyle(
+              color: Color(0xFF6D3200),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0), // Padding around the button
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Define the action when the button is pressed
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditVendorPage(),
+        ),
+      ),
+    ),
+  );
+}
+
+class VendorDetailsPage extends StatelessWidget {
+  final Vendor vendor;
+
+  const VendorDetailsPage({super.key, required this.vendor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      appBar: AppBar(
+        title: const Text('Vendor Details'),
+        backgroundColor: const Color(0xFFF0D1A0),
+        foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () => handleRemoveVendor(context, vendor.vendorID!),
+          ),
+        ],
+      ),
+      body: FutureBuilder<Vendor>(
+        future: fetchVendorDetails(vendor.vendorID!), // Fetch vendor details using vendor ID
+        builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            final vendor = snapshot.data!;
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Vendor: ${vendor.vendorName}',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  );
-                },             
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color(0xFFD8C4AA), // Background color of the button
-                  backgroundColor: const Color(0xFF422308), // Text color of the button
-                  minimumSize: const Size(double.infinity, 60), // Button width and height
-                  padding: const EdgeInsets.symmetric(vertical: 16), // Padding inside the button
-                ),
-                child: const Text(
-                  'Edit Vendor Info',
-                  style: TextStyle(
-                    fontSize: 22, // Increase font size if needed
-                  ),
+                    const SizedBox(height: 10),
+                    Text(
+                      vendor.phoneNumbers.isNotEmpty
+                        ? 'Phone: \n(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber}'
+                        : 'Phone: No phone number available',
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      vendor.emails.isNotEmpty
+                        ? 'Email: \n${vendor.emails.first.emailAddress}'
+                        : 'Email: No email provided',
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      vendor.addresses.isNotEmpty
+                        ? 'Address: \n${vendor.addresses.first.streetAddress} \n${vendor.addresses.first.city}, ${vendor.addresses.first.state} \n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
+                        : 'Address: No address provided',
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Add your edit functionality here
+                      },
+                      child: const Text('Edit Vendor Info'),
+                      style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.all(Colors.blue),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () => handleRemoveVendor(context, vendor.vendorID!),
+                      child: const Text('Remove Vendor'),
+                      style: ButtonStyle(
+                        foregroundColor: MaterialStateProperty.all(Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            );
+          } else {
+            return const Center(child: Text('No vendor data available.'));
+          }
+        },
+      ),
+    );
+  }
+  Future<void> handleRemoveVendor(BuildContext context, int id) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: const Text('Are you sure you want to delete this vendor?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
+
+    if (shouldDelete == true) {
+      try {
+        final response = await http.delete(
+          Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'),
+        );
+
+        if (response.statusCode == 200) {
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Success'),
+              content: const Text('Vendor has been deleted successfully.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the success dialog
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const VendorsPage(), // Redirect to VendorsPage
+                      ),
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          throw Exception('Failed to remove vendor');
+        }
+      } catch (e) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to remove vendor: $e'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 }
 
-
-
-
 // New page to edit a vendor
 class EditVendorPage extends StatelessWidget {
-  const EditVendorPage({super.key});
+  const EditVendorPage({super.key, required int vendor});
 
   @override
   Widget build(BuildContext context) {
+    // Implement this page to handle vendor editing
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Vendor'),
@@ -319,3 +342,5 @@ class EditVendorPage extends StatelessWidget {
     );
   }
 }
+
+
