@@ -12,7 +12,7 @@ class Item {
   final double minAmount;
   final double maxAmount;
   final double reorderAmount;
-  int? vendorID;
+  final vendorID;
 
   // Constructor
   Item({
@@ -28,7 +28,7 @@ class Item {
     required this.minAmount,
     required this.maxAmount,
     required this.reorderAmount,
-    this.vendorID,
+    required this.vendorID,
   });
 
   // Factory constructor to create an Item from a JSON object

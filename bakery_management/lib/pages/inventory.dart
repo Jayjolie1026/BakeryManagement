@@ -62,6 +62,7 @@ class _InventoryPageState extends State<InventoryPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
@@ -69,6 +70,7 @@ class _InventoryPageState extends State<InventoryPage> {
             },
           ),
         ),
+        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
