@@ -3,6 +3,7 @@ import 'vendorsItemClass.dart';
 import 'vendorsAPI.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'vendors.dart';
 
 // Fetch vendor details from the API
 Future<Vendor> fetchVendorDetails(int id) async {
@@ -27,129 +28,11 @@ Future<Vendor> fetchVendorDetails(int id) async {
 }
 
 void showVendorDetails(BuildContext context, Vendor vendor) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return FutureBuilder<Vendor>(
-        future: fetchVendorDetails(vendor.vendorID),
-        builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return AlertDialog(
-              title: const Text('Error'),
-              content: Text('Failed to load vendor details: ${snapshot.error}'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                  child: const Text('Close'),
-                ),
-              ],
-            );
-          } else if (snapshot.hasData) {
-            final Vendor vendorDetails = snapshot.data!;
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
-              ),
-              elevation: 4,
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Text(
-                        vendorDetails.vendorName,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Display phone number if available
-                    if (vendorDetails.phoneNumbers.isNotEmpty)
-                      Center(
-                        child: Text(
-                          'Phone: \n(${vendorDetails.phoneNumbers.first.areaCode}) ${vendorDetails.phoneNumbers.first.phoneNumber}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-
-                    const SizedBox(height: 10),
-
-                    // Display email if available
-                    if (vendorDetails.emails.isNotEmpty)
-                      Center(
-                        child: Text(
-                          'Email: \n${vendorDetails.emails.first.emailAddress}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-
-                    const SizedBox(height: 10),
-
-                    // Display address if available
-                    if (vendorDetails.addresses.isNotEmpty)
-                      Center(
-                        child: Text(
-                          'Address: \n${vendorDetails.addresses.first.streetAddress} \n${vendorDetails.addresses.first.city}, ${vendorDetails.addresses.first.state} \n${vendorDetails.addresses.first.postalCode} ${vendorDetails.addresses.first.country}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close the dialog
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: const Color(0xFF422308),
-                      ),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(color: Color(0xFFEEC07B)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            return AlertDialog(
-              title: const Text('No Data'),
-              content: const Text('No vendor details found.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                  child: const Text('Close'),
-                ),
-              ],
-            );
-          }
-        },
-      );
-    },
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => VendorDetailsPage(vendorID: vendor.vendorID),
+    ),
   );
 }
 
@@ -295,4 +178,70 @@ void showAddVendorDialog(BuildContext context, VoidCallback onVendorAdded) {
       );
     },
   );
+}
+
+// Function to edit vendor details
+void editVendor(BuildContext context, Vendor vendor) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => EditVendorPage(vendor: vendor.vendorID),
+    ),
+  );
+}
+
+// Function to remove vendor
+Future<void> removeVendor(BuildContext context, Vendor vendor) async {
+  final response = await http.delete(
+    Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendor.vendorID}'),
+  );
+
+  if (response.statusCode == 200) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Vendor removed successfully'),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the snackbar
+          },
+        ),
+      ),
+    );
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Vendor Removed'),
+          content: const Text('The vendor has been successfully removed.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Go back to previous screen
+                // Optionally, refresh the page
+                // Navigator.of(context).pushReplacement(MaterialPageRoute(
+                //   builder: (context) => VendorListPage(), // Replace with your vendor list page
+                // ));
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Failed to remove vendor'),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            Navigator.of(context).pop(); // Close the snackbar
+          },
+        ),
+      ),
+    );
+  }
 }

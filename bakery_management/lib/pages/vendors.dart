@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bakery_management/pages/vendorsAPI.dart';
 import 'package:flutter/material.dart';
 import 'vendorsFunctions.dart';
@@ -137,9 +139,145 @@ class _VendorsPageState extends State<VendorsPage> {
   );
 }
 
+class VendorDetailsPage extends StatelessWidget {
+  final int vendorID;
+
+  const VendorDetailsPage({super.key, required this.vendorID});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FutureBuilder<Vendor>(
+        future: fetchVendorDetails(vendorID),
+        builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            final vendor = snapshot.data!;
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      'Vendor: ${vendor.vendorName}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Display phone number if available
+                    Text(
+                      vendor.phoneNumbers.isNotEmpty
+                        ? 'Phone: \n(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber}'
+                        : 'Phone: No phone number available',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Display email if available
+                    Text(
+                      vendor.emails.isNotEmpty
+                        ? 'Email: \n${vendor.emails.first.emailAddress}'
+                        : 'Email: No email provided',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Display address if available
+                    Text(
+                      vendor.addresses.isNotEmpty
+                        ? 'Address: \n${vendor.addresses.first.streetAddress} \n${vendor.addresses.first.city}, ${vendor.addresses.first.state} \n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
+                        : 'Address: No address provided',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        editVendor(context, vendor);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black, // Text color
+                        backgroundColor: const Color(0xFFEEC07B), // Background color
+                      ),
+                      child: const Text('Edit Vendor Info'),
+                    ),
+                    const SizedBox(height: 10),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Confirm Deletion'),
+                              content: const Text('Are you sure you want to delete this vendor?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close the dialog
+                                  },
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.of(context).pop(); // Close the confirmation dialog
+                                    await removeVendor(context, vendor);
+                                  },
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black, // Text color
+                        backgroundColor: Colors.red, // Background color
+                      ),
+                      child: const Text('Remove Vendor'),
+                    ),
+                    const SizedBox(height: 20),
+
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close the details page
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.black, // Text color
+                        backgroundColor: const Color(0xFFEEC07B), // Background color
+                      ),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return const Center(child: Text('No vendor details found.'));
+          }
+        },
+      ),
+    );
+  }
+}
+
+
 // New page to edit a vendor
 class EditVendorPage extends StatelessWidget {
-  const EditVendorPage({super.key});
+  const EditVendorPage({super.key, required int vendor});
 
   @override
   Widget build(BuildContext context) {
