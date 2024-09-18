@@ -40,7 +40,7 @@ console.log('Server is starting.');
   app.get('/vendors', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const vendors = await pool.request().query('SELECT VendorName FROM tblVendors');
+        const vendors = await pool.request().query('SELECT * FROM tblVendors');
         res.json(vendors.recordset);
     } catch (error) {
         res.status(500).send(error.message);
@@ -51,9 +51,9 @@ console.log('Server is starting.');
 app.post('/vendors', async (req, res) => {
     const {
         VendorName,
-        EmailAddress,
-        PhoneNumber,
         AreaCode,
+        PhoneNumber,
+        EmailAddress,
         StreetAddress,
         City,
         State,
@@ -1330,7 +1330,7 @@ app.get('/inventory', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
-                   ing.Name AS IngredientName, inv.Quantity AS IngredientQuantity, ing.MinAmount,ing.MaxAmount, ing.ReorderAmount
+                   ing.Name AS IngredientName, inv.Quantity AS IngredientQuantity, ing.MinAmount,ing.MaxAmount, ing.ReorderAmount, ing.VendorID
             FROM dbo.tblInventory inv
             JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
         `);
