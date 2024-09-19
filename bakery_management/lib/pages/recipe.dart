@@ -10,7 +10,8 @@ import 'package:http/http.dart' as http;
 
 // Recipe Page
 class RecipePage extends StatefulWidget {
-  const RecipePage({super.key});
+  final int? productID;
+  const RecipePage({super.key,this.productID});
 
   @override
   _RecipePageState createState() => _RecipePageState();
@@ -120,7 +121,7 @@ class _RecipePageState extends State<RecipePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RecipeListPage(searchQuery: ''),
+            builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID),
             //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
           ),
         );

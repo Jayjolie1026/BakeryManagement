@@ -23,7 +23,22 @@ class RecipeApi {
       throw Exception('Failed to load recipes');
     }
   }
+   static Future<List<Item>> getRecipesByProductId(int? productID) async {
+
+    final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes?productID=$productID');
+    final response = await http.get(apiUrl);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> recipes = json.decode(response.body);
+      print('Recipes: $recipes');
+      // Mapping the API response to the Item class
+      return recipes.map((json) => Item.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load recipes');
+    }
+  }
 }
+
 
 
 // API for adding an ingredient
