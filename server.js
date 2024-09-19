@@ -952,7 +952,10 @@ app.post('/ingredients', async (req, res) => {
         }
 
         const pool = await sql.connect(dbConfig);
-        await pool.request()
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        await request
             .input('name', sql.VarChar, name)
             .input('description', sql.VarChar, description)
             .input('category', sql.VarChar, category)
@@ -963,9 +966,19 @@ app.post('/ingredients', async (req, res) => {
             .input('vendorID', sql.Int, vendorID)
             .query(`
                 INSERT INTO tblIngredients (Name, Description, Category, Measurement, MaxAmount, ReorderAmount, MinAmount, VendorID) 
-                VALUES (@name, @description, @category, @measurement, @maxAmount, @reorderAmount, @minAmount, @vendorID)
+                VALUES (@name, @description, @category, @measurement, @maxAmount, @reorderAmount, @minAmount, @vendorID);
+                SELECT SCOPE_IDENTITY() AS IngredientID
             `);
-        res.status(201).send('Ingredient added');
+        await transaction.commit();
+
+            // Get the newly inserted IngredientID
+        const result = await request.query(`
+            SELECT SCOPE_IDENTITY() AS IngredientID
+        `);
+
+       const ingredientID = result.recordset[0].IngredientID;
+
+        res.status(201).json({ message: 'Ingredient added', ingredientID });
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -1095,6 +1108,51 @@ app.get('/recipes', async (req, res) => {
         res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+
+app.get('/recipes/:productID', async (req, res) => {
+    try {
+        const productID = req.params.productID;
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productID)
+            .query(`
+                SELECT 
+                    r.RecipeID, r.Name, r.Steps, r.ProductID,
+                    ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                FROM tblRecipes r
+                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                WHERE r.ProductID = @ProductID
+            `);
+
+        const recipes = result.recordset.reduce((acc, row) => {
+            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+            if (!recipe) {
+                recipe = {
+                    RecipeID: row.RecipeID,
+                    Name: row.Name,
+                    Steps: row.Steps,
+                    ProductID: row.ProductID,
+                    Ingredients: []
+                };
+                acc.push(recipe);
+            }
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity
+                });
+            }
+            return acc;
+        }, []);
+
+        res.json(recipes);
+    } catch (error) {
+        res.status(500).send('Error retrieving recipes: ' + error.message);
+    }
+});
+
 
 
 
