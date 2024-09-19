@@ -942,6 +942,7 @@ const checkVendorExists = async (vendorID) => {
 
 // POST /ingredients: Add a new ingredient
 app.post('/ingredients', async (req, res) => {
+    console.log(req.body);
     const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
 
     try {
@@ -955,7 +956,9 @@ app.post('/ingredients', async (req, res) => {
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
 
-        await request
+        const request = new sql.Request(transaction);
+
+         const result = await request
             .input('name', sql.VarChar, name)
             .input('description', sql.VarChar, description)
             .input('category', sql.VarChar, category)
@@ -970,11 +973,6 @@ app.post('/ingredients', async (req, res) => {
                 SELECT SCOPE_IDENTITY() AS IngredientID
             `);
         await transaction.commit();
-
-            // Get the newly inserted IngredientID
-        const result = await request.query(`
-            SELECT SCOPE_IDENTITY() AS IngredientID
-        `);
 
        const ingredientID = result.recordset[0].IngredientID;
 

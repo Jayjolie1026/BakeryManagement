@@ -1,121 +1,393 @@
 import 'package:flutter/material.dart';
-import 'inventoryItemClass.dart';
-import 'inventoryAPI.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-// Function to check quantity vs reorder amount
-void checkInventoryLevels(List<Item> items) {
-  for (var item in items) {
-    if (item.quantity < item.reorderAmount) {
-      // Display a warning or alert
-      print('Warning: ${item.ingredientName} is below the reorder amount!');
-    }
-  }
-}
+Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) async {
+  final nameController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final categoryController = TextEditingController();
+  final measurementController = TextEditingController();
+  final maxAmountController = TextEditingController();
+  final reorderAmountController = TextEditingController();
+  final minAmountController = TextEditingController();
+  final vendorIDController = TextEditingController();
 
-// Function to show a dialog for adding a new ingredient
-void showAddIngredientDialog(BuildContext context) {
   showDialog(
     context: context,
-    builder: (BuildContext context) {
-      String ingredientName = '';
-      String description = '';
-      String category = '';
-      String measurement = '';
-      double maxAmount = 0.0;
-      double reorderAmount = 0.0;
-      double minAmount = 0.0;
-      int vendorID = 0;
-
-      return AlertDialog(
-        title: const Text('Add Ingredient'),
-        content: Column(
+    builder: (BuildContext context) => AlertDialog(
+      backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
+      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)),
+      title: const Text('Add New Ingredient'),
+      content: SingleChildScrollView(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Ingredient Name'),
-              onChanged: (value) {
-                ingredientName = value;
-              },
+            Flexible(
+              child: TextField(
+                controller: nameController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Ingredient Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Description'),
-              onChanged: (value) {
-                description = value;
-              },
+            Flexible(
+              child: TextField(
+                controller: descriptionController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Description',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Category'),
-              onChanged: (value) {
-                category = value;
-              },
+            Flexible(
+              child: TextField(
+                controller: categoryController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Category',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Measurement'),
-              onChanged: (value) {
-                measurement = value;
-              },
+            Flexible(
+              child: TextField(
+                controller: measurementController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Measurement',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Max Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                maxAmount = double.tryParse(value) ?? 0.0;
-              },
+            Flexible(
+              child: TextField(
+                controller: maxAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Max Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Reorder Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                reorderAmount = double.tryParse(value) ?? 0.0;
-              },
+            Flexible(
+              child: TextField(
+                controller: reorderAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Reorder Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Min Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                minAmount = double.tryParse(value) ?? 0.0;
-              },
+            Flexible(
+              child: TextField(
+                controller: minAmountController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Min Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Vendor ID'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                vendorID = int.tryParse(value) ?? 0;
-              },
+            Flexible(
+              child: TextField(
+                controller: vendorIDController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Vendor ID',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Text color of the button
+            foregroundColor: const Color(0xFFF0d1a0),
           ),
-          ElevatedButton(
-            child: const Text('Add'),
-            onPressed: () async {
-              try {
-                await addIngredient(
-                  ingredientName,
-                  description,
-                  category,
-                  measurement,
-                  maxAmount,
-                  reorderAmount,
-                  minAmount,
-                  vendorID,
-                );
-                Navigator.of(context).pop();
-                // Optionally, refresh the inventory list
-              } catch (e) {
-                print('Error adding ingredient: $e');
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            print('test test test');
+            // Create new ingredient instance
+              final response = await http.post(
+                Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
+                body: jsonEncode({
+                  'name': nameController.text,
+                  'description': descriptionController.text,
+                  'category': categoryController.text,
+                  'measurement': measurementController.text,
+                  'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
+                  'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
+                  'minAmount': double.tryParse(minAmountController.text) ?? 0,
+                  'vendorID': int.tryParse(vendorIDController.text) ?? 19,
+                }),
+                headers: {"Content-Type": "application/json"},
+              );
+
+
+              // TODO: receive ingredient ID and pass it to showAddInventoryItemDialog
+              if (response.statusCode == 201) {
+                // Parse the response body to extract the ingredient_id
+                final Map<String, dynamic> responseData = jsonDecode(response.body);
+                print('Response data: $responseData'); // Debugging step
+                final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
+
+                Navigator.of(context).pop(); // Close the ingredient dialog
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));
+
+                // Now show the inventory item dialog
+                await showAddInventoryItemDialog(context, ingredientID);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add ingredient item')));
+                throw Exception('Failed to add ingredient: ${response.body}');
               }
             },
-          ),
-        ],
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200), // Background color of the button
+              foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
+            ),
+            child: const Text('Add'),
+        ),
+      ],
+    ),
+  );
+}
+
+// TODO: make sure this works after getting ing ID
+Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) async {
+  final quantityController = TextEditingController();
+  final costController = TextEditingController();
+  final notesController = TextEditingController();
+
+  DateTime createDateTime = DateTime.now();
+  DateTime expireDateTime = DateTime(0000,1,1);
+
+    void _selectDate(BuildContext context, bool isCreateDate) async {
+      DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
+
+      DateTime? selectedDate = await showDatePicker(
+        context: context,
+        initialDate: initialDate,
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100),
       );
-    },
+
+      if (selectedDate != null) {
+        TimeOfDay initialTime = isCreateDate
+            ? TimeOfDay.fromDateTime(createDateTime)
+            : TimeOfDay.fromDateTime(expireDateTime);
+
+        TimeOfDay? selectedTime = await showTimePicker(
+          context: context,
+          initialTime: initialTime,
+        );
+
+        if (selectedTime != null) {
+          DateTime selectedDateTime = DateTime(
+            selectedDate.year,
+            selectedDate.month,
+            selectedDate.day,
+            selectedTime.hour,
+            selectedTime.minute,
+        );
+
+        if (isCreateDate) {
+          createDateTime = selectedDateTime;
+        } else {
+          expireDateTime = selectedDateTime;
+        }
+      }
+    }
+  }
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
+      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)),
+      title: const Text('Add Inventory Item'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: TextField(
+                controller: quantityController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: costController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Cost',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: notesController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Notes',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Color(0xFF6D3200),
+                      side: const BorderSide(
+                        color: Color(0xFF6D3200), // Border color
+                        width: 1.5, // Border width
+                      ),
+                    ),
+                    onPressed: () => _selectDate(context, true),
+                    child: const Text('Created'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF6D3200),
+                      side: const BorderSide(
+                        color: Color(0xFF6D3200), // Border color
+                        width: 1.5, // Border width
+                      ),
+                    ),
+                    onPressed: () => _selectDate(context, false),
+                    child: const Text('Expires'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Text color of the button
+            foregroundColor: const Color(0xFFF0d1a0),
+          ),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            // Create new ingredient instance
+            final response = await http.post(
+              Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory'),
+              body: jsonEncode({
+                'ingredient_id': ingredientID,
+                'quantity': int.tryParse(quantityController.text) ?? 0,
+                'cost': double.tryParse(costController.text) ?? 0,
+                'notes': notesController.text ?? '',
+                createDateTime: createDateTime,
+                expireDateTime: expireDateTime,
+              }),
+              headers: {"Content-Type": "application/json"},
+            );
+
+            if (response.statusCode == 201) {
+              Navigator.of(context).pop(); // Close the inventory dialog
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventory item added')));
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add inventory item')));
+              throw Exception('Failed to add ingredient: ${response.body}');
+            }
+
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Background color of the button
+            foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
+          ),
+          child: const Text('Add'),
+        ),
+      ],
+    ),
   );
 }
 
@@ -127,69 +399,3 @@ String formatDate(DateTime dateTime) {
 
   return '$year-$month-$day'; // Format as YYYY-MM-DD
 }
-
-// Function to show a dialog with item details
-void showItemDetails(BuildContext context, Item item) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Center(
-          child: Text(
-            'Ingredients',
-            style: TextStyle(color: Color.fromARGB(255, 97, 91, 77)),
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Placeholder image at the top
-            Image.network(
-              'https://via.placeholder.com/150', // Placeholder image URL
-              height: 150,
-              width: 150,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(height: 16),
-            // Item details
-            Text('Entry ID: ${item.entryID}'),
-            Text('PO Number: ${item.entryID}'), // Assuming PO Number is same as Entry ID for now
-            Text('Entry Date: ${formatDate(item.createDateTime)}'),
-            Text('Expiration Date: ${formatDate(item.expireDateTime)}'),
-            Text('Quantity: ${item.quantity}'),
-            Text('Cost: \$${item.cost.toStringAsFixed(2)}'),
-            Text('Notes: ${item.notes}'),
-          ],
-        ),
-        actions: [
-          // Container to add space between the buttons and the dialog edges
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Update button
-                TextButton.icon(
-                  icon: const Icon(Icons.update, color: Color.fromARGB(255, 97, 91, 77)), // Change icon color
-                  label: const Text('Update', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
-                  onPressed: () {
-                    // Action for Update button
-                  },
-                ),
-                // Vendor button
-                TextButton.icon(
-                  icon: const Icon(Icons.store, color: Color.fromARGB(255, 97, 91, 77)),
-                  label: const Text('Vendor', style: TextStyle(color: Color.fromARGB(255, 97, 91, 77))),
-                  onPressed: () {
-                    // Action for Vendor button
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
