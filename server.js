@@ -1442,8 +1442,15 @@ app.post('/inventory', async (req, res) => {
     }
 
     try {
-        const pool = await sql.connect(dbConfig);
+        // Parse the incoming date strings into JavaScript Date objects
+        const createDate = new Date(create_datetime);
+        const expireDate = expire_datetime ? new Date(expire_datetime) : null;
 
+        if (isNaN(createDate.getTime())) {
+            return res.status(400).send('Invalid create date/time format');
+        }
+
+        const pool = await sql.connect(dbConfig);
 
         // Insert the new inventory item
         await pool.request()
@@ -1451,8 +1458,8 @@ app.post('/inventory', async (req, res) => {
             .input('quantity', sql.Decimal, quantity)
             .input('notes', sql.VarChar, notes)  // Optional field
             .input('cost', sql.Decimal, cost)
-            .input('create_datetime', sql.DateTime, create_datetime)
-            .input('expire_datetime', sql.DateTime, expire_datetime)  // Optional field
+            .input('create_datetime', sql.DateTime, createDate)
+            .input('expire_datetime', sql.DateTime, expireDate)  // Optional field
             .query(`
                 INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime)
                 VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime)
@@ -1462,6 +1469,7 @@ app.post('/inventory', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
 
 
 
