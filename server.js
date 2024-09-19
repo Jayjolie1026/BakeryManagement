@@ -958,7 +958,7 @@ app.post('/ingredients', async (req, res) => {
 
         const request = new sql.Request(transaction);
 
-        await request
+         const result = await request
             .input('name', sql.VarChar, name)
             .input('description', sql.VarChar, description)
             .input('category', sql.VarChar, category)
@@ -973,11 +973,6 @@ app.post('/ingredients', async (req, res) => {
                 SELECT SCOPE_IDENTITY() AS IngredientID
             `);
         await transaction.commit();
-
-            // Get the newly inserted IngredientID
-        const result = await request.query(`
-            SELECT SCOPE_IDENTITY() AS IngredientID
-        `);
 
        const ingredientID = result.recordset[0].IngredientID;
 
