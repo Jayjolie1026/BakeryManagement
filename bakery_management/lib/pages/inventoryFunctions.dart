@@ -185,7 +185,7 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
                 // Parse the response body to extract the ingredient_id
                 final Map<String, dynamic> responseData = jsonDecode(response.body);
                 print('Response data: $responseData'); // Debugging step
-                final int ingredientID = responseData['id']; // Assume the server returns the ID
+                final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
 
                 Navigator.of(context).pop(); // Close the ingredient dialog
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));

@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'package:bakery_management/pages/vendors.dart';
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
 import 'inventoryFunctions.dart';
-import 'inventorySearchWidget.dart';
 import 'package:intl/intl.dart';
 import 'vendors.dart';
 
