@@ -63,7 +63,6 @@ class _InventoryPageState extends State<InventoryPage> {
             buildSearch(),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.only(bottom: 80),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
@@ -83,7 +82,7 @@ class _InventoryPageState extends State<InventoryPage> {
           }), // Open form for new ingredient
           label: const Text('Add Ingredient'),
           icon: const Icon(Icons.add),
-          backgroundColor: const Color(0xFF6D3200),
+          backgroundColor: const Color(0xFF422308),  // Dark brown background
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),
         ),
         floatingActionButtonLocation:

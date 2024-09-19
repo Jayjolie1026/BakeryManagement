@@ -162,7 +162,6 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
         ),
         ElevatedButton(
           onPressed: () async {
-            print('test test test');
             // Create new ingredient instance
               final response = await http.post(
                 Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
@@ -178,6 +177,7 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
                 }),
                 headers: {"Content-Type": "application/json"},
               );
+              print('Request body: ${response.body}');
 
 
               // TODO: receive ingredient ID and pass it to showAddInventoryItemDialog
@@ -215,45 +215,37 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
   final notesController = TextEditingController();
 
   DateTime createDateTime = DateTime.now();
-  DateTime expireDateTime = DateTime(0000,1,1);
+  DateTime expireDateTime = DateTime.now();
 
-    void _selectDate(BuildContext context, bool isCreateDate) async {
-      DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
+  void _selectDate(BuildContext context, bool isCreateDate) async {
+    DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
 
-      DateTime? selectedDate = await showDatePicker(
-        context: context,
-        initialDate: initialDate,
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2100),
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      // Set time to midnight (00:00:00) since you don't need a time selection
+      DateTime selectedDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        0, // hour
+        0, // minute
+        0, // second
       );
 
-      if (selectedDate != null) {
-        TimeOfDay initialTime = isCreateDate
-            ? TimeOfDay.fromDateTime(createDateTime)
-            : TimeOfDay.fromDateTime(expireDateTime);
-
-        TimeOfDay? selectedTime = await showTimePicker(
-          context: context,
-          initialTime: initialTime,
-        );
-
-        if (selectedTime != null) {
-          DateTime selectedDateTime = DateTime(
-            selectedDate.year,
-            selectedDate.month,
-            selectedDate.day,
-            selectedTime.hour,
-            selectedTime.minute,
-        );
-
-        if (isCreateDate) {
-          createDateTime = selectedDateTime;
-        } else {
-          expireDateTime = selectedDateTime;
-        }
+      if (isCreateDate) {
+        createDateTime = selectedDateTime;
+      } else {
+        expireDateTime = selectedDateTime;
       }
     }
   }
+
 
   showDialog(
     context: context,
@@ -365,8 +357,8 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
                 'quantity': int.tryParse(quantityController.text) ?? 0,
                 'cost': double.tryParse(costController.text) ?? 0,
                 'notes': notesController.text ?? '',
-                createDateTime: createDateTime,
-                expireDateTime: expireDateTime,
+                createDateTime: createDateTime.toIso8601String(),
+                expireDateTime: expireDateTime.toIso8601String(),
               }),
               headers: {"Content-Type": "application/json"},
             );

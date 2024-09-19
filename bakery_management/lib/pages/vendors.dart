@@ -78,7 +78,6 @@ class _VendorsPageState extends State<VendorsPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80.0),
             itemCount: vendors.length,
             itemBuilder: (context, index) {
               final vendor = vendors[index];
@@ -86,6 +85,7 @@ class _VendorsPageState extends State<VendorsPage> {
             },
           ),
         ),
+        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(

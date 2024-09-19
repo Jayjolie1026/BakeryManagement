@@ -247,7 +247,6 @@ class _ProductsPageState extends State<ProductsPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80.0),
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
@@ -255,6 +254,7 @@ class _ProductsPageState extends State<ProductsPage> {
             },
           ),
         ),
+        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(

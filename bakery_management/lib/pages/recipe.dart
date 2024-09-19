@@ -72,6 +72,7 @@ class _RecipePageState extends State<RecipePage> {
             },
           ),
         ),
+        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
