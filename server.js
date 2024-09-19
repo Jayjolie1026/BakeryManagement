@@ -942,6 +942,7 @@ const checkVendorExists = async (vendorID) => {
 
 // POST /ingredients: Add a new ingredient
 app.post('/ingredients', async (req, res) => {
+    console.log(req.body);
     const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
 
     try {
@@ -954,6 +955,8 @@ app.post('/ingredients', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
+
+        const request = new sql.Request(transaction);
 
         await request
             .input('name', sql.VarChar, name)
