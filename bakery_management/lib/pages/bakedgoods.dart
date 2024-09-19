@@ -4,6 +4,25 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/recipe.dart';
 
+const Map<int, String> productImages = {
+  12: 'assets/sourdough.jpg',
+  13: 'assets/choclatechip.jpg',
+  14: 'assets/buttercroissant.jpg',
+  15: 'assets/blueberrymuffins.jpg',
+  16: 'assets/cinnaon.jpg',
+  17: 'assets/frecnh.jpg',
+  18: 'assets/lemon.jpg',
+  19: 'assets/eclair.jpg',
+  20: 'assets/pie.jpg',
+  21: 'assets/vanilla.jpg',
+  22: 'assets/pie.jpg',
+  23: 'assets/almond.jpg',
+  24: 'assets/raspberry.jpg',
+  25: 'assets/brownies.jpg',
+  26: 'assets/macarons.jpg',
+};
+
+
 // Product model for final products
 class Product {
   int? productID;
@@ -401,6 +420,13 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   late Product _product;
 
+  String _getProductImage() {
+  // Get the image path from the mapping based on the product ID
+  // If no image path is found, return a default image path
+  return productImages[_product.productID] ?? 'assets/bagel3.png';
+}
+
+
   @override
   void initState() {
     super.initState();
@@ -418,7 +444,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       return const Text(
         'QUANTITY IS VERY LOW! REMAKE NOW!',
         style: TextStyle(
-          fontSize: 15,
+          fontSize: 20,
           color: Color(0xFF6D3200),
         ),
         textAlign: TextAlign.center,
@@ -427,7 +453,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       return const Text(
         'Quantity is getting low. Please remake!',
         style: TextStyle(
-          fontSize: 15,
+          fontSize: 20,
           color: Color(0xFF6D3200),
         ),
         textAlign: TextAlign.center,
@@ -439,18 +465,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _product.name,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold product name
-          ),
-        ),
-        backgroundColor: const Color(0xFFF0D1A0),
-        foregroundColor: const Color(0xFF6D3200),
-        iconTheme: const IconThemeData(color:  Color(0xFFF0D1A0)),
-      ),
+      
       backgroundColor: const Color(0xFFF0D1A0),
       body: Center(
         child: Padding(
@@ -463,10 +478,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               Container(
                 height: 150,
                 width: 150,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: AssetImage('assets/bread2.png'),
+                    image: AssetImage(_getProductImage()),
                     fit: BoxFit.cover,
                   ),
                 ),

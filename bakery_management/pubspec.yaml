@@ -78,6 +78,23 @@ flutter:
     - assets/bakedgoods2.png
     - assets/inventory2.png
     - assets/recipe2.png
+    - assets/almond.jpg
+    - assets/apple pie.jpg
+    - assets/blueberrymuffins.jpg
+    - assets/macarons.jpg
+    - assets/brownies.jpg
+    - assets/raspberry.jpg
+    - assets/almond.jpg
+    - assets/pie.jpg
+    - assets/vanilla.jpg
+    - assets/eclair.jpg
+    - assets/lemon.jpg
+    - assets/frecnh.jpg
+    - assets/cinnaon.jpg
+    - assets/buttercroissant.jpg
+    - assets/choclatechip.jpg
+    - assets/sourdough.jpg
+    - assets/frecnh.jpg
 
 
   # To add assets to your application, add an assets section, like this:
