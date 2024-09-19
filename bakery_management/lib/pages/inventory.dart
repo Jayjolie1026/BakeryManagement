@@ -62,7 +62,6 @@ class _InventoryPageState extends State<InventoryPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
@@ -75,17 +74,25 @@ class _InventoryPageState extends State<InventoryPage> {
     ),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () => showAddIngredientDialog(context, () {
-        // Refresh the inventory list after adding new item
+        // Refresh the product list after adding a new product
         setState(() {
-          init();
+          init(); // Call init to reload products
         });
-      }), // Open form for new ingredient
-      label: const Text('Add Ingredient'),
-      icon: const Icon(Icons.add),
-      backgroundColor: const Color(0xFF6D3200),
-      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+      }),
+      label: const Text(
+        'Add Ingredient',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),  // Light brown text color
+          fontSize: 17,
+        ),
+      ),
+      icon: const Icon(
+        Icons.add,
+        color: Color(0xFFEEC07B),  // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF6D3200),  // Dark brown background
     ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 
   // Search bar widget
