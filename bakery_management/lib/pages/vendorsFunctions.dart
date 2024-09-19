@@ -3,7 +3,6 @@ import 'vendorsItemClass.dart';
 import 'vendorsAPI.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'vendors.dart';
 
 // Fetch vendor details from the API
 Future<Vendor> fetchVendorDetails(int id) async {
