@@ -376,7 +376,7 @@ class VendorDetailsPage extends StatelessWidget {
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // Close the page
+                          Navigator.pop(context, true); // Close the page
                         },
                           child: const Text(
                             'Close',

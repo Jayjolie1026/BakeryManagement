@@ -73,6 +73,8 @@ class Product {
       };
 }
 
+
+
 // API class for final products
 class ProductApi {
   static Future<List<Product>> getProducts(String query) async {
@@ -152,6 +154,8 @@ class ProductApi {
   );
   print('Response status: ${response.statusCode}');
   print('Update request body: ${jsonEncode(product.toJson())}');
+
+  
 
   if (response.statusCode != 200) {
     throw Exception('Failed to update product');
@@ -436,6 +440,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void _updateProduct(Product updatedProduct) {
     setState(() {
       _product = updatedProduct;
+      
     });
   }
 
@@ -640,10 +645,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           context,
                           _product, // Pass the product you want to update
                           (updatedProduct) {
-                            // Update the state with the updated product
-                            setState(() {
-                              _product = updatedProduct;
-                            });
+                             _updateProduct(updatedProduct);
                           },
                         );
                     
@@ -698,7 +700,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the page
+                      Navigator.pop(context, true); // Close the page
                     },
                     child: const Text(
                       'Close',
@@ -881,8 +883,8 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
                 price: double.parse(priceController.text),
               );
 
-              await ProductApi.updateProduct(updatedProduct);
 
+              await ProductApi.updateProduct(updatedProduct);
               onProductUpdated(updatedProduct);
 
               Navigator.of(context).pop();

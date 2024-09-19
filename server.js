@@ -1109,6 +1109,51 @@ app.get('/recipes', async (req, res) => {
     }
 });
 
+app.get('/recipes/:productID', async (req, res) => {
+    try {
+        const productID = req.params.productID;
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productID)
+            .query(`
+                SELECT 
+                    r.RecipeID, r.Name, r.Steps, r.ProductID,
+                    ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                FROM tblRecipes r
+                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                WHERE r.ProductID = @ProductID
+            `);
+
+        const recipes = result.recordset.reduce((acc, row) => {
+            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+            if (!recipe) {
+                recipe = {
+                    RecipeID: row.RecipeID,
+                    Name: row.Name,
+                    Steps: row.Steps,
+                    ProductID: row.ProductID,
+                    Ingredients: []
+                };
+                acc.push(recipe);
+            }
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity
+                });
+            }
+            return acc;
+        }, []);
+
+        res.json(recipes);
+    } catch (error) {
+        res.status(500).send('Error retrieving recipes: ' + error.message);
+    }
+});
+
+
 
 
 // GET /recipes/search/:name: Search for recipes by partial name
