@@ -161,7 +161,7 @@ body {
     position: sticky;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-left: 1250px; /* Adjust spacing from the text section */
+    margin-left: 1050px; /* Adjust spacing from the text section */
     margin-bottom: 100px;
     margin-top: -378px;
 }
@@ -188,7 +188,7 @@ body {
 }
 
 .button {
-    width: 100%;
+    width: 20%;
     padding: 12px;
     background-color: #774E24;
     color: #fff;
@@ -196,6 +196,7 @@ body {
     border-radius: 5px;
     cursor: pointer;
     margin-bottom: 10px;
+    margin-top: 10px;
 }
 
 .button:hover {

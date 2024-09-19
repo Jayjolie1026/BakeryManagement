@@ -27,6 +27,7 @@ class BakeryManagementApp extends StatelessWidget {
           elevation: 0, // Elevation of the AppBar
         ),
       ),
+      debugShowCheckedModeBanner: false,
       home: const SignInPage(),
     );
   }
@@ -595,7 +596,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
                 child: Theme(
                   data: ThemeData(
-                    hintColor: const Color(0xFFEEC07B), // Set the color of the hint text
+                    hintColor: const Color(0xFFEEC07B), 
+                    
+
                   ),
                   child: DropdownButton<String>(
                     value: _selectedState,
@@ -603,6 +606,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       'Select State',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Hint text color
+                        fontFamily: 'MyFont',
                       ),
                     ),
                     items: _states.map((state) {
@@ -610,7 +614,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         value: state,
                         child: Text(
                           state,
-                          style: const TextStyle(color: Color(0xFF6D3200)), // Dropdown item text color
+                          style: const TextStyle(color: Color(0xFF6D3200),
+                          fontFamily: 'MyFont',), // Dropdown item text color
                         ),
                       );
                     }).toList(),
