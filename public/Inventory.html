@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigBallersBakery Website</title>
+    <link rel="stylesheet" href="inventory.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <a href="index.html">
+                <img src="final_logo.png" alt="Logo">
+            </a>
+            <div class="menu-container">
+                <a href="recipe.html">Recipe</a>
+                <a href="inventory.html">Inventory</a>
+                <a href="employee.html">Employee</a>
+            </div>
+        </div>
+
+        <div class="right-section">
+            <a href="employee-id.html" class="employee-id-btn">Employee ID</a>
+        </div>
+    </header>
+
+    <div class="search-section">
+        <!-- Search bar with icon -->
+        <div class="search-bar">
+            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search your inventory...">
+            <button class="search-btn">
+                <img src="Maginifying-Glass.png" alt="Search" class="search-icon">
+            </button>
+        </div>
+
+        <!-- View all and Refresh buttons -->
+        <button class="view-all-btn" onclick="viewAll()">View All</button>
+        <button class="refresh-btn" onclick="refreshTable()">Refresh</button>
+    </div>
+
+    <div style="margin-top: 100px; padding: 20px;">
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Entry ID</th>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Purchase Date</th>
+                    <th>Expiration Date</th>
+                    <th>Purchase Order ID</th>
+                    <th>Recipe ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>001</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>002</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td>003</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>004</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                <tr>
+                
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function searchTable() {
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById('inventoryTable');
+            let tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                tr[i].style.display = 'none';
+                let td = tr[i].getElementsByTagName('td');
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = '';
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // View All Button Function
+        function viewAll() {
+            let tr = document.getElementById('inventoryTable').getElementsByTagName('tr');
+            for (let i = 1; i < tr.length; i++) {
+                tr[i].style.display = ''; // Show all rows
+            }
+            document.getElementById('searchInput').value = ''; // Clear search input
+        }
+
+        // Refresh Button Function
+        function refreshTable() {
+            location.reload(); // Reload the page
+        }
+    </script>
+</body>
+</html>

@@ -1,321 +1,404 @@
+import 'package:bakery_management/pages/vendorsAPI.dart';
 import 'package:flutter/material.dart';
+import 'vendorsFunctions.dart';
+import 'vendorsItemClass.dart';
+import 'dart:async';
+import 'inventorySearchWidget.dart';
 
-class VendorsPage extends StatelessWidget {
+class VendorsPage extends StatefulWidget {
   const VendorsPage({super.key});
 
-@override
-Widget build(BuildContext context) {
-  // Sample vendor names
-  final List<String> vendorNames = List.generate(10, (index) => 'Vendor ${index + 1}');
+  @override
+  _VendorsPageState createState() => _VendorsPageState();
+}
 
-  return Scaffold(
+class _VendorsPageState extends State<VendorsPage> {
+  List<Vendor> vendors = [];
+  String query = '';
+  Timer? debouncer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshVendors();
+  }
+
+  @override
+  void dispose() {
+    debouncer?.cancel();
+    super.dispose();
+  }
+
+  void debounce(VoidCallback callback, {Duration duration = const Duration(milliseconds: 1000)}) {
+    if (debouncer != null) {
+      debouncer!.cancel();
+    }
+    debouncer = Timer(duration, callback);
+  }
+
+  Future<void> _refreshVendors() async {
+    setState(() {
+      query = ''; // Clear the search query
+      vendors = []; // Clear the existing vendor list
+    });
+
+    try {
+      final updatedVendors = await VendorsApi().fetchVendors();
+      setState(() {
+        vendors = updatedVendors; // Update the vendor list with fresh data
+      });
+    } catch (e) {
+      print('Error fetching vendors: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text(
-        'Order Managements',
-        style: TextStyle(
-          color: Color(0xFF422308), // Set the text color
-        ),
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/vendor.png',
+            height: 100,
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
       centerTitle: true,
-      backgroundColor: const Color(0xFFd8c4aa),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: const Color(0xFF422308), // Color of the back arrow
-        onPressed: () {
-          Navigator.pop(context); // Go back to the previous screen
-        },
-      ),
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
     ),
-    backgroundColor: const Color(0xFFF0d1a0),
+    backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
-      children: [
-        const SizedBox(height: 20),
-        // Image section
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Image.asset(
-            'assets/vendor.png', // Replace with your image path
-            height: 150, // Adjust the height to fit the AppBar
-            fit: BoxFit.contain, // Ensures the image scales without being cut off
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Centered search bar
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search for a vendor...', // Placeholder text
-              prefixIcon: const Icon(Icons.search), // Search icon inside the field
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              filled: true, // Give the search bar a background color
-              fillColor: const Color(0xFFd8c4aa),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20), // Space between search bar and other content
+      children: <Widget>[
+        buildSearch(),
         Expanded(
           child: ListView.builder(
-            itemCount: vendorNames.length,
+            padding: const EdgeInsets.only(bottom: 80.0),
+            itemCount: vendors.length,
             itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  // Navigate to the DetailedVendorPage when the box is tapped
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DetailedVendorPage(),
-                    ),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0), // Space between rows
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFeec07b), // Background color for each entry
-                    borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                  ),
-                  child: Center(
-                    child: Text(
-                      vendorNames[index],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              );
+              final vendor = vendors[index];
+              return buildItem(vendor);
             },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16.0), // Padding around the button
-          child: ElevatedButton(
-            onPressed: () {
-              // Define the action when the button is pressed
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddVendorPage(),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              foregroundColor: const Color(0xFFeec07b), // Text color of the button
-              backgroundColor: const Color(0xFF422308), // Background color of the button
-              minimumSize: const Size(double.infinity, 70), // Button width and height
-              padding: const EdgeInsets.symmetric(horizontal: 20), // Padding inside the button
-            ),
-            child: const Text(
-              'Add a Vendor',
-              style: TextStyle(fontSize: 20),
-            ),
           ),
         ),
       ],
     ),
-  );
-}
-}
-
-// New page to add a vendor
-class AddVendorPage extends StatelessWidget {
-  const AddVendorPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Vendor'),
-      ),
-      body: const Center(
-        child: Text(
-          'Add Vendor here',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
-
-// New page to remove a vendor
-class RemoveVendorPage extends StatelessWidget {
-  const RemoveVendorPage({super.key});
-
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Remove Vendor'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0), // Add some padding around the body
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
-          children: [
-            const Center(
-              child: Text(
-                'Choose which vendor to remove:',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-            const SizedBox(height: 10), // Space between the text and image
-            GestureDetector(
-              onTap: () {
-                // Navigate to the detailed vendor page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DetailedVendorPage(),
-                  ),
-                );
-              },
-              child: Image.asset(
-                'assets/vendor.png', // Replace with your image path
-                width: 100, // Set image width
-                height: 100, // Set image height
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DetailedVendorPage extends StatelessWidget {
-  const DetailedVendorPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-      title: const Text(
-        'Order Managements',
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () async {
+        await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
+      },
+      label: const Text(
+        'Add Vendors',
         style: TextStyle(
-          color: Color(0xFF422308), // Set the text color
+          color: Color(0xFFEEC07B), // Light brown text color
+          fontSize: 17,
         ),
       ),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFd8c4aa),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: const Color(0xFF422308), // Color of the back arrow
-        onPressed: () {
-          Navigator.pop(context); // Go back to the previous screen
-        },
+      icon: const Icon(
+    Icons.add,
+    color: Color(0xFFEEC07B), // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF6D3200),),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+  );
+
+  Widget buildSearch() => SearchWidget(
+    text: query,
+    hintText: 'Search by Vendor',
+    onChanged: searchVendor,
+  );
+
+  Future<void> searchVendor(String query) async => debounce(() async {
+    try {
+      final vendors = await VendorsApi().fetchVendors();
+      if (!mounted) return;
+
+      setState(() {
+        this.query = query;
+        this.vendors = vendors.where((vendor) => vendor.vendorName.toLowerCase().contains(query.toLowerCase())).toList();
+      });
+    } catch (e) {
+      print('Error searching vendors: $e');
+    }
+  });
+
+  Widget buildItem(Vendor vendor) => Card(
+  color: const Color(0xFF6D3200),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(50),
+  ),
+  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+  elevation: 4,
+  child: GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VendorDetailsPage(vendor: vendor),
+        ),
+      );
+      if (result == true) {
+        _refreshVendors(); // Refresh the list if there were changes
+      }
+    },
+    child: Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+      child: Center(
+        child: Text(
+          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+          style: const TextStyle(
+            color: Color(0xFFEEC07B),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView( // Use SingleChildScrollView to handle scrolling if content is long
-              padding: const EdgeInsets.all(16.0), // Add padding to the body
+  ),
+);
+}
+
+class VendorDetailsPage extends StatelessWidget {
+  final Vendor vendor;
+
+  const VendorDetailsPage({super.key, required this.vendor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: FutureBuilder<Vendor>(
+        future: fetchVendorDetails(vendor.vendorID),
+        builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Color(0xFF6D3200))));
+          } else if (snapshot.hasData) {
+            final vendor = snapshot.data!;
+            return SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align content to the left
-                children: [
-                  // Image section
-                  Image.asset(
-                    'assets/vendor.png', // Replace with your image path
-                    width: double.infinity, // Make the image take up full width
-                    height: 200, // Set a fixed height for the image
-                    fit: BoxFit.cover, // Make the image cover the available space
-                  ),
-                  const SizedBox(height: 20), // Space between the image and the headers
-
-                  // Phone Number header
-                  const Text(
-                    'Phone Number',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        const SizedBox(height: 50),
+                        Image.asset(
+                          'assets/vendor.png', // Replace with your image asset
+                          height: 100,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          '${vendor.vendorName}',
+                          style: const TextStyle(
+                            color: Color(0xFF6D3200), // Dark brown
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'ID: ',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${vendor.vendorID}',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Phone:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.phoneNumbers.isNotEmpty
+                                  ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)} '
+                                  : 'No phone number available',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Email:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.emails.isNotEmpty
+                                  ? vendor.emails.first.emailAddress
+                                  : 'No email provided',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text.rich(
+                          TextSpan(
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Address:\n',
+                                style: TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold, // Bold heading
+                                ),
+                              ),
+                              TextSpan(
+                                text: vendor.addresses.isNotEmpty
+                                  ? '${vendor.addresses.first.streetAddress}\n${vendor.addresses.first.city}, ${vendor.addresses.first.state}\n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
+                                  : 'No address provided',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 25),
+                        
+                        // Row for buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ElevatedButton(
+                              onPressed: () async {
+                                final updatedVendor = await handleEditVendor(context, vendor);
+                                if (updatedVendor) {
+                                  Navigator.of(context).pop(true); // Return true to indicate update
+                                }
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                                foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                              ),
+                              child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.add, color: Color(0xFFEEC07B)), // Light brown icon color
+                                SizedBox(width: 8), // Spacing between icon and text
+                                Text(
+                                  'Update',
+                                  style: TextStyle(
+                                    fontSize: 17, // Consistent font size
+                                    color: Color(0xFFEEC07B), // Light brown text
+                                                          ),
+                                                        ),
+                              ],
+                            ),
+                            ),
+                            const SizedBox(width: 20), // Space between the buttons
+                            ElevatedButton(
+                              onPressed: () async {
+                                final updated = await handleRemoveVendor(context, vendor.vendorID);
+                                if (updated) {
+                                  Navigator.of(context).pop(true);
+                                }
+                              },
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                                foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                              ),
+                              child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.delete, color: Color(0xFFEEC07B)), // Light brown icon color
+                                SizedBox(width: 8), // Spacing between icon and text
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontSize: 17, // Consistent font size
+                                    color: Color(0xFFEEC07B), // Light brown text
+                                                          ),
+                                                        ),
+                              ],
+                            ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10), // Space between the header and content
-
-                  // Placeholder for phone number
-                  const Text(
-                    'Loading phone...', // Placeholder text
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 20), // Space between phone number and email
-
-                  // Email header
-                  const Text(
-                    'Email',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 50),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the page
+                        },
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 17, // Font size
+                            ),
+                          ),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10), // Space between the header and content
-
-                  // Placeholder for email
-                  const Text(
-                    'Loading email...', // Placeholder text
-                    style: TextStyle(fontSize: 18),
                   ),
                 ],
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0), // Padding around the button
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Define the action when the button is pressed
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditVendorPage(),
-                    ),
-                  );
-                },             
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color(0xFFD8C4AA), // Background color of the button
-                  backgroundColor: const Color(0xFF422308), // Text color of the button
-                  minimumSize: const Size(double.infinity, 60), // Button width and height
-                  padding: const EdgeInsets.symmetric(vertical: 16), // Padding inside the button
-                ),
-                child: const Text(
-                  'Edit Vendor Info',
-                  style: TextStyle(
-                    fontSize: 22, // Increase font size if needed
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+            );
+          }
+          return const Center(child: Text('No vendor details available', style: TextStyle(color: Color(0xFF6D3200))));
+        },
       ),
     );
   }
 }
 
-
-
-
-// New page to edit a vendor
-class EditVendorPage extends StatelessWidget {
-  const EditVendorPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Vendor'),
-      ),
-      body: const Center(
-        child: Text(
-          'Vendor info here',
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}

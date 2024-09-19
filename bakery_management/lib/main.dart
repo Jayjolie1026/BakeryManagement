@@ -27,6 +27,7 @@ class BakeryManagementApp extends StatelessWidget {
           elevation: 0, // Elevation of the AppBar
         ),
       ),
+      debugShowCheckedModeBanner: false,
       home: const SignInPage(),
     );
   }
