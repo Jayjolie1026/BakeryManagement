@@ -252,7 +252,7 @@ class _ProductsPageState extends State<ProductsPage> {
         Icons.add,
         color: Color(0xFFEEC07B),  // Light brown icon color
       ),
-      backgroundColor: const Color(0xFF6D3200),  // Dark brown background
+      backgroundColor: const Color(0xFF422308),  // Dark brown background
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
@@ -262,6 +262,7 @@ class _ProductsPageState extends State<ProductsPage> {
     text: query,
     hintText: 'Search by Name',
     onChanged: searchProduct,
+    
   );
 
   // Search for a product by query
@@ -348,8 +349,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color: Colors.black);
-    const styleHint = TextStyle(color: Colors.black);
+    const styleActive = TextStyle(color: Color(0xFF6D3200));
+    const styleHint = TextStyle(color: Color(0xFF6D3200));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -417,7 +418,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       return const Text(
         'QUANTITY IS VERY LOW! REMAKE NOW!',
         style: TextStyle(
-          fontSize: 20,
+          fontSize: 15,
           color: Color(0xFF6D3200),
         ),
         textAlign: TextAlign.center,
@@ -426,7 +427,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       return const Text(
         'Quantity is getting low. Please remake!',
         style: TextStyle(
-          fontSize: 20,
+          fontSize: 15,
           color: Color(0xFF6D3200),
         ),
         textAlign: TextAlign.center,
@@ -448,7 +449,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
         backgroundColor: const Color(0xFFF0D1A0),
         foregroundColor: const Color(0xFF6D3200),
-        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
+        iconTheme: const IconThemeData(color:  Color(0xFFF0D1A0)),
       ),
       backgroundColor: const Color(0xFFF0D1A0),
       body: Center(
@@ -619,21 +620,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ElevatedButton(
                     onPressed: () async {
                       // Navigate to the update page and wait for result
-                      final updatedProduct = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductUpdatePage(
-                            product: _product,
-                            onProductUpdated: _updateProduct,
-                          ),
-                        ),
-                      );
+                        // Call the showProductUpdateDialog directly to show the update dialog
+                        showProductUpdateDialog(
+                          context,
+                          _product, // Pass the product you want to update
+                          (updatedProduct) {
+                            // Update the state with the updated product
+                            setState(() {
+                              _product = updatedProduct;
+                            });
+                          },
+                        );
+                    
 
-                      // If an updated product was returned, update the state
-                      if (updatedProduct != null) {
-                        _updateProduct(updatedProduct);
-                        Navigator.pop(context, true); // Pass true to indicate an update
-                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6D3200),
@@ -715,209 +714,174 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 
 
-class ProductUpdatePage extends StatefulWidget {
-  final Product product;
-  final ValueChanged<Product> onProductUpdated;
+void showProductUpdateDialog(BuildContext context, Product product, ValueChanged<Product> onProductUpdated) {
+  final nameController = TextEditingController(text: product.name);
+  final descriptionController = TextEditingController(text: product.description);
+  final maxAmountController = TextEditingController(text: product.maxAmount.toString());
+  final remakeAmountController = TextEditingController(text: product.remakeAmount.toString());
+  final minAmountController = TextEditingController(text: product.minAmount.toString());
+  final priceController = TextEditingController(text: product.price.toString());
+  final quantityController = TextEditingController(text: product.quantity.toString());
 
-  const ProductUpdatePage({super.key, required this.product, required this.onProductUpdated});
-
-  @override
-  _ProductUpdatePageState createState() => _ProductUpdatePageState();
-}
-
-class _ProductUpdatePageState extends State<ProductUpdatePage> {
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _maxAmountController;
-  late TextEditingController _remakeAmountController;
-  late TextEditingController _minAmountController;
-  late TextEditingController _priceController;
-  late TextEditingController _quantityController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.product.name);
-    _descriptionController = TextEditingController(text: widget.product.description);
-    _maxAmountController = TextEditingController(text: widget.product.maxAmount.toString());
-    _remakeAmountController = TextEditingController(text: widget.product.remakeAmount.toString());
-    _minAmountController = TextEditingController(text: widget.product.minAmount.toString());
-    _priceController = TextEditingController(text: widget.product.price.toString());
-    _quantityController = TextEditingController(text: widget.product.quantity.toString());
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    _maxAmountController.dispose();
-    _remakeAmountController.dispose();
-    _minAmountController.dispose();
-    _priceController.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFEEC07B), // Example color
+        titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
+        fontFamily: 'MyFont',
+        fontSize: 24.0), 
         title: const Text('Update Product'),
-        backgroundColor: const Color(0xFFF0d1a0),
-        foregroundColor: const Color(0xFF6D3200),
-        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
-      ),
-      backgroundColor: const Color(0xFFF0d1a0),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Editable Fields
-            TextField(
-              controller: _nameController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Name', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              TextField(
+                controller: descriptionController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
+              TextField(
+                controller: maxAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Max Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
-            ),
-            TextField(
-              controller: _descriptionController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Description', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              TextField(
+                controller: remakeAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Remake Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              TextField(
+                controller: minAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Min Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
-            ),
-            TextField(
-              controller: _maxAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Max Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _remakeAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Remake Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _minAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Min Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _priceController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Price', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _quantityController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Quantity', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            // Buttons
-            ElevatedButton(
-              onPressed: () async {
-                // Update the product with new values
-                final updatedProduct = Product(
-                  productID: widget.product.productID, // Keep the same product ID
-                  name: _nameController.text,
-                  description: _descriptionController.text,
-                  maxAmount: double.parse(_maxAmountController.text),
-                  remakeAmount: double.parse(_remakeAmountController.text),
-                  minAmount: double.parse(_minAmountController.text),
-                  quantity: int.parse(_quantityController.text),
-                  price: double.parse(_priceController.text),
-                );
-
-                // Call update API
-                await ProductApi.updateProduct(updatedProduct);
-
-                // Notify parent widget of the update
-                widget.onProductUpdated(updatedProduct);
-
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Product updated successfully!')),
-                );
-
-                // Navigate back to the previous page with the updated product
-                Navigator.of(context).pop(updatedProduct);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6D3200),
-                foregroundColor: const Color(0xFFF0d1a0),
-              ),
-              child:  const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Icon(Icons.add),
-                  SizedBox(width: 8), // Spacing between image and text
-                  Text('Update'),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(
+              
+              foregroundColor: const Color(0xFF6D3200), // Text color
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final updatedProduct = Product(
+                productID: product.productID,
+                name: nameController.text,
+                description: descriptionController.text,
+                maxAmount: double.parse(maxAmountController.text),
+                remakeAmount: double.parse(remakeAmountController.text),
+                minAmount: double.parse(minAmountController.text),
+                quantity: int.parse(quantityController.text),
+                price: double.parse(priceController.text),
+              );
+
+              await ProductApi.updateProduct(updatedProduct);
+
+              onProductUpdated(updatedProduct);
+
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200),
+              foregroundColor: const Color(0xFFF0d1a0),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
@@ -934,7 +898,8 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
     context: context,
     builder: (context) => AlertDialog(
       backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
-      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)), 
+      titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
+        fontFamily: 'MyFont',), 
       title: const Text('Add New Product'),
       content: SingleChildScrollView(
         child: Column(
@@ -1043,8 +1008,8 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
            style: TextButton.styleFrom(
-            backgroundColor: const Color(0xFF6D3200), // Text color of the button
-            foregroundColor: const Color(0xFFF0d1a0),
+             // Text color of the button
+            foregroundColor: const Color(0xFF6D3200),
           ),
           child: const Text('Cancel'),
         ),

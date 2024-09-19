@@ -53,60 +53,90 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Vendor ID',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  vendorID = int.tryParse(value) ?? 0;
-                },
-              ),
+            
+
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Name',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   vendorName = value;
                 },
               ),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Area Code',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+
+             TextField(
+              decoration: InputDecoration(
+                labelText: 'Area Code',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
                 ),
-                keyboardType: TextInputType.phone,
-                onChanged: (value) {
-                  vendorAreaCode = value;
-                },
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                ),
               ),
+              keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
+              style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+              onChanged: (value) {
+                vendorAreaCode = value;
+              },
+            ),
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Phone Number',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   vendorPhoneNum = value;
                 },
               ),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+
+             TextField(
+              decoration: InputDecoration(
+                labelText: 'Email',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
                 ),
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (value) {
-                  vendorEmail = value;
-                },
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                ),
               ),
-              TextField(
+              keyboardType: TextInputType.emailAddress, // Ensures the correct keyboard is displayed for email addresses
+              style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+              onChanged: (value) {
+                vendorEmail = value;
+              },
+            ),
+
+             TextField(
                 decoration: InputDecoration(
                   labelText: 'Street Address',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   streetAddress = value;
                 },
@@ -115,16 +145,31 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 decoration: InputDecoration(
                   labelText: 'City',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   city = value;
                 },
               ),
-              TextField(
+
+             TextField(
                 decoration: InputDecoration(
                   labelText: 'State',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   state = value;
                 },
@@ -133,26 +178,42 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 decoration: InputDecoration(
                   labelText: 'Postal Code',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   postalCode = value;
                 },
               ),
+
               TextField(
                 decoration: InputDecoration(
                   labelText: 'Country',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
+                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   country = value;
                 },
               ),
+
             ],
           ),
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel' , style: TextStyle(color: Colors.black)),
+            child: const Text('Cancel' , style: TextStyle(color:Color(0xFF6D3200) )),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -211,7 +272,7 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
       return AlertDialog(
         backgroundColor: const Color(0xFFEEC07B), // Light brown background
         title: const Text(
-          'Edit Vendor Info',
+          'Update Vendor Info',
           style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
         ),
         content: SingleChildScrollView(
@@ -219,70 +280,111 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              controller: nameController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Name',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
               ),
-              TextField(
-                controller: areaCodeController,
-                decoration: InputDecoration(
-                  labelText: 'Area Code',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
                 keyboardType: TextInputType.phone,
               ),
               TextField(
                 controller: phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Phone Number',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
                 keyboardType: TextInputType.phone,
               ),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Email',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
                 keyboardType: TextInputType.emailAddress,
               ),
               TextField(
-                controller: streetController,
-                decoration: InputDecoration(
-                  labelText: 'Street Address',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+               controller: streetController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Street Address',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               ),
               TextField(
-                controller: cityController,
-                decoration: InputDecoration(
-                  labelText: 'City',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+               controller: cityController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'City',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               ),
               TextField(
                 controller: stateController,
-                decoration: InputDecoration(
-                  labelText: 'State',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'State',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               ),
               TextField(
-                controller: postalCodeController,
-                decoration: InputDecoration(
-                  labelText: 'Postal Code',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+               controller: postalCodeController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Postal Code',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               ),
               TextField(
                 controller: countryController,
-                decoration: InputDecoration(
-                  labelText: 'Country',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Country',  
+              labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
               ),
             ],
           ),
@@ -290,7 +392,7 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel' , style: TextStyle(color: Colors.black)),
+            child: const Text('Cancel' , style: TextStyle(color: Color(0xFF6D3200))),
           ),
           TextButton(
             onPressed: () async {
