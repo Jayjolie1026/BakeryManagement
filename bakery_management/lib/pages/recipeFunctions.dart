@@ -207,12 +207,18 @@ class _AddRecipePageState extends State<AddRecipePage> {
   }
 }
 
-class DetailedRecipePage extends StatelessWidget {
+class DetailedRecipePage extends StatefulWidget {
   final String recipeName;
-  final String searchQuery = "";
-  final int recipeID; 
+  final int recipeID;
 
   DetailedRecipePage({required this.recipeName, required this.recipeID, Key? key}) : super(key: key);
+
+  @override
+  _DetailedRecipePageState createState() => _DetailedRecipePageState();
+}
+
+class _DetailedRecipePageState extends State<DetailedRecipePage> {
+  String searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
@@ -235,7 +241,16 @@ class DetailedRecipePage extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             final items = snapshot.data!;
-            final recipe = items.where((item) => item.recipeID == recipeID).toList();
+            
+            // Debugging: Print all fetched recipe IDs
+            print("Fetched Items IDs: ${items.map((item) => item.recipeID).toList()}");
+            print("Passed Recipe ID: ${widget.recipeID}");
+
+            // Filter to find the recipe with the passed recipeID
+            final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+
+            // Debugging: Print the filtered recipe
+            print("Filtered Recipe: $recipe");
 
             if (recipe.isEmpty) {
               return const Center(child: Text('Recipe not found'));
@@ -252,14 +267,14 @@ class DetailedRecipePage extends StatelessWidget {
                     children: [
                       // Recipe title
                       Text(
-                        "$recipeName Recipe",
+                        "${widget.recipeName} Recipe",
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
+
                       // Recipe image
                       Image.asset(
                         'assets/bagel3.jpg', // Replace with your image path
@@ -268,14 +283,14 @@ class DetailedRecipePage extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                       const SizedBox(height: 20),
-                      
+
                       // Ingredients section
                       const Text(
                         'Ingredients',
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
-                      
+
                       if (item.ingredients.isNotEmpty)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,9 +309,9 @@ class DetailedRecipePage extends StatelessWidget {
                           'No ingredients available',
                           style: TextStyle(fontSize: 18),
                         ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Directions section
                       const Text(
                         'Directions',
@@ -322,7 +337,10 @@ class DetailedRecipePage extends StatelessWidget {
                         item, // Pass the current recipe item
                         (updatedRecipe) {
                           // Handle the updated recipe
-                          // Since we're in a StatelessWidget, this should be updated in state management
+                          setState(() {
+                            // Since we're in a StatefulWidget, we can now update the state
+                            // Perform any actions needed to update the recipe here
+                          });
                         },
                       );
                     },
@@ -340,6 +358,7 @@ class DetailedRecipePage extends StatelessWidget {
     );
   }
 }
+
 
 
 Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {

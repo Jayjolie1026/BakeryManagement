@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:bakery_management/pages/recipeFunctions.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/recipe.dart';
+import 'recipeAPI.dart';
 
 const Map<int, String> productImages = {
   12: 'assets/sourdough.jpg',
@@ -669,11 +671,41 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     onPressed: () {
                       // Navigate to recipe page
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RecipePage(productID: _product.productID),
-                        ),
-                      );
+  context,
+  MaterialPageRoute(
+    builder: (context) {
+      // Print the recipe name and ID for debugging
+      print('Recipe Name: ${_product.name}');
+      print('Recipe ID: ${_product.productID}');
+      
+      return DetailedRecipePage(
+        recipeName: _product.name,  // Assuming _product.name is non-null
+        recipeID: _product.productID! + 8,  // Assert productID is non-null
+
+
+        /*
+
+
+
+
+
+
+
+
+
+
+        TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
+
+
+
+
+
+
+        */
+      );
+    },
+  ),
+);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6D3200),

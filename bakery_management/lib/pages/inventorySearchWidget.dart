@@ -10,7 +10,7 @@ class SearchWidget extends StatefulWidget {
     super.key,
     required this.text,
     required this.onChanged,
-    required this.hintText,
+    required this.hintText, required backgroundColor,
   });
 
   @override
@@ -22,8 +22,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color:Color(0xFFEEC07B));
-    const styleHint = TextStyle(color:Color(0xFFEEC07B));
+    const styleActive = TextStyle(color:Color(0xFF6D3200));
+    const styleHint = TextStyle(color:Color(0xFF6D3200));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -31,7 +31,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFF6D3200),
+        color: const Color(0xFFD8C4AA),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(

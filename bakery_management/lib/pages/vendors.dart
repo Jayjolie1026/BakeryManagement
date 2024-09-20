@@ -78,6 +78,7 @@ class _VendorsPageState extends State<VendorsPage> {
         buildSearch(),
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 80.0),
             itemCount: vendors.length,
             itemBuilder: (context, index) {
               final vendor = vendors[index];
@@ -85,7 +86,6 @@ class _VendorsPageState extends State<VendorsPage> {
             },
           ),
         ),
-        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
@@ -93,7 +93,7 @@ class _VendorsPageState extends State<VendorsPage> {
         await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
       },
       label: const Text(
-        'Add Vendor',
+        'Add Vendors',
         style: TextStyle(
           color: Color(0xFFEEC07B), // Light brown text color
           fontSize: 17,
@@ -103,7 +103,7 @@ class _VendorsPageState extends State<VendorsPage> {
     Icons.add,
     color: Color(0xFFEEC07B), // Light brown icon color
       ),
-      backgroundColor: const Color(0xFF422308),),
+      backgroundColor: const Color(0xFF6D3200),),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 
@@ -111,6 +111,7 @@ class _VendorsPageState extends State<VendorsPage> {
     text: query,
     hintText: 'Search by Vendor',
     onChanged: searchVendor,
+    backgroundColor: Color(0XFFEEC07B)
   );
 
   Future<void> searchVendor(String query) async => debounce(() async {
@@ -376,7 +377,7 @@ class VendorDetailsPage extends StatelessWidget {
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(context, true); // Close the page
+                          Navigator.of(context).pop(); // Close the page
                         },
                           child: const Text(
                             'Close',
@@ -402,69 +403,3 @@ class VendorDetailsPage extends StatelessWidget {
   }
 }
 
-// Search widget component
-class SearchWidget extends StatefulWidget {
-  final String text;
-  final ValueChanged<String> onChanged;
-  final String hintText;
-
-  const SearchWidget({
-    super.key,
-    required this.text,
-    required this.onChanged,
-    required this.hintText,
-  });
-
-  @override
-  _SearchWidgetState createState() => _SearchWidgetState();
-}
-
-class _SearchWidgetState extends State<SearchWidget> {
-  final controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    controller.text = widget.text;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const styleActive = TextStyle(color: Color(0xFF6D3200));
-    const styleHint = TextStyle(color: Color(0xFF6D3200));
-    final style = widget.text.isEmpty ? styleHint : styleActive;
-
-    return Container(
-      height: 50,
-      margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFFD8C4AA),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: TextField(
-        controller: controller,
-        cursorColor: const Color(0xFFEEC07B),
-        decoration: InputDecoration(
-          iconColor: const Color(0xFFEEC07B),
-          icon: Icon(Icons.search, color: style.color),
-          suffixIcon: widget.text.isNotEmpty
-              ? GestureDetector(
-                  child: Icon(Icons.close, color: style.color),
-                  onTap: () {
-                    controller.clear();
-                    widget.onChanged('');
-                    FocusScope.of(context).requestFocus(FocusNode());
-                  },
-                )
-              : null,
-          hintText: widget.hintText,
-          hintStyle: style,
-          border: InputBorder.none,
-        ),
-        style: style,
-        onChanged: widget.onChanged,
-      ),
-    );
-  }
-}

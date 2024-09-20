@@ -93,7 +93,7 @@ class _RecipePageState extends State<RecipePage> {
   Widget buildSearch() => SearchWidget(
     text: query,
     hintText: 'Search by Name',
-    onChanged: searchItem
+    onChanged: searchItem, backgroundColor: null,
   );
 
   // Search for an item by query
@@ -110,7 +110,7 @@ class _RecipePageState extends State<RecipePage> {
   
   // Build list tile for each inventory item
   Widget buildItem(Item item) => Card(
-    color: const Color(0xFFEEC07B),
+    color: const Color(0xFF6D3200),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(50),
     ),
@@ -136,7 +136,7 @@ class _RecipePageState extends State<RecipePage> {
             Text(
               item.name, //should be name
               style: const TextStyle(
-                color: Color(0xFF6D3200),
+                color: Color(0xFFEEC07B),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
