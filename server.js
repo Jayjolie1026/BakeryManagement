@@ -633,7 +633,6 @@ if (address) {
         .input('state', sql.VarChar, address.state)
         .input('postalCode', sql.VarChar, address.postalCode)
         .input('country', sql.VarChar, address.country)
-        .input('addressTypeID', sql.Int, address.addressTypeID)
         .input('employeeID', sql.UniqueIdentifier, employeeID)
         .query(updateAddrQuery);
 
@@ -651,7 +650,7 @@ if (address) {
             .input('state', sql.VarChar, address.state)
             .input('postalCode', sql.VarChar, address.postalCode)
             .input('country', sql.VarChar, address.country)
-            .input('addressTypeID', sql.Int, address.addressTypeID)
+            .input('addressTypeID', sql.Int, 1)
             .input('employeeID', sql.UniqueIdentifier, employeeID)
             .query(insertAddrQuery);
 
