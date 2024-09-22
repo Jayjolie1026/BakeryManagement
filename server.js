@@ -389,122 +389,64 @@ app.get('/vendors/:id', async (req, res) => {
 
 
 // POST /users: Add a new user
-app.put('/users/:username', async (req, res) => {
-    const username = req.params.username;
-    const { firstName, lastName, newUsername, password, email, phoneNumber, address } = req.body;
+app.post('/users', async (req, res) => {
+    console.log('Request body:', req.body);
+    const { firstName, lastName, username, password, email, phoneNumber, address } = req.body;
 
-    console.log(`Updating user: ${username}`);
-
-    if (!username) {
-        console.log('Validation failed: Username is required');
-        return res.status(400).send('Username is required');
-    }
+    const newEmployeeID = uuidv4(); // Generate a GUID for the EmployeeID
 
     try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const pool = await sql.connect(dbConfig);
-        const transaction = new sql.Transaction(pool);
-        await transaction.begin();
-        console.log('Transaction started');
+        console.log('Inserting into tblUsers:', {
+            employeeID: newEmployeeID,
+            firstName,
+            lastName,
+            username,
+        });
 
-        // Fetch EmployeeID based on username
-        const employeeIdResult = await pool.request()
+        await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+            .input('firstName', sql.VarChar, firstName)
+            .input('lastName', sql.VarChar, lastName)
             .input('username', sql.VarChar, username)
-            .query('SELECT EmployeeID FROM tblUsers WHERE Username = @username');
-        
-        if (employeeIdResult.recordset.length === 0) {
-            console.log('User not found');
-            return res.status(404).send('User not found');
-        }
-        
-        const employeeID = employeeIdResult.recordset[0].EmployeeID;
+            .input('password', sql.VarChar, hashedPassword)
+            .query('INSERT INTO tblUsers (EmployeeID, FirstName, LastName, Username, Password) VALUES (@employeeID, @firstName, @lastName, @username, @password)');
 
-        const request = new sql.Request(transaction);
-        let updates = [];
-
-        // Build the update query for tblUsers
-        if (firstName) {
-            updates.push('FirstName = @firstName');
-            request.input('firstName', sql.VarChar, firstName);
-            console.log(`Updating firstName: ${firstName}`);
-        }
-        if (lastName) {
-            updates.push('LastName = @lastName');
-            request.input('lastName', sql.VarChar, lastName);
-            console.log(`Updating lastName: ${lastName}`);
-        }
-        if (newUsername) {
-            updates.push('Username = @newUsername');
-            request.input('newUsername', sql.VarChar, newUsername);
-            console.log(`Updating newUsername: ${newUsername}`);
-        }
-        if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            updates.push('Password = @password');
-            request.input('password', sql.VarChar, hashedPassword);
-            console.log('Updating password');
-        }
-
-        // Complete the update query for tblUsers
-        if (updates.length > 0) {
-            const userUpdateQuery = `UPDATE tblUsers SET ${updates.join(', ')} WHERE Username = @username`;
-            request.input('username', sql.VarChar, username);
-            await request.query(userUpdateQuery);
-            console.log('Executed user update query');
-        }
-
-        // Handle email updates
-        if (email && email.emailAddress) {
-            const emailQuery = `
-                MERGE tblEmails AS target
-                USING (SELECT @employeeID AS EmployeeID, @emailAddress AS EmailAddress, @typeID AS TypeID) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.EmailAddress = source.EmailAddress
-                WHEN MATCHED THEN
-                    UPDATE SET target.TypeID = source.TypeID
-                WHEN NOT MATCHED THEN
-                    INSERT (EmailAddress, EmployeeID, TypeID, Valid)
-                    VALUES (source.EmailAddress, source.EmployeeID, source.TypeID, 1);
-            `;
+        // Add email, phone number, and address to their respective tables
+        if (email) {
+            console.log('Inserting into tblEmails:', { email, employeeID: newEmployeeID });
             await pool.request()
                 .input('emailAddress', sql.VarChar, email.emailAddress)
-                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
-                .input('typeID', sql.Int, email.emailTypeID)
-                .query(emailQuery);
-            console.log(`Updated email: ${email.emailAddress}`);
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .input('typeID', sql.Int, email.emailTypeID) // The ID from tblEmailTypes
+                .input('valid', sql.Bit, 1) // Assuming email is valid by default
+                .query('INSERT INTO tblEmails (EmailAddress, EmployeeID, TypeID, Valid) VALUES (@emailAddress, @employeeID, @typeID, @valid)');
         }
 
-        // Handle phone number updates
-        if (phoneNumber && phoneNumber.number) {
-            const phoneQuery = `
-                MERGE tblPhoneNumbers AS target
-                USING (SELECT @employeeID AS EmployeeID, @number AS Number, @areaCode AS AreaCode) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.Number = source.Number
-                WHEN MATCHED THEN
-                    UPDATE SET target.AreaCode = source.AreaCode
-                WHEN NOT MATCHED THEN
-                    INSERT (Number, AreaCode, EmployeeID, TypeID, Valid)
-                    VALUES (source.Number, source.AreaCode, source.EmployeeID, @typeID, 1);
-            `;
+        if (phoneNumber) {
+            console.log('Inserting into tblPhoneNumbers:', { phoneNumber, employeeID: newEmployeeID });
             await pool.request()
-                .input('number', sql.VarChar, phoneNumber.number)
+                .input('phoneNumber', sql.VarChar, phoneNumber.number)
                 .input('areaCode', sql.VarChar, phoneNumber.areaCode)
-                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .input('typeID', sql.Int, phoneNumber.phoneTypeID)
-                .query(phoneQuery);
-            console.log(`Updated phone number: ${phoneNumber.number}`);
+                .input('valid', sql.Bit, 1)
+                .query('INSERT INTO tblPhoneNumbers (Number, AreaCode, EmployeeID, TypeID, Valid) VALUES (@phoneNumber, @areaCode, @employeeID, @typeID, @valid)');
         }
 
-        // Handle address updates
         if (address) {
-            const addrQuery = `
-                MERGE tblAddresses AS target
-                USING (SELECT @employeeID AS EmployeeID, @streetAddress AS StreetAddress, @city AS City, @state AS State, @postalCode AS PostalCode, @country AS Country) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.StreetAddress = source.StreetAddress
-                WHEN MATCHED THEN
-                    UPDATE SET target.City = source.City, target.State = source.State, target.PostalCode = source.PostalCode, target.Country = source.Country
-                WHEN NOT MATCHED THEN
-                    INSERT (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID)
-                    VALUES (source.StreetAddress, source.City, source.State, source.PostalCode, source.Country, @addressTypeID, source.EmployeeID);
-            `;
+            console.log('Inserting into tblAddresses:', {
+                streetAddress: address.streetAddress,
+                city: address.city,
+                state: address.state,
+                postalCode: address.postalCode,
+                country: address.country,
+                addressTypeID: address.addressTypeID,
+                employeeID: newEmployeeID,
+            });
+            
             await pool.request()
                 .input('streetAddress', sql.VarChar, address.streetAddress)
                 .input('city', sql.VarChar, address.city)
@@ -512,19 +454,13 @@ app.put('/users/:username', async (req, res) => {
                 .input('postalCode', sql.VarChar, address.postalCode)
                 .input('country', sql.VarChar, address.country)
                 .input('addressTypeID', sql.Int, address.addressTypeID)
-                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
-                .query(addrQuery);
-            console.log(`Updated address: ${JSON.stringify(address)}`);
+                .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
+                .query('INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID) VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID)');
         }
-
-        // Commit the transaction
-        await transaction.commit();
-        console.log('Transaction committed');
-        res.status(200).send('User updated successfully');
+        console.log('User added successfully');
+        res.status(201).send('User added successfully');
     } catch (error) {
-        console.error('Error updating user:', error);
-        await transaction.rollback();
-        res.status(500).send('Internal Server Error');
+        res.status(500).send(error.message);
     }
 });
 
@@ -642,7 +578,7 @@ app.put('/users/:username', async (req, res) => {
         }
 
         // Handle email updates
-        if (email) {
+        if (email && email.emailAddress) {
             const emailQuery = `
                 MERGE tblEmails AS target
                 USING (SELECT @employeeID AS EmployeeID, @emailAddress AS EmailAddress, @typeID AS TypeID) AS source
@@ -662,7 +598,7 @@ app.put('/users/:username', async (req, res) => {
         }
 
         // Handle phone number updates
-        if (phoneNumber) {
+        if (phoneNumber && phoneNumber.number) {
             const phoneQuery = `
                 MERGE tblPhoneNumbers AS target
                 USING (SELECT @employeeID AS EmployeeID, @number AS Number, @areaCode AS AreaCode) AS source
@@ -683,28 +619,46 @@ app.put('/users/:username', async (req, res) => {
         }
 
         // Handle address updates
-        if (address) {
-            const addrQuery = `
-                MERGE tblAddresses AS target
-                USING (SELECT @employeeID AS EmployeeID, @streetAddress AS StreetAddress, @city AS City, @state AS State, @postalCode AS PostalCode, @country AS Country) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.StreetAddress = source.StreetAddress
-                WHEN MATCHED THEN
-                    UPDATE SET target.City = source.City, target.State = source.State, target.PostalCode = source.PostalCode, target.Country = source.Country
-                WHEN NOT MATCHED THEN
-                    INSERT (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID)
-                    VALUES (source.StreetAddress, source.City, source.State, source.PostalCode, source.Country, @addressTypeID, source.EmployeeID);
-            `;
-            await pool.request()
-                .input('streetAddress', sql.VarChar, address.streetAddress)
-                .input('city', sql.VarChar, address.city)
-                .input('state', sql.VarChar, address.state)
-                .input('postalCode', sql.VarChar, address.postalCode)
-                .input('country', sql.VarChar, address.country)
-                .input('addressTypeID', sql.Int, address.addressTypeID)
-                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
-                .query(addrQuery);
-            console.log(`Updated address: ${JSON.stringify(address)}`);
-        }
+        // Handle address updates
+if (address) {
+    // First try to update the existing address
+    const updateAddrQuery = `
+        UPDATE tblAddresses
+        SET StreetAddress = @streetAddress, City = @city, State = @state, PostalCode = @postalCode, Country = @country, AddressTypeID = @addressTypeID
+        WHERE EmployeeID = @employeeID AND StreetAddress = @streetAddress;
+    `;
+    const updateResult = await pool.request()
+        .input('streetAddress', sql.VarChar, address.streetAddress)
+        .input('city', sql.VarChar, address.city)
+        .input('state', sql.VarChar, address.state)
+        .input('postalCode', sql.VarChar, address.postalCode)
+        .input('country', sql.VarChar, address.country)
+        .input('addressTypeID', sql.Int, address.addressTypeID)
+        .input('employeeID', sql.UniqueIdentifier, employeeID)
+        .query(updateAddrQuery);
+
+    console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
+
+    // Check if the address was updated; if not, insert a new one
+    if (updateResult.rowsAffected[0] === 0) {
+        const insertAddrQuery = `
+            INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID)
+            VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID);
+        `;
+        await pool.request()
+            .input('streetAddress', sql.VarChar, address.streetAddress)
+            .input('city', sql.VarChar, address.city)
+            .input('state', sql.VarChar, address.state)
+            .input('postalCode', sql.VarChar, address.postalCode)
+            .input('country', sql.VarChar, address.country)
+            .input('addressTypeID', sql.Int, address.addressTypeID)
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
+            .query(insertAddrQuery);
+
+        console.log(`Inserted new address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
+    }
+}
+
 
         // Commit the transaction
         await transaction.commit();
