@@ -682,6 +682,49 @@ app.put('/users/:username', async (req, res) => {
 });
 
 
+app.post('/contacts', async (req, res) => {
+    const { emailAddress, emailTypeID, employeeID, areaCode, phoneNumber, phoneTypeID } = req.body; // Adjusted keys
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        
+        // If email data is present, insert it
+        if (emailAddress && emailTypeID && employeeID) {
+            const emailRequest = pool.request();
+            emailRequest.input('EmailAddress', sql.VarChar, emailAddress);
+            emailRequest.input('TypeID', sql.Int, emailTypeID);
+            emailRequest.input('EmployeeID', sql.UniqueIdentifier, employeeID);
+
+            const emailQuery = `
+                INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID, Valid)
+                VALUES (@EmailAddress, @TypeID, @EmployeeID, 1);
+            `;
+            await emailRequest.query(emailQuery);
+            console.log('Email added successfully');
+        }
+
+        // If phone data is present, insert it
+        if (areaCode && phoneNumber && phoneTypeID && employeeID) {
+            const phoneRequest = pool.request();
+            phoneRequest.input('AreaCode', sql.VarChar, areaCode);
+            phoneRequest.input('Number', sql.VarChar, phoneNumber);
+            phoneRequest.input('TypeID', sql.Int, phoneTypeID);
+            phoneRequest.input('EmployeeID', sql.UniqueIdentifier, employeeID);
+
+            const phoneQuery = `
+                INSERT INTO tblPhoneNumbers (AreaCode, Number, TypeID, EmployeeID, Valid)
+                VALUES (@AreaCode, @Number, @TypeID, @EmployeeID, 1);
+            `;
+            await phoneRequest.query(phoneQuery);
+            console.log('Phone number added successfully');
+        }
+
+        res.status(200).json({ message: 'Contacts added successfully' });
+    } catch (error) {
+        console.error('Error adding contacts:', error);
+        res.status(500).json({ error: 'An error occurred while adding contacts' });
+    }
+});
 
 
 app.post('/emails', async (req, res) => {

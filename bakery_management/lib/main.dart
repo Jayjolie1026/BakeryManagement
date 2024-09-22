@@ -1454,7 +1454,7 @@ class _AddInformationPageState extends State<AddInformationPage> {
     _loadEmployeeId(); // Load the employee ID when the page initializes
   }
 
-bool _isValidEmail(String email) {
+/* bool _isValidEmail(String email) {
     final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     return emailRegex.hasMatch(email);
   }
@@ -1473,7 +1473,7 @@ bool _isValidEmail(String email) {
     print('Formatted Number: $formattedNumber');
     return phoneNumberRegex.hasMatch(formattedNumber);
   }
-
+ */
   Future<void> _loadEmployeeId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -1487,7 +1487,7 @@ bool _isValidEmail(String email) {
     final areaCode = _areaCodeController.text;
     final phoneNumber = _phoneController.text;
 
-// Email validation
+/* // Email validation
 if (!_isValidEmail(email)) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Invalid email format')),
@@ -1501,46 +1501,34 @@ if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
     const SnackBar(content: Text('Invalid phone number format')),
   );
   return;
-}
+} */
 
     // Prepare the data to send
-    final emailData = {
-      'emailAddress': _emailController.text,
-      'typeID': _getEmailTypeID(_selectedEmailType),
-      'employeeID': employeeId, // Replace with actual employeeID
-    };
+   final contactData = {
+  'emailAddress': _emailController.text.isNotEmpty ? _emailController.text : null,
+  'emailTypeID': _emailController.text.isNotEmpty ? _getEmailTypeID(_selectedEmailType) : null,
+  'employeeID': employeeId, // Replace with actual employeeID
+  'areaCode': _areaCodeController.text.isNotEmpty ? _areaCodeController.text : null,
+  'phoneNumber': _phoneController.text.isNotEmpty ? _phoneController.text : null,
+  'phoneTypeID': _phoneController.text.isNotEmpty ? _getPhoneTypeID(_selectedPhoneType) : null,
+};
 
-    final phoneData = {
-      'areaCode': _areaCodeController.text,
-      'phoneNumber': _phoneController.text,
-      'typeID': _getPhoneTypeID(_selectedPhoneType),
-      'employeeID': employeeId, // Replace with actual employeeID
-    };
+// Send the combined data to your new API endpoint
+final response = await http.post(
+  Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/contacts'),
+  headers: {'Content-Type': 'application/json'},
+  body: jsonEncode(contactData),
+);
 
-    // Send the data to your API endpoint
-    final responseEmail = await http.post(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/emails'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(emailData),
-    );
+// Handle the response
+if (response.statusCode == 200) {
+  // Success logic here
+  print('Contacts added successfully');
+} else {
+  // Error handling
+  print('Failed to add contacts: ${response.body}');
+}
 
-    final responsePhone = await http.post(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/phonenumbers'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(phoneData),
-    );
-
-    if (responseEmail.statusCode == 200 && responsePhone.statusCode == 200) {
-      // Handle successful response
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Information added successfully!')),
-      );
-    } else {
-      // Handle error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add information')),
-      );
-    }
   }
 
   int _getEmailTypeID(String? type) {
