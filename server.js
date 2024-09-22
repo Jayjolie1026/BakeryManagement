@@ -822,7 +822,7 @@ app.post('/login', async (req, res) => {
 });
  
 
-const transporter = nodemailer.createTransport({
+/* const transporter = nodemailer.createTransport({
     service: 'gmail', // Or use another email service
     auth: {
       user: 'your-email@gmail.com',
@@ -874,7 +874,7 @@ const transporter = nodemailer.createTransport({
       console.error('Error processing password reset:', err);
       res.status(500).send({ message: 'An error occurred while processing your request' });
     }
-  });
+  }); */
   
  
 
