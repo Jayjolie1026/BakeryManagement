@@ -31,6 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.2
+  intl: ^0.19.0
+  shared_preferences: ^2.0.0
+  uuid: ^3.0.6
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -78,6 +81,23 @@ flutter:
     - assets/bakedgoods2.png
     - assets/inventory2.png
     - assets/recipe2.png
+    - assets/almond.jpg
+    - assets/apple pie.jpg
+    - assets/blueberrymuffins.jpg
+    - assets/macarons.jpg
+    - assets/brownies.jpg
+    - assets/raspberry.jpg
+    - assets/almond.jpg
+    - assets/pie.jpg
+    - assets/vanilla.jpg
+    - assets/eclair.jpg
+    - assets/lemon.jpg
+    - assets/frecnh.jpg
+    - assets/cinnaon.jpg
+    - assets/buttercroissant.jpg
+    - assets/choclatechip.jpg
+    - assets/sourdough.jpg
+    - assets/frecnh.jpg
 
 
   # To add assets to your application, add an assets section, like this:

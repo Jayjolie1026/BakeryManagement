@@ -1,8 +1,29 @@
 import 'dart:async';
+import 'package:bakery_management/pages/recipeFunctions.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/recipe.dart';
+import 'recipeAPI.dart';
+
+const Map<int, String> productImages = {
+  12: 'assets/sourdough.jpg',
+  13: 'assets/choclatechip.jpg',
+  14: 'assets/buttercroissant.jpg',
+  15: 'assets/blueberrymuffins.jpg',
+  16: 'assets/cinnaon.jpg',
+  17: 'assets/frecnh.jpg',
+  18: 'assets/lemon.jpg',
+  19: 'assets/eclair.jpg',
+  20: 'assets/pie.jpg',
+  21: 'assets/vanilla.jpg',
+  22: 'assets/pie.jpg',
+  23: 'assets/almond.jpg',
+  24: 'assets/raspberry.jpg',
+  25: 'assets/brownies.jpg',
+  26: 'assets/macarons.jpg',
+};
+
 
 // Product model for final products
 class Product {
@@ -53,6 +74,8 @@ class Product {
         'Price': price,
       };
 }
+
+
 
 // API class for final products
 class ProductApi {
@@ -134,6 +157,8 @@ class ProductApi {
   print('Response status: ${response.statusCode}');
   print('Update request body: ${jsonEncode(product.toJson())}');
 
+  
+
   if (response.statusCode != 200) {
     throw Exception('Failed to update product');
   }
@@ -146,7 +171,6 @@ class ProductApi {
 // Products Page
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
-  
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
@@ -178,13 +202,13 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   void _updateProduct(Product updatedProduct) {
-  setState(() {
-    final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-    if (index != -1) {
-      products[index] = updatedProduct;
-    }
-  });
-}
+    setState(() {
+      final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+      if (index != -1) {
+        products[index] = updatedProduct;
+      }
+    });
+  }
 
   // Initialize and load products
   Future<void> init() async {
@@ -202,15 +226,24 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Image.asset(
-        'assets/bakedgoods.png',
-        height: 60,
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/bakedgoods.png',
+            height: 100,  // Matching the height from VendorsPage
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
       centerTitle: true,
-      backgroundColor: const Color(0xFFF0d1a0),
-      iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Dark brown back button color
+      ),
     ),
-    backgroundColor: const Color(0xFFF0d1a0),
+    backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
         buildSearch(),
@@ -223,6 +256,7 @@ class _ProductsPageState extends State<ProductsPage> {
             },
           ),
         ),
+        const SizedBox(height: 80)
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
@@ -232,10 +266,18 @@ class _ProductsPageState extends State<ProductsPage> {
           init(); // Call init to reload products
         });
       }),
-      label: const Text('Add Product'),
-      icon: const Icon(Icons.add),
-      backgroundColor: const Color(0xFF6D3200),
-      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+      label: const Text(
+        'Add Product',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),  // Light brown text color
+          fontSize: 17,
+        ),
+      ),
+      icon: const Icon(
+        Icons.add,
+        color: Color(0xFFEEC07B),  // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF422308),  // Dark brown background
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
@@ -261,47 +303,48 @@ class _ProductsPageState extends State<ProductsPage> {
   });
 
   // Build list tile for each product
- Widget buildProduct(Product product) => Card(
-  color: const Color(0xFF6D3200),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(50), // Circular shape
-  ),
-  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-  elevation: 4,
-  child: GestureDetector(
-    onTap: () async {
-      // Navigate to product detail page on tap and wait for result
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailPage(
-            product: product,
+  Widget buildProduct(Product product) => Card(
+    color: const Color(0xFF6D3200),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50), // Circular shape
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () async {
+        // Navigate to product detail page on tap and wait for result
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(
+              product: product,
+            ),
           ),
-        ),
-      );
+        );
 
-      // If the result is true, refresh the product list
-      if (result == true) {
-        init(); // Refresh the product list
-      }
-    },
-    child: Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-      child: Center(
-        child: Text(
-          product.name,
-          style: const TextStyle(
-            color: Color.fromARGB(255, 243, 217, 162),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        // If the result is true, refresh the product list
+        if (result == true) {
+          init(); // Refresh the product list
+        }
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            product.name,
+            style: const TextStyle(
+              color: Color(0xFFEEC07B),  // Light brown text color
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     ),
-  ),
-);
+  );
 }
+
 
 // Search widget component
 class SearchWidget extends StatefulWidget {
@@ -331,8 +374,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color:Color(0xFFEEC07B));
-    const styleHint = TextStyle(color:Color(0xFFEEC07B));
+    const styleActive = TextStyle(color: Color(0xFF6D3200));
+    const styleHint = TextStyle(color: Color(0xFF6D3200));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -340,7 +383,7 @@ class _SearchWidgetState extends State<SearchWidget> {
       margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
-        color: const Color(0xFF6D3200),
+        color: const Color(0xFFD8C4AA),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
@@ -371,7 +414,6 @@ class _SearchWidgetState extends State<SearchWidget> {
 }
 
 
-// Product Detail Page
 class ProductDetailPage extends StatefulWidget {
   final Product product;
 
@@ -384,6 +426,13 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   late Product _product;
 
+  String _getProductImage() {
+  // Get the image path from the mapping based on the product ID
+  // If no image path is found, return a default image path
+  return productImages[_product.productID] ?? 'assets/bagel3.png';
+}
+
+
   @override
   void initState() {
     super.initState();
@@ -393,343 +442,491 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void _updateProduct(Product updatedProduct) {
     setState(() {
       _product = updatedProduct;
+      
     });
   }
-  // Warning function
-Widget _buildQuantityWarning(Product product) {
-  if (product.quantity < product.minAmount) {
-    return const Text(
-      'QUANTITY IS VERY LOW! REMAKE NOW!',
-      style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-    );
-  } else if (product.quantity < product.remakeAmount) {
-    return const Text(
-      'Quantity is getting low. Please remake!',
-      style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+
+  Widget _buildQuantityWarning(Product product) {
+    if (product.quantity < product.minAmount) {
+      return const Text(
+        'QUANTITY IS VERY LOW! REMAKE NOW!',
+        style: TextStyle(
+          fontSize: 20,
+          color: Color(0xFF6D3200),
+        ),
+        textAlign: TextAlign.left,
+      );
+    } else if (product.quantity < product.remakeAmount) {
+      return const Text(
+        'Quantity is getting low. Please remake!',
+        style: TextStyle(
+          fontSize: 20,
+          color: Color(0xFF6D3200),
+        ),
+        textAlign: TextAlign.left,
+      );
+    }
+    return const SizedBox(); // Return an empty widget if no warnings
+  }
+
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product name as a header
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _product.name,
+              style: const TextStyle(
+                fontSize: 30,
+                color: Color(0xFF6D3200),
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.left,
+            ),
+          ),
+          // Product image
+          SizedBox(
+            width: double.infinity,
+            height: 250, // Set the height of the image
+            child: Image.asset(
+              _getProductImage(),
+              fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+            ),
+          ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: '${_product.description}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Max Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.maxAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Remake Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.remakeAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Min Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.minAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Quantity:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left
+              ),
+              const SizedBox(height: 20),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'Price:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.price}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              _buildQuantityWarning(_product),
+              // Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      // Navigate to the update page and wait for result
+                        // Call the showProductUpdateDialog directly to show the update dialog
+                        showProductUpdateDialog(
+                          context,
+                          _product, // Pass the product you want to update
+                          (updatedProduct) {
+                             _updateProduct(updatedProduct);
+                          },
+                        );
+                    
+
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFFF0D1A0),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add),
+                        SizedBox(width: 8), // Spacing between icon and text
+                        Text('Update'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to recipe page
+                      Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) {
+      // Print the recipe name and ID for debugging
+      print('Recipe Name: ${_product.name}');
+      print('Recipe ID: ${_product.productID}');
+      
+      return DetailedRecipePage(
+        recipeName: _product.name,  // Assuming _product.name is non-null
+        recipeID: _product.productID! + 8,  // Assert productID is non-null
+
+
+        /*
+
+
+
+
+
+
+
+
+
+
+        TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
+
+
+
+
+
+
+        */
+      );
+    },
+  ),
+);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFFF0D1A0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/recipe.png', // Replace with your icon asset
+                          height: 20, // Adjust height as needed
+                          width: 20,  // Adjust width as needed
+                        ),
+                        const SizedBox(width: 8), // Spacing between icon and text
+                        const Text('Recipe'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context, true); // Close the page
+                    },
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 17, // Font size
+                        color: Color(0xFFEEC07B), // Light brown text
+                      ),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                      foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      )),
+                    ),
+                  ),
+                ),
+              )
+
+            ],
+          ),
+        ),
+
     );
   }
-  return const SizedBox(); // Return an empty widget if no warnings
 }
 
 
-  @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: Text(_product.name),
-      backgroundColor: const Color(0xFFF0d1a0),
-      foregroundColor:  const Color(0xFF6D3200),
-      iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
-    ),
-    backgroundColor: const Color(0xFFF0d1a0),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Centered Image
-          Container(
-            height: 150,
-            width: 150,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage('assets/bread2.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Display Product Information
-          Text('Name: ${_product.name}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Description: ${_product.description}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Max Amount: ${_product.maxAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Remake Amount: ${_product.remakeAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Min Amount: ${_product.minAmount}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Quantity: ${_product.quantity}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          Text('Price: ${_product.price}', style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-          _buildQuantityWarning(_product),
 
-          
-          const SizedBox(height: 20),
-          // Buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+void showProductUpdateDialog(BuildContext context, Product product, ValueChanged<Product> onProductUpdated) {
+  final nameController = TextEditingController(text: product.name);
+  final descriptionController = TextEditingController(text: product.description);
+  final maxAmountController = TextEditingController(text: product.maxAmount.toString());
+  final remakeAmountController = TextEditingController(text: product.remakeAmount.toString());
+  final minAmountController = TextEditingController(text: product.minAmount.toString());
+  final priceController = TextEditingController(text: product.price.toString());
+  final quantityController = TextEditingController(text: product.quantity.toString());
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFEEC07B), // Example color
+        titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
+        fontFamily: 'MyFont',
+        fontSize: 24.0), 
+        title: const Text('Update Product'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  // Navigate to the update page and wait for result
-                  final updatedProduct = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProductUpdatePage(
-                        product: _product,
-                        onProductUpdated: _updateProduct,
-                      ),
-                    ),
-                  );
-
-                  // If an updated product was returned, update the state
-                  if (updatedProduct != null) {
-                    _updateProduct(updatedProduct);
-                    Navigator.pop(context, true); // Pass true to indicate an update
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0d1a0),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
                 ),
-                child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add),
-                  SizedBox(width: 8), // Spacing between image and text
-                  Text('Update'),
-                ],
               ),
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to recipe page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipePage(product: _product),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0d1a0),
+              TextField(
+                controller: descriptionController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/recipe.png', // Replace with your icon asset
-                      height: 20, // Adjust height as needed
-                      width: 20,  // Adjust width as needed
-                    ),
-                    const SizedBox(width: 8), // Spacing between image and text
-                    const Text('Recipe'),
-                  ],
+              ),
+              TextField(
+                controller: maxAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Max Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: remakeAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Remake Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: minAmountController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Min Amount',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
-    ),
-  );
-}
-}
-
-
-
-class ProductUpdatePage extends StatefulWidget {
-  final Product product;
-  final ValueChanged<Product> onProductUpdated;
-
-  const ProductUpdatePage({super.key, required this.product, required this.onProductUpdated});
-
-  @override
-  _ProductUpdatePageState createState() => _ProductUpdatePageState();
-}
-
-class _ProductUpdatePageState extends State<ProductUpdatePage> {
-  late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _maxAmountController;
-  late TextEditingController _remakeAmountController;
-  late TextEditingController _minAmountController;
-  late TextEditingController _priceController;
-  late TextEditingController _quantityController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.product.name);
-    _descriptionController = TextEditingController(text: widget.product.description);
-    _maxAmountController = TextEditingController(text: widget.product.maxAmount.toString());
-    _remakeAmountController = TextEditingController(text: widget.product.remakeAmount.toString());
-    _minAmountController = TextEditingController(text: widget.product.minAmount.toString());
-    _priceController = TextEditingController(text: widget.product.price.toString());
-    _quantityController = TextEditingController(text: widget.product.quantity.toString());
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _descriptionController.dispose();
-    _maxAmountController.dispose();
-    _remakeAmountController.dispose();
-    _minAmountController.dispose();
-    _priceController.dispose();
-    _quantityController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Product'),
-        backgroundColor: const Color(0xFFF0d1a0),
-        foregroundColor: const Color(0xFF6D3200),
-        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
-      ),
-      backgroundColor: const Color(0xFFF0d1a0),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Editable Fields
-            TextField(
-              controller: _nameController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Name', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _descriptionController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Description', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-            ),
-            TextField(
-              controller: _maxAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Max Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _remakeAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Remake Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _minAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Min Amount', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _priceController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Price', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _quantityController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(labelText: 'Quantity', 
-              labelStyle: TextStyle(color: Color(0xFF6D3200)),
-              focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-              ),
-              enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-              ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            // Buttons
-            ElevatedButton(
-              onPressed: () async {
-                // Update the product with new values
-                final updatedProduct = Product(
-                  productID: widget.product.productID, // Keep the same product ID
-                  name: _nameController.text,
-                  description: _descriptionController.text,
-                  maxAmount: double.parse(_maxAmountController.text),
-                  remakeAmount: double.parse(_remakeAmountController.text),
-                  minAmount: double.parse(_minAmountController.text),
-                  quantity: int.parse(_quantityController.text),
-                  price: double.parse(_priceController.text),
-                );
-
-                // Call update API
-                await ProductApi.updateProduct(updatedProduct);
-
-                // Notify parent widget of the update
-                widget.onProductUpdated(updatedProduct);
-
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Product updated successfully!')),
-                );
-
-                // Navigate back to the previous page with the updated product
-                Navigator.of(context).pop(updatedProduct);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6D3200),
-                foregroundColor: const Color(0xFFF0d1a0),
-              ),
-              child:  const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Icon(Icons.add),
-                  SizedBox(width: 8), // Spacing between image and text
-                  Text('Update'),
-                ],
-              ),
-            ),
-          ],
         ),
-      ),
-    );
-  }
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(
+              
+              foregroundColor: const Color(0xFF6D3200), // Text color
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final updatedProduct = Product(
+                productID: product.productID,
+                name: nameController.text,
+                description: descriptionController.text,
+                maxAmount: double.parse(maxAmountController.text),
+                remakeAmount: double.parse(remakeAmountController.text),
+                minAmount: double.parse(minAmountController.text),
+                quantity: int.parse(quantityController.text),
+                price: double.parse(priceController.text),
+              );
+
+
+              await ProductApi.updateProduct(updatedProduct);
+              onProductUpdated(updatedProduct);
+
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200),
+              foregroundColor: const Color(0xFFF0d1a0),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
@@ -746,7 +943,8 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
     context: context,
     builder: (context) => AlertDialog(
       backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
-      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)), 
+      titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
+        fontFamily: 'MyFont',), 
       title: const Text('Add New Product'),
       content: SingleChildScrollView(
         child: Column(
@@ -855,8 +1053,8 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
            style: TextButton.styleFrom(
-            backgroundColor: const Color(0xFF6D3200), // Text color of the button
-            foregroundColor: const Color(0xFFF0d1a0),
+             // Text color of the button
+            foregroundColor: const Color(0xFF6D3200),
           ),
           child: const Text('Cancel'),
         ),

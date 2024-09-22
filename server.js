@@ -464,6 +464,26 @@ app.post('/users', async (req, res) => {
     }
 });
 
+// Endpoint to get emails and phone numbers for a specific employee
+app.get('/employee/:id/contacts', async (req, res) => {
+    const employeeID = req.params.id;
+    console.log(`Fetching contacts for employee ID: ${employeeID}`); // Debug statement
+    try {
+        const pool = await sql.connect(dbConfig);
+        const emails = await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
+            .query('SELECT EmailAddress, TypeID, Valid FROM tblEmails WHERE EmployeeID = @employeeID');
+        console.log('Fetched emails:', emails.recordset);
+        const phoneNumbers = await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
+            .query('SELECT Number, AreaCode, TypeID, Valid FROM tblPhoneNumbers WHERE EmployeeID = @employeeID');
+            console.log('Fetched phone numbers:', phoneNumbers.recordset);
+        res.json({ emails: emails.recordset, phoneNumbers: phoneNumbers.recordset });
+    } catch (error) {
+        console.error('Error fetching contacts:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 // DELETE /users/username/:username: Remove a user by username
@@ -496,116 +516,283 @@ app.delete('/users/username/:username', async (req, res) => {
 // PUT /users/:username: Update user information, including address, phone number, and email
 app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
-    const { firstName, lastName, newUsername, password, address, phoneNumbers, emails } = req.body;
+    const { firstName, lastName, newUsername, password, email, phoneNumber, address } = req.body;
 
-    if (!username || (!firstName && !lastName && !newUsername && !password && !address && !phoneNumbers && !emails)) {
-        return res.status(400).send('Username and at least one field to update are required');
+    console.log(`Updating user: ${username}`);
+
+    if (!username) {
+        console.log('Validation failed: Username is required');
+        return res.status(400).send('Username is required');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-
-        // Start transaction
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
+        console.log('Transaction started');
+
+        // Fetch EmployeeID based on username
+        const employeeIdResult = await pool.request()
+            .input('username', sql.VarChar, username)
+            .query('SELECT EmployeeID FROM tblUsers WHERE Username = @username');
+        
+        if (employeeIdResult.recordset.length === 0) {
+            console.log('User not found');
+            return res.status(404).send('User not found');
+        }
+        
+        const employeeID = employeeIdResult.recordset[0].EmployeeID;
 
         const request = new sql.Request(transaction);
+        let updates = [];
 
-        // Update user basic information
-        let query = 'UPDATE tblUsers SET ';
-        let parameters = [];
-
+        // Build the update query for tblUsers
         if (firstName) {
-            query += 'FirstName = @firstName, ';
-            parameters.push({ name: 'firstName', type: sql.VarChar, value: firstName });
+            updates.push('FirstName = @firstName');
+            request.input('firstName', sql.VarChar, firstName);
+            console.log(`Updating firstName: ${firstName}`);
         }
         if (lastName) {
-            query += 'LastName = @lastName, ';
-            parameters.push({ name: 'lastName', type: sql.VarChar, value: lastName });
+            updates.push('LastName = @lastName');
+            request.input('lastName', sql.VarChar, lastName);
+            console.log(`Updating lastName: ${lastName}`);
         }
         if (newUsername) {
-            query += 'Username = @newUsername, ';
-            parameters.push({ name: 'newUsername', type: sql.VarChar, value: newUsername });
+            updates.push('Username = @newUsername');
+            request.input('newUsername', sql.VarChar, newUsername);
+            console.log(`Updating newUsername: ${newUsername}`);
         }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
-            query += 'Password = @password, ';
-            parameters.push({ name: 'password', type: sql.VarChar, value: hashedPassword });
+            updates.push('Password = @password');
+            request.input('password', sql.VarChar, hashedPassword);
+            console.log('Updating password');
         }
 
-        query = query.slice(0, -2);
-        query += ' WHERE Username = @username';
-        parameters.push({ name: 'username', type: sql.VarChar, value: username });
+        // Complete the update query for tblUsers
+        if (updates.length > 0) {
+            const userUpdateQuery = `UPDATE tblUsers SET ${updates.join(', ')} WHERE Username = @username`;
+            request.input('username', sql.VarChar, username);
+            await request.query(userUpdateQuery);
+            console.log('Executed user update query');
+        }
 
-        parameters.forEach(param => request.input(param.name, param.type, param.value));
-        await request.query(query);
+        // Handle email updates
+        if (email && email.emailAddress) {
+            const emailQuery = `
+                MERGE tblEmails AS target
+                USING (SELECT @employeeID AS EmployeeID, @emailAddress AS EmailAddress, @typeID AS TypeID) AS source
+                ON target.EmployeeID = source.EmployeeID AND target.EmailAddress = source.EmailAddress
+                WHEN MATCHED THEN
+                    UPDATE SET target.TypeID = source.TypeID
+                WHEN NOT MATCHED THEN
+                    INSERT (EmailAddress, EmployeeID, TypeID, Valid)
+                    VALUES (source.EmailAddress, source.EmployeeID, source.TypeID, 1);
+            `;
+            await pool.request()
+                .input('emailAddress', sql.VarChar, email.emailAddress)
+                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
+                .input('typeID', sql.Int, email.emailTypeID)
+                .query(emailQuery);
+            console.log(`Updated email: ${email.emailAddress}`);
+        }
 
-        // Update user address
+        // Handle phone number updates
+        if (phoneNumber && phoneNumber.number) {
+            const phoneQuery = `
+                MERGE tblPhoneNumbers AS target
+                USING (SELECT @employeeID AS EmployeeID, @number AS Number, @areaCode AS AreaCode) AS source
+                ON target.EmployeeID = source.EmployeeID AND target.Number = source.Number
+                WHEN MATCHED THEN
+                    UPDATE SET target.AreaCode = source.AreaCode
+                WHEN NOT MATCHED THEN
+                    INSERT (Number, AreaCode, EmployeeID, TypeID, Valid)
+                    VALUES (source.Number, source.AreaCode, source.EmployeeID, @typeID, 1);
+            `;
+            await pool.request()
+                .input('number', sql.VarChar, phoneNumber.number)
+                .input('areaCode', sql.VarChar, phoneNumber.areaCode)
+                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
+                .input('typeID', sql.Int, phoneNumber.phoneTypeID)
+                .query(phoneQuery);
+            console.log(`Updated phone number: ${phoneNumber.number}`);
+        }
         if (address) {
-            for (const addr of address) {
-                const addrQuery = `
-                    UPDATE tblAddresses 
-                    SET StreetAddress = @StreetAddress, City = @City, State = @State, PostalCode = @PostalCode, Country = @Country
-                    WHERE AddressID = @AddressID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
-
-                await transaction.request()
-                    .input('StreetAddress', sql.VarChar, addr.StreetAddress)
-                    .input('City', sql.VarChar, addr.City)
-                    .input('State', sql.VarChar, addr.State)
-                    .input('PostalCode', sql.VarChar, addr.PostalCode)
-                    .input('Country', sql.VarChar, addr.Country)
-                    .input('AddressID', sql.Int, addr.AddressID)
-                    .input('username', sql.VarChar, username)
-                    .query(addrQuery);
+            // Start building the update query
+            let updateSet = [];
+            const updateParams = {
+                employeeID: employeeID
+            };
+        
+            // Check each address field and add to the update query if it's provided
+            if (address.streetAddress) {
+                updateSet.push('StreetAddress = @streetAddress');
+                updateParams.streetAddress = address.streetAddress;
+            }
+            if (address.city) {
+                updateSet.push('City = @city');
+                updateParams.city = address.city;
+            }
+            if (address.state) {
+                updateSet.push('State = @state');
+                updateParams.state = address.state;
+            }
+            if (address.postalCode) {
+                updateSet.push('PostalCode = @postalCode');
+                updateParams.postalCode = address.postalCode;
+            }
+            if (address.country) {
+                updateSet.push('Country = @country');
+                updateParams.country = address.country;
+            }
+        
+            // Only proceed if there are fields to update
+            if (updateSet.length > 0) {
+                const updateAddrQuery = `
+                    UPDATE tblAddresses
+                    SET ${updateSet.join(', ')}
+                    WHERE EmployeeID = @employeeID;
+                `;
+                
+                const request = pool.request();
+                // Add all the parameters to the request
+                for (const [key, value] of Object.entries(updateParams)) {
+                    request.input(key, sql.VarChar, value);
+                }
+        
+                const updateResult = await request.query(updateAddrQuery);
+        
+                console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
+            } else {
+                console.log('No address fields to update.');
             }
         }
+        
 
-        // Update user phone numbers
-        if (phoneNumbers) {
-            for (const phone of phoneNumbers) {
-                const phoneQuery = `
-                    UPDATE tblPhoneNumbers 
-                    SET AreaCode = @AreaCode, Number = @Number
-                    WHERE PhoneNumberID = @PhoneNumberID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
 
-                await transaction.request()
-                    .input('AreaCode', sql.VarChar, phone.AreaCode)
-                    .input('Number', sql.VarChar, phone.Number)
-                    .input('PhoneNumberID', sql.Int, phone.PhoneNumberID)
-                    .input('username', sql.VarChar, username)
-                    .query(phoneQuery);
-            }
-        }
-
-        // Update user emails
-        if (emails) {
-            for (const email of emails) {
-                const emailQuery = `
-                    UPDATE tblEmails 
-                    SET EmailAddress = @EmailAddress
-                    WHERE EmailID = @EmailID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
-
-                await transaction.request()
-                    .input('EmailAddress', sql.VarChar, email.EmailAddress)
-                    .input('EmailID', sql.Int, email.EmailID)
-                    .input('username', sql.VarChar, username)
-                    .query(emailQuery);
-            }
-        }
-
-        // Commit transaction
+        // Commit the transaction
         await transaction.commit();
-        res.send('User updated successfully');
+        console.log('Transaction committed');
+        res.status(200).send('User updated successfully');
     } catch (error) {
-        // Rollback transaction in case of error
+        console.error('Error updating user:', error);
         await transaction.rollback();
-        res.status(500).send(error.message);
+        res.status(500).send('Internal Server Error');
     }
 });
 
 
+app.post('/contacts', async (req, res) => {
+    const { emailAddress, emailTypeID, employeeID, areaCode, phoneNumber, phoneTypeID } = req.body; // Adjusted keys
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        
+        // If email data is present, insert it
+        if (emailAddress && emailTypeID && employeeID) {
+            const emailRequest = pool.request();
+            emailRequest.input('EmailAddress', sql.VarChar, emailAddress);
+            emailRequest.input('TypeID', sql.Int, emailTypeID);
+            emailRequest.input('EmployeeID', sql.UniqueIdentifier, employeeID);
+
+            const emailQuery = `
+                INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID, Valid)
+                VALUES (@EmailAddress, @TypeID, @EmployeeID, 1);
+            `;
+            await emailRequest.query(emailQuery);
+            console.log('Email added successfully');
+        }
+
+        // If phone data is present, insert it
+        if (areaCode && phoneNumber && phoneTypeID && employeeID) {
+            const phoneRequest = pool.request();
+            phoneRequest.input('AreaCode', sql.VarChar, areaCode);
+            phoneRequest.input('Number', sql.VarChar, phoneNumber);
+            phoneRequest.input('TypeID', sql.Int, phoneTypeID);
+            phoneRequest.input('EmployeeID', sql.UniqueIdentifier, employeeID);
+
+            const phoneQuery = `
+                INSERT INTO tblPhoneNumbers (AreaCode, Number, TypeID, EmployeeID, Valid)
+                VALUES (@AreaCode, @Number, @TypeID, @EmployeeID, 1);
+            `;
+            await phoneRequest.query(phoneQuery);
+            console.log('Phone number added successfully');
+        }
+
+        res.status(200).json({ message: 'Contacts added successfully' });
+    } catch (error) {
+        console.error('Error adding contacts:', error);
+        res.status(500).json({ error: 'An error occurred while adding contacts' });
+    }
+});
 
 
+app.post('/emails', async (req, res) => {
+    const { emailAddress, typeID, employeeID } = req.body;
+
+    if (!emailAddress || !typeID || !employeeID) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Connect to the database
+        const pool = await sql.connect(dbConfig);
+
+        // Create a request for the query
+        const request = pool.request();
+        request.input('EmailAddress', sql.VarChar, emailAddress);
+        request.input('TypeID', sql.Int, typeID);
+        request.input('EmployeeID', sql.UniqueIdentifier, employeeID); // Adjust type based on your schema
+
+        // SQL query to insert the email into tblEmails
+        const query = `
+            INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID, Valid)
+            VALUES (@EmailAddress, @TypeID, @EmployeeID, 1);
+        `;
+
+        // Execute the query with parameterized inputs
+        await request.query(query);
+
+        res.status(200).json({ message: 'Email added successfully' });
+    } catch (error) {
+        console.error('Error adding email:', error);
+        res.status(500).json({ error: 'An error occurred while adding the email' });
+    }
+});
+
+app.post('/phonenumbers', async (req, res) => {
+    const { areaCode, phoneNumber, typeID, employeeID } = req.body;
+
+    if (!areaCode || !phoneNumber || !typeID || !employeeID) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Connect to the database
+        const pool = await sql.connect(dbConfig);
+
+        // Create a request for the query
+        const request = pool.request();
+        request.input('AreaCode', sql.VarChar, areaCode);
+        request.input('Number', sql.VarChar, phoneNumber);
+        request.input('TypeID', sql.Int, typeID);
+        request.input('EmployeeID', sql.UniqueIdentifier, employeeID); // Adjust type based on your schema
+
+        // SQL query to insert the phone number into tblPhoneNumbers
+        const query = `
+            INSERT INTO tblPhoneNumbers (AreaCode, Number, TypeID, EmployeeID, Valid)
+            VALUES (@AreaCode, @Number, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
+        `;
+
+        // Execute the query with parameterized inputs
+        await request.query(query);
+
+        res.status(200).json({ message: 'Phone number added successfully' });
+    } catch (error) {
+        console.error('Error adding phone number:', error);
+        res.status(500).json({ error: 'An error occurred while adding the phone number' });
+    }
+});
 
 // GET /users: Retrieve all users
 app.get('/users', async (req, res) => {
@@ -728,7 +915,61 @@ app.post('/login', async (req, res) => {
 });
  
 
-
+/* const transporter = nodemailer.createTransport({
+    service: 'gmail', // Or use another email service
+    auth: {
+      user: 'your-email@gmail.com',
+      pass: 'your-email-password',
+    },
+  });
+  
+  // Password Reset Endpoint
+  app.post('/reset-password', async (req, res) => {
+    const { email } = req.body;
+  
+    if (!email) {
+      return res.status(400).send({ message: 'Email is required' });
+    }
+  
+    try {
+      // Connect to your database
+      const pool = await sql.connect(dbConfig);
+  
+      // Check if the email exists in your Users table
+      const result = await pool
+        .request()
+        .input('email', sql.VarChar, email)
+        .query('SELECT * FROM Users WHERE email = @email');
+  
+      if (result.recordset.length === 0) {
+        return res.status(404).send({ message: 'Email not found' });
+      }
+  
+      // Generate a reset token (this could also be stored in the database if needed)
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetLink = `https://yourfrontend.com/reset-password?token=${resetToken}`; // Link to your frontend
+  
+      // TODO: Save the reset token to the database (with expiration time)
+  
+      // Send the reset email
+      const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: email,
+        subject: 'Password Reset Request',
+        text: `You have requested to reset your password. Please click on the link below to reset your password: ${resetLink}`,
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      // Respond with success
+      res.status(200).send({ message: 'Password reset link has been sent to your email' });
+    } catch (err) {
+      console.error('Error processing password reset:', err);
+      res.status(500).send({ message: 'An error occurred while processing your request' });
+    }
+  }); */
+  
+ 
 
 
 
@@ -942,6 +1183,7 @@ const checkVendorExists = async (vendorID) => {
 
 // POST /ingredients: Add a new ingredient
 app.post('/ingredients', async (req, res) => {
+    console.log(req.body);
     const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
 
     try {
@@ -952,7 +1194,12 @@ app.post('/ingredients', async (req, res) => {
         }
 
         const pool = await sql.connect(dbConfig);
-        await pool.request()
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+
+        const request = new sql.Request(transaction);
+
+         const result = await request
             .input('name', sql.VarChar, name)
             .input('description', sql.VarChar, description)
             .input('category', sql.VarChar, category)
@@ -963,9 +1210,14 @@ app.post('/ingredients', async (req, res) => {
             .input('vendorID', sql.Int, vendorID)
             .query(`
                 INSERT INTO tblIngredients (Name, Description, Category, Measurement, MaxAmount, ReorderAmount, MinAmount, VendorID) 
-                VALUES (@name, @description, @category, @measurement, @maxAmount, @reorderAmount, @minAmount, @vendorID)
+                VALUES (@name, @description, @category, @measurement, @maxAmount, @reorderAmount, @minAmount, @vendorID);
+                SELECT SCOPE_IDENTITY() AS IngredientID
             `);
-        res.status(201).send('Ingredient added');
+        await transaction.commit();
+
+       const ingredientID = result.recordset[0].IngredientID;
+
+        res.status(201).json({ message: 'Ingredient added', ingredientID });
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -1095,6 +1347,51 @@ app.get('/recipes', async (req, res) => {
         res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+
+app.get('/recipes/:productID', async (req, res) => {
+    try {
+        const productID = req.params.productID;
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productID)
+            .query(`
+                SELECT 
+                    r.RecipeID, r.Name, r.Steps, r.ProductID,
+                    ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                FROM tblRecipes r
+                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                WHERE r.ProductID = @ProductID
+            `);
+
+        const recipes = result.recordset.reduce((acc, row) => {
+            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+            if (!recipe) {
+                recipe = {
+                    RecipeID: row.RecipeID,
+                    Name: row.Name,
+                    Steps: row.Steps,
+                    ProductID: row.ProductID,
+                    Ingredients: []
+                };
+                acc.push(recipe);
+            }
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity
+                });
+            }
+            return acc;
+        }, []);
+
+        res.json(recipes);
+    } catch (error) {
+        res.status(500).send('Error retrieving recipes: ' + error.message);
+    }
+});
+
 
 
 
@@ -1386,8 +1683,15 @@ app.post('/inventory', async (req, res) => {
     }
 
     try {
-        const pool = await sql.connect(dbConfig);
+        // Parse the incoming date strings into JavaScript Date objects
+        const createDate = new Date(create_datetime);
+        const expireDate = expire_datetime ? new Date(expire_datetime) : null;
 
+        if (isNaN(createDate.getTime())) {
+            return res.status(400).send('Invalid create date/time format');
+        }
+
+        const pool = await sql.connect(dbConfig);
 
         // Insert the new inventory item
         await pool.request()
@@ -1395,8 +1699,8 @@ app.post('/inventory', async (req, res) => {
             .input('quantity', sql.Decimal, quantity)
             .input('notes', sql.VarChar, notes)  // Optional field
             .input('cost', sql.Decimal, cost)
-            .input('create_datetime', sql.DateTime, create_datetime)
-            .input('expire_datetime', sql.DateTime, expire_datetime)  // Optional field
+            .input('create_datetime', sql.DateTime, createDate)
+            .input('expire_datetime', sql.DateTime, expireDate)  // Optional field
             .query(`
                 INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime)
                 VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime)
@@ -1406,6 +1710,7 @@ app.post('/inventory', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
 
 
 
