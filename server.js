@@ -513,7 +513,6 @@ app.delete('/users/username/:username', async (req, res) => {
 
 
 
-// PUT /users/:username: Update user information, including address, phone number, and email
 app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
     const { firstName, lastName, newUsername, password, address, phoneNumbers, emails } = req.body;
@@ -527,49 +526,53 @@ app.put('/users/:username', async (req, res) => {
 
     try {
         const pool = await sql.connect(dbConfig);
-
-        // Start transaction
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
         console.log('Transaction started');
 
         const request = new sql.Request(transaction);
-
-        // Update user basic information
         let query = 'UPDATE tblUsers SET ';
         let parameters = [];
 
+        // Build the query based on provided fields
+        const updates = [];
+
         if (firstName) {
-            query += 'FirstName = @firstName, ';
+            updates.push('FirstName = @firstName');
             parameters.push({ name: 'firstName', type: sql.VarChar, value: firstName });
             console.log(`Updating firstName: ${firstName}`);
         }
         if (lastName) {
-            query += 'LastName = @lastName, ';
+            updates.push('LastName = @lastName');
             parameters.push({ name: 'lastName', type: sql.VarChar, value: lastName });
             console.log(`Updating lastName: ${lastName}`);
         }
         if (newUsername) {
-            query += 'Username = @newUsername, ';
+            updates.push('Username = @newUsername');
             parameters.push({ name: 'newUsername', type: sql.VarChar, value: newUsername });
             console.log(`Updating newUsername: ${newUsername}`);
         }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
-            query += 'Password = @password, ';
+            updates.push('Password = @password');
             parameters.push({ name: 'password', type: sql.VarChar, value: hashedPassword });
             console.log('Updating password');
         }
 
-        query = query.slice(0, -2);
-        query += ' WHERE Username = @username';
-        parameters.push({ name: 'username', type: sql.VarChar, value: username });
+        // Only proceed if there are updates to make
+        if (updates.length > 0) {
+            query += updates.join(', ');
+            query += ' WHERE Username = @username';
+            parameters.push({ name: 'username', type: sql.VarChar, value: username });
 
-        parameters.forEach(param => request.input(param.name, param.type, param.value));
-        console.log('Executing user update query:', query);
-        await request.query(query);
+            parameters.forEach(param => request.input(param.name, param.type, param.value));
+            console.log('Executing user update query:', query);
+            await request.query(query);
+        } else {
+            console.log('No fields to update');
+        }
 
-        // Update user address
+        // Update user address if provided
         if (address) {
             console.log(`Updating address for user: ${username}`);
             for (const addr of address) {
@@ -578,7 +581,7 @@ app.put('/users/:username', async (req, res) => {
                     SET StreetAddress = @StreetAddress, City = @City, State = @State, PostalCode = @PostalCode, Country = @Country
                     WHERE AddressID = @AddressID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
 
-                const addrRequest = new sql.Request(transaction); // Create a new request for this transaction
+                const addrRequest = new sql.Request(transaction);
                 addrRequest.input('StreetAddress', sql.VarChar, addr.StreetAddress);
                 addrRequest.input('City', sql.VarChar, addr.City);
                 addrRequest.input('State', sql.VarChar, addr.State);
@@ -593,17 +596,16 @@ app.put('/users/:username', async (req, res) => {
             }
         }
 
-        // Commit the transaction
         await transaction.commit();
         console.log('Transaction committed');
         res.status(200).send('User updated successfully');
     } catch (error) {
         console.error('Error updating user:', error);
-        // Rollback the transaction in case of error
         await transaction.rollback();
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 
 
@@ -662,7 +664,7 @@ app.post('/phonenumbers', async (req, res) => {
         // SQL query to insert the phone number into tblPhoneNumbers
         const query = `
             INSERT INTO tblPhoneNumbers (AreaCode, Number, TypeID, EmployeeID, Valid)
-            VALUES (@AreaCode, @PhoneNumber, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
+            VALUES (@AreaCode, @Number, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
         `;
 
         // Execute the query with parameterized inputs
