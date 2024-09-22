@@ -15,23 +15,34 @@
 }
 
 body {
-    background-color: rgb(228, 213, 194);
+    background-image: url('login_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: #333;
     line-height: 1.6;
-
+    font-family: 'Playwrite BR', serif; /* Creative font choice for headers */
+    transition: opacity 1s ease-in-out;
 }
 
+/* Class that triggers the fade-out effect */
+body.fade-out {
+    opacity: 0;
+}
+
+
 .navbar {
-    background: #baa384;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
     height: 140px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 1.5rem;
     position: sticky;
-    top: 2;
+    top: 0;
     z-index: 1000;
     padding: 0 60px;
+    backdrop-filter: blur(10px); /* Adds a blur effect for better readability */
 }
 
 .navbar__container {
@@ -54,8 +65,6 @@ body {
 
 /*menu / front page*/
 .navbar__links {
-    text-decoration: none;
-    font-weight: 400;
     color: #000000;
     padding: 10px 15px;
     transition: color 0.3s ease;
@@ -119,14 +128,27 @@ body {
     padding-right: 10px; /* Add space between text and image */
 }
 
-/*header 1*/
+/*header line animation */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation for header 1 */
 .main__content h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: bold;
-    color: #492310;
-    margin-bottom: 1px;
+    color: #ffffff; /* Changed to white for better contrast */
+    margin-bottom: 10px;
     margin-left: 19px;
+    animation: fadeInUp 1.5s ease-in-out;
 }
 /* bread image */
 .main__img {
@@ -144,12 +166,34 @@ body {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* Animation for header 2 */
 .main__content h2 {
-    font-size: 2.15rem;
-    color: #753623;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: #746858; /* Softer color for header 2 */
+    margin-bottom: 30px;
     margin-left: 10px;
     font-weight: 300;
+    animation: fadeInUp 2s ease-in-out; /* Delayed fade-in for creative effect */
+}
+
+/* Add animation to sign-in form */
+@keyframes fadeInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.signin__container {
+    background-color: rgba(255, 255, 255, 0.9); /* Slight transparency for a modern look */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    animation: fadeInRight 1.5s ease-in-out; /* Smooth slide-in effect */
 }
 
 /* Sign-in Form Section (Right Side) */
@@ -163,7 +207,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-left: 1050px; /* Adjust spacing from the text section */
     margin-bottom: 100px;
-    margin-top: -378px;
+    margin-top: -450px;
 }
 
 .signin__container h1 {
