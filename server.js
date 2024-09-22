@@ -518,10 +518,10 @@ app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
     const { firstName, lastName, newUsername, password, address, phoneNumbers, emails } = req.body;
 
-    console.log(`Updating user: ${username}`); // Debug statement
+    console.log(`Updating user: ${username}`);
 
     if (!username || (!firstName && !lastName && !newUsername && !password && !address && !phoneNumbers && !emails)) {
-        console.log('Validation failed: No fields to update provided'); // Debug statement
+        console.log('Validation failed: No fields to update provided');
         return res.status(400).send('Username and at least one field to update are required');
     }
 
@@ -531,7 +531,7 @@ app.put('/users/:username', async (req, res) => {
         // Start transaction
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
-        console.log('Transaction started'); // Debug statement
+        console.log('Transaction started');
 
         const request = new sql.Request(transaction);
 
@@ -542,23 +542,23 @@ app.put('/users/:username', async (req, res) => {
         if (firstName) {
             query += 'FirstName = @firstName, ';
             parameters.push({ name: 'firstName', type: sql.VarChar, value: firstName });
-            console.log(`Updating firstName: ${firstName}`); // Debug statement
+            console.log(`Updating firstName: ${firstName}`);
         }
         if (lastName) {
             query += 'LastName = @lastName, ';
             parameters.push({ name: 'lastName', type: sql.VarChar, value: lastName });
-            console.log(`Updating lastName: ${lastName}`); // Debug statement
+            console.log(`Updating lastName: ${lastName}`);
         }
         if (newUsername) {
             query += 'Username = @newUsername, ';
             parameters.push({ name: 'newUsername', type: sql.VarChar, value: newUsername });
-            console.log(`Updating newUsername: ${newUsername}`); // Debug statement
+            console.log(`Updating newUsername: ${newUsername}`);
         }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             query += 'Password = @password, ';
             parameters.push({ name: 'password', type: sql.VarChar, value: hashedPassword });
-            console.log('Updating password'); // Debug statement
+            console.log('Updating password');
         }
 
         query = query.slice(0, -2);
@@ -566,82 +566,45 @@ app.put('/users/:username', async (req, res) => {
         parameters.push({ name: 'username', type: sql.VarChar, value: username });
 
         parameters.forEach(param => request.input(param.name, param.type, param.value));
-        console.log('Executing user update query:', query); // Debug statement
+        console.log('Executing user update query:', query);
         await request.query(query);
 
         // Update user address
         if (address) {
-            console.log(`Updating address for user: ${username}`); // Debug statement
+            console.log(`Updating address for user: ${username}`);
             for (const addr of address) {
                 const addrQuery = `
                     UPDATE tblAddresses 
                     SET StreetAddress = @StreetAddress, City = @City, State = @State, PostalCode = @PostalCode, Country = @Country
                     WHERE AddressID = @AddressID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
 
-                await transaction.request()
-                    .input('StreetAddress', sql.VarChar, addr.StreetAddress)
-                    .input('City', sql.VarChar, addr.City)
-                    .input('State', sql.VarChar, addr.State)
-                    .input('PostalCode', sql.VarChar, addr.PostalCode)
-                    .input('Country', sql.VarChar, addr.Country)
-                    .input('AddressID', sql.Int, addr.AddressID)
-                    .input('username', sql.VarChar, username)
-                    .query(addrQuery);
+                const addrRequest = new sql.Request(transaction); // Create a new request for this transaction
+                addrRequest.input('StreetAddress', sql.VarChar, addr.StreetAddress);
+                addrRequest.input('City', sql.VarChar, addr.City);
+                addrRequest.input('State', sql.VarChar, addr.State);
+                addrRequest.input('PostalCode', sql.VarChar, addr.PostalCode);
+                addrRequest.input('Country', sql.VarChar, addr.Country);
+                addrRequest.input('AddressID', sql.Int, addr.AddressID);
+                addrRequest.input('username', sql.VarChar, username);
+                
+                await addrRequest.query(addrQuery);
 
-                console.log(`Updated address: ${JSON.stringify(addr)}`); // Debug statement
+                console.log(`Updated address: ${JSON.stringify(addr)}`);
             }
         }
 
-        // Update user phone numbers
-        if (phoneNumbers) {
-            console.log(`Updating phone numbers for user: ${username}`); // Debug statement
-            for (const phone of phoneNumbers) {
-                const phoneQuery = `
-                    UPDATE tblPhoneNumbers 
-                    SET AreaCode = @AreaCode, Number = @Number
-                    WHERE PhoneNumberID = @PhoneNumberID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
-
-                await transaction.request()
-                    .input('AreaCode', sql.VarChar, phone.AreaCode)
-                    .input('Number', sql.VarChar, phone.Number)
-                    .input('PhoneNumberID', sql.Int, phone.PhoneNumberID)
-                    .input('username', sql.VarChar, username)
-                    .query(phoneQuery);
-
-                console.log(`Updated phone number: ${JSON.stringify(phone)}`); // Debug statement
-            }
-        }
-
-        // Update user emails
-        if (emails) {
-            console.log(`Updating emails for user: ${username}`); // Debug statement
-            for (const email of emails) {
-                const emailQuery = `
-                    UPDATE tblEmails 
-                    SET EmailAddress = @EmailAddress
-                    WHERE EmailID = @EmailID AND EmployeeID = (SELECT EmployeeID FROM tblUsers WHERE Username = @username)`;
-
-                await transaction.request()
-                    .input('EmailAddress', sql.VarChar, email.EmailAddress)
-                    .input('EmailID', sql.Int, email.EmailID)
-                    .input('username', sql.VarChar, username)
-                    .query(emailQuery);
-
-                console.log(`Updated email: ${JSON.stringify(email)}`); // Debug statement
-            }
-        }
-
-        // Commit transaction
+        // Commit the transaction
         await transaction.commit();
-        console.log('Transaction committed'); // Debug statement
-        res.send('User updated successfully');
+        console.log('Transaction committed');
+        res.status(200).send('User updated successfully');
     } catch (error) {
-        // Rollback transaction in case of error
+        console.error('Error updating user:', error);
+        // Rollback the transaction in case of error
         await transaction.rollback();
-        console.error('Transaction rolled back due to error:', error); // Error log
-        res.status(500).send(error.message);
+        res.status(500).send('Internal Server Error');
     }
 });
+
 
 
 
@@ -692,13 +655,13 @@ app.post('/phonenumbers', async (req, res) => {
         // Create a request for the query
         const request = pool.request();
         request.input('AreaCode', sql.VarChar, areaCode);
-        request.input('PhoneNumber', sql.VarChar, phoneNumber);
+        request.input('Number', sql.VarChar, phoneNumber);
         request.input('TypeID', sql.Int, typeID);
         request.input('EmployeeID', sql.UniqueIdentifier, employeeID); // Adjust type based on your schema
 
         // SQL query to insert the phone number into tblPhoneNumbers
         const query = `
-            INSERT INTO tblPhoneNumbers (AreaCode, PhoneNumber, TypeID, EmployeeID, Valid)
+            INSERT INTO tblPhoneNumbers (AreaCode, Number, TypeID, EmployeeID, Valid)
             VALUES (@AreaCode, @PhoneNumber, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
         `;
 

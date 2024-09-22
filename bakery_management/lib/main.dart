@@ -913,7 +913,7 @@ Future<void> _loadUsername() async {
       });
           
   }
-  
+
   Future<void> fetchContacts(String? employeeId) async {
   print('Fetching contacts for employee ID: $employeeId');
   final response = await http.get(
@@ -950,7 +950,7 @@ final phoneNumber = _phoneNumberController.text;
 final postalCode = _postalCodeController.text;
 final password = _passwordController.text;
 // Email validation
-if (!_isValidEmail(email)) {
+/* if (!_isValidEmail(email)) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Invalid email format')),
   );
@@ -979,7 +979,7 @@ if (!isValidPassword(password)) {
     const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
   );
   return;
-}
+} */
     final response = await http.put(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username'),
       headers: {'Content-Type': 'application/json'},
@@ -1080,42 +1080,148 @@ if (!isValidPassword(password)) {
                   ),
                   ),
                 ),
-                DropdownButton<String>(
-                  value: selectedEmail,
-                  hint: const Text('Select Email'),
-                  items: emails.map((email) {
-                    return DropdownMenuItem<String>(
-                      value: email['EmailID'].toString(), // Use EmailID for value
-                      child: Text(email['EmailAddress']),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedEmail = value;
-                      // Optionally, set the email controller to the selected email
-                      _emailController.text = emails.firstWhere((email) => email['EmailID'].toString() == value)['EmailAddress'];
-                    });
-                  },
+                // Dropdown for selecting email
+                Container(
+                  alignment: Alignment.centerLeft, // Align to the left
+                  child: DropdownButton<String>(
+                    value: selectedEmail,
+                    hint: const Text(
+                      'Select Email',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Hint text color
+                        fontFamily: 'MyFont',
+                      ),
+                    ),
+                    items: emails.map((email) {
+                      return DropdownMenuItem<String>(
+                        value: email['EmailAddress'], // Use EmailAddress as the unique value
+                        child: Text(
+                          email['EmailAddress'],
+                          style: const TextStyle(
+                            color: Color(0xFF6D3200), // Dropdown item text color
+                            fontFamily: 'MyFont',
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedEmail = value!;
+                        _emailController.text = value;
+                      });
+                    },
+                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                    style: const TextStyle(
+                      color: Color(0xFF6D3200), // Text color of the selected item
+                      fontSize: 16, // Text size of the selected item
+                    ),
+                    underline: Container(
+                      height: 2,
+                      color: const Color(0xFF6D3200), // Underline color
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Color(0xFF6D3200), // Arrow color
+                    ),
+                  ),
                 ),
-                 DropdownButton<String>(
-                  value: selectedPhoneNumber,
-                  hint: const Text('Select Phone Number'),
-                  items: phoneNumbers.map((phone) {
-                    return DropdownMenuItem<String>(
-                      value: phone['PhoneNumberID'].toString(), // Use PhoneNumberID for value
-                      child: Text('${phone['AreaCode']} - ${phone['Number']}'), // Display formatted phone number
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedPhoneNumber = value;
-                      // Optionally, set the area code and phone number controllers to the selected values
-                      final selectedPhone = phoneNumbers.firstWhere((phone) => phone['PhoneNumberID'].toString() == value);
-                      _areaCodeController.text = selectedPhone['AreaCode'];
-                      _phoneNumberController.text = selectedPhone['Number'];
-                    });
-                  },
+
+                // Dropdown for selecting phone number
+                Container(
+                  alignment: Alignment.centerLeft, // Align to the left
+                  child: DropdownButton<String>(
+                    value: selectedPhoneNumber,
+                    hint: const Text(
+                      'Select Phone Number',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Hint text color
+                        fontFamily: 'MyFont',
+                      ),
+                    ),
+                    items: phoneNumbers.map((phone) {
+                      return DropdownMenuItem<String>(
+                        value: phone['Number'], // Use Number as the unique value
+                        child: Text(
+                          '${phone['AreaCode']} - ${phone['Number']}',
+                          style: const TextStyle(
+                            color: Color(0xFF6D3200), // Dropdown item text color
+                            fontFamily: 'MyFont',
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedPhoneNumber = value!;
+                        final selectedPhone = phoneNumbers.firstWhere((phone) => phone['Number'] == value);
+                        _areaCodeController.text = selectedPhone['AreaCode'];
+                        _phoneNumberController.text = selectedPhone['Number'];
+                      });
+                    },
+                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                    style: const TextStyle(
+                      color: Color(0xFF6D3200), // Text color of the selected item
+                      fontSize: 16, // Text size of the selected item
+                    ),
+                    underline: Container(
+                      height: 2,
+                      color: const Color(0xFF6D3200), // Underline color
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Color(0xFF6D3200), // Arrow color
+                    ),
+                  ),
                 ),
+
+                        // Email Address TextField
+                        TextField(
+                          controller: _emailController,
+                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+                          decoration: const InputDecoration(
+                            labelText: 'Email Address',
+                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                            ),
+                          ),
+                        ),
+
+                        // Area Code TextField
+                        TextField(
+                          controller: _areaCodeController,
+                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+                          decoration: const InputDecoration(
+                            labelText: 'Area Code',
+                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                            ),
+                          ),
+                        ),
+
+                        // Phone Number TextField
+                        TextField(
+                          controller: _phoneNumberController,
+                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+                          decoration: const InputDecoration(
+                            labelText: 'Phone Number',
+                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                            ),
+                          ),
+                        ),
+
                         TextField(
                           controller: _streetAddressController,
                           style: const TextStyle(color: Color(0xFF6D3200)),
@@ -1148,8 +1254,6 @@ if (!isValidPassword(password)) {
                 child: Theme(
                   data: ThemeData(
                     hintColor: const Color(0xFFEEC07B), 
-                    
-
                   ),
                   child: DropdownButton<String>(
                     value: _selectedState,
