@@ -842,35 +842,36 @@ class _UserOptionsPageState extends State<UserOptionsPage> {
     'WV', 'WI', 'WY'
   ];
 
-bool _isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(email);
+bool _isValidEmail(String? email) {
+  if (email == null || email.isEmpty) return true; // Skip validation if not provided
+  final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+  return emailRegex.hasMatch(email);
+}
+
+bool _isValidPhoneNumber(String? areaCode, String? number) {
+  if ((areaCode == null || areaCode.isEmpty) || (number == null || number.isEmpty)) return true; // Skip validation if not provided
+  
+  if (number.length < 7) {
+    return false; // Number must be at least 7 digits
+  }
+  
+  final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+  final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+  return phoneNumberRegex.hasMatch(formattedNumber);
   }
 
-  bool _isValidPhoneNumber(String areaCode, String number) {
-    print('Area Code: $areaCode');
-    print('Number: $number');
-    
-    if (number.length < 7) {
-      print('Number is too short');
-      return false;
-    }
-    
-    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
-    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
-    print('Formatted Number: $formattedNumber');
-    return phoneNumberRegex.hasMatch(formattedNumber);
-  }
+  bool isValidPostalCode(String? postalCode) {
+  if (postalCode == null || postalCode.isEmpty) return true; // Skip validation if not provided
+  final postalCodeRegex = RegExp(r'^\d{5}$'); // Matches exactly 5 digits
+  return postalCodeRegex.hasMatch(postalCode);
+}
 
-  bool isValidPostalCode(String postalCode) {
-    final postalCodeRegex = RegExp(r'^\d{5}$'); // Matches exactly 5 digits
-    return postalCodeRegex.hasMatch(postalCode);
-  }
+bool isValidPassword(String? password) {
+  if (password == null || password.isEmpty) return true; // Skip validation if not provided
+  final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+  return passwordRegex.hasMatch(password);
+}
 
-  bool isValidPassword(String password) {
-    final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
-    return passwordRegex.hasMatch(password);
-  }
 
 
   String? _username; 
@@ -950,7 +951,7 @@ final phoneNumber = _phoneNumberController.text;
 final postalCode = _postalCodeController.text;
 final password = _passwordController.text;
 // Email validation
-/* if (!_isValidEmail(email)) {
+ if (!_isValidEmail(email)) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Invalid email format')),
   );
@@ -979,7 +980,7 @@ if (!isValidPassword(password)) {
     const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
   );
   return;
-} */
+} 
     final response = await http.put(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username'),
       headers: {'Content-Type': 'application/json'},
@@ -1454,26 +1455,25 @@ class _AddInformationPageState extends State<AddInformationPage> {
     _loadEmployeeId(); // Load the employee ID when the page initializes
   }
 
-/* bool _isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(email);
-  }
+ bool _isValidEmail(String? email) {
+  if (email == null || email.isEmpty) return true; // Skip validation if not provided
+  final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+  return emailRegex.hasMatch(email);
+}
 
-  bool _isValidPhoneNumber(String areaCode, String number) {
-    print('Area Code: $areaCode');
-    print('Number: $number');
-    
-    if (number.length < 7) {
-      print('Number is too short');
-      return false;
-    }
-    
-    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
-    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
-    print('Formatted Number: $formattedNumber');
-    return phoneNumberRegex.hasMatch(formattedNumber);
+bool _isValidPhoneNumber(String? areaCode, String? number) {
+  if ((areaCode == null || areaCode.isEmpty) || (number == null || number.isEmpty)) return true; // Skip validation if not provided
+  
+  if (number.length < 7) {
+    return false; // Number must be at least 7 digits
   }
- */
+  
+  final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+  final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+  return phoneNumberRegex.hasMatch(formattedNumber);
+}
+
+ 
   Future<void> _loadEmployeeId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -1487,7 +1487,7 @@ class _AddInformationPageState extends State<AddInformationPage> {
     final areaCode = _areaCodeController.text;
     final phoneNumber = _phoneController.text;
 
-/* // Email validation
+// Email validation
 if (!_isValidEmail(email)) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Invalid email format')),
@@ -1501,7 +1501,7 @@ if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
     const SnackBar(content: Text('Invalid phone number format')),
   );
   return;
-} */
+} 
 
     // Prepare the data to send
    final contactData = {
@@ -1522,11 +1522,14 @@ final response = await http.post(
 
 // Handle the response
 if (response.statusCode == 200) {
-  // Success logic here
-  print('Contacts added successfully');
+ ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information added successfully!')),
+      );
 } else {
   // Error handling
-  print('Failed to add contacts: ${response.body}');
+  ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error occured')),
+      );
 }
 
   }
