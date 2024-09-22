@@ -531,6 +531,18 @@ app.put('/users/:username', async (req, res) => {
         await transaction.begin();
         console.log('Transaction started');
 
+        // Fetch EmployeeID based on username
+        const employeeIdResult = await pool.request()
+            .input('username', sql.VarChar, username)
+            .query('SELECT EmployeeID FROM tblUsers WHERE Username = @username');
+        
+        if (employeeIdResult.recordset.length === 0) {
+            console.log('User not found');
+            return res.status(404).send('User not found');
+        }
+        
+        const employeeID = employeeIdResult.recordset[0].EmployeeID;
+
         const request = new sql.Request(transaction);
         let updates = [];
 
@@ -557,7 +569,7 @@ app.put('/users/:username', async (req, res) => {
             console.log('Updating password');
         }
 
-        // Complete the update query
+        // Complete the update query for tblUsers
         if (updates.length > 0) {
             const userUpdateQuery = `UPDATE tblUsers SET ${updates.join(', ')} WHERE Username = @username`;
             request.input('username', sql.VarChar, username);
@@ -579,7 +591,7 @@ app.put('/users/:username', async (req, res) => {
             `;
             await pool.request()
                 .input('emailAddress', sql.VarChar, email.emailAddress)
-                .input('employeeID', sql.UniqueIdentifier, username) // Use the relevant employee ID
+                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
                 .input('typeID', sql.Int, email.emailTypeID)
                 .query(emailQuery);
             console.log(`Updated email: ${email.emailAddress}`);
@@ -600,7 +612,7 @@ app.put('/users/:username', async (req, res) => {
             await pool.request()
                 .input('number', sql.VarChar, phoneNumber.number)
                 .input('areaCode', sql.VarChar, phoneNumber.areaCode)
-                .input('employeeID', sql.UniqueIdentifier, username) // Use the relevant employee ID
+                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
                 .input('typeID', sql.Int, phoneNumber.phoneTypeID)
                 .query(phoneQuery);
             console.log(`Updated phone number: ${phoneNumber.number}`);
@@ -625,7 +637,7 @@ app.put('/users/:username', async (req, res) => {
                 .input('postalCode', sql.VarChar, address.postalCode)
                 .input('country', sql.VarChar, address.country)
                 .input('addressTypeID', sql.Int, address.addressTypeID)
-                .input('employeeID', sql.UniqueIdentifier, username) // Use the relevant employee ID
+                .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
                 .query(addrQuery);
             console.log(`Updated address: ${JSON.stringify(address)}`);
         }
@@ -640,7 +652,6 @@ app.put('/users/:username', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
-
 
 
 
@@ -664,8 +675,8 @@ app.post('/emails', async (req, res) => {
 
         // SQL query to insert the email into tblEmails
         const query = `
-            INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID)
-            VALUES (@EmailAddress, @TypeID, @EmployeeID);
+            INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID, Valid)
+            VALUES (@EmailAddress, @TypeID, @EmployeeID, 1);
         `;
 
         // Execute the query with parameterized inputs
