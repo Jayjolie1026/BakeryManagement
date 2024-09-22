@@ -638,24 +638,7 @@ if (address) {
 
     console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
 
-    // Check if the address was updated; if not, insert a new one
-    if (updateResult.rowsAffected[0] === 0) {
-        const insertAddrQuery = `
-            INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID)
-            VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID);
-        `;
-        await pool.request()
-            .input('streetAddress', sql.VarChar, address.streetAddress)
-            .input('city', sql.VarChar, address.city)
-            .input('state', sql.VarChar, address.state)
-            .input('postalCode', sql.VarChar, address.postalCode)
-            .input('country', sql.VarChar, address.country)
-            .input('addressTypeID', sql.Int, 1)
-            .input('employeeID', sql.UniqueIdentifier, employeeID)
-            .query(insertAddrQuery);
-
-        console.log(`Inserted new address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
-    }
+ 
 }
 
 
