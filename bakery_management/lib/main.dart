@@ -874,6 +874,7 @@ bool _isValidEmail(String email) {
 
 
   String? _username; 
+  String? _employeeId; 
   List<dynamic> emails = [];
   List<dynamic> phoneNumbers = [];
   String? selectedEmail;
@@ -882,35 +883,59 @@ bool _isValidEmail(String email) {
   @override
   void initState() {
     super.initState();
+    _loadEmployeeId();
     _loadUsername(); // Load the username when the state is initialized
-      fetchContacts(_username); // Call fetchContacts on init
+      //fetchContacts(_username); // Call fetchContacts on init
   }
 
-  Future<void> fetchContacts(String? username) async {
-    print('Fetching contacts for username: $username');
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username/contacts'));
-   print('Response status code: ${response.statusCode}');
-  if (response.statusCode == 200) {
-     print('Response body: ${response.body}');
-    final data = jsonDecode(response.body);
-     setState(() {
-        emails = data['emails'] ?? [];
-        phoneNumbers = data['phoneNumbers'] ?? [];
+Future<void> _loadEmployeeId() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  setState(() {
+    _employeeId = prefs.getString('employeeId'); // Retrieve the stored employeeId
+    print('Employee ID: $_employeeId');
+  });
+
+  // Call fetchContacts after loading the employeeId
+  if (_employeeId != null) {
+    await fetchContacts(_employeeId);
+  } else {
+    print('Employee ID is null, cannot fetch contacts');
+  }
+}
+
+Future<void> _loadUsername() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username'); // Retrieve the stored username
+      print(_username);
+      // Optionally, you can set the username controller's text if you want to pre-fill it
+      _usernameController.text = _username ?? '';
       });
-    // Now you can use data['emails'] and data['phoneNumbers'] to display the contacts
+          
+  }
+  
+  Future<void> fetchContacts(String? employeeId) async {
+  print('Fetching contacts for employee ID: $employeeId');
+  final response = await http.get(
+    Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/employee/$employeeId/contacts')
+  );
+  
+  print('Response status code: ${response.statusCode}');
+  
+  if (response.statusCode == 200) {
+    print('Response body: ${response.body}');
+    final data = jsonDecode(response.body);
+    setState(() {
+      emails = data['emails'] ?? [];
+      phoneNumbers = data['phoneNumbers'] ?? [];
+    });
   } else {
     print('Failed to fetch contacts');
   }
 }
 
-  Future<void> _loadUsername() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _username = prefs.getString('username'); // Retrieve the stored username
-      // Optionally, you can set the username controller's text if you want to pre-fill it
-      _usernameController.text = _username ?? '';
-    });
-  }
+
+  
 
   Future<void> _updateUser() async {
     if (_username == null) {

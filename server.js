@@ -469,6 +469,7 @@ app.get('/employee/:id/contacts', async (req, res) => {
     const employeeID = req.params.id;
     console.log(`Fetching contacts for employee ID: ${employeeID}`); // Debug statement
     try {
+        const pool = await sql.connect(dbConfig);
         const emails = await pool.request()
             .input('employeeID', sql.UniqueIdentifier, employeeID)
             .query('SELECT EmailAddress, TypeID, Valid FROM tblEmails WHERE EmployeeID = @employeeID');
@@ -646,60 +647,70 @@ app.put('/users/:username', async (req, res) => {
 
 app.post('/emails', async (req, res) => {
     const { emailAddress, typeID, employeeID } = req.body;
-  
-    if (!emailAddress || !typeID || !employeeID) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-  
-    try {
-      // SQL query to insert the email into tblEmails
-      const query = `
-        INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID)
-        VALUES (@EmailAddress, @TypeID, @EmployeeID);
-      `;
-  
-      // Execute the query with parameterized inputs
-      await sql.query(query, {
-        EmailAddress: emailAddress,
-        TypeID: typeID,
-        EmployeeID: employeeID,
-      });
-  
-      res.status(200).json({ message: 'Email added successfully' });
-    } catch (error) {
-      console.error('Error adding email:', error);
-      res.status(500).json({ error: 'An error occurred while adding the email' });
-    }
-  });
 
-  app.post('/phonenumbers', async (req, res) => {
-    const { areaCode, phoneNumber, typeID, employeeID } = req.body;
-  
-    if (!areaCode || !phoneNumber || !typeID || !employeeID) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!emailAddress || !typeID || !employeeID) {
+        return res.status(400).json({ error: 'Missing required fields' });
     }
-  
+
     try {
-      // SQL query to insert the phone number into tblPhoneNumbers
-      const query = `
-        INSERT INTO tblPhoneNumbers (AreaCode, PhoneNumber, TypeID, EmployeeID, Valid)
-        VALUES (@AreaCode, @PhoneNumber, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
-      `;
-  
-      // Execute the query with parameterized inputs
-      await sql.query(query, {
-        AreaCode: areaCode,
-        PhoneNumber: phoneNumber,
-        TypeID: typeID,
-        EmployeeID: employeeID,
-      });
-  
-      res.status(200).json({ message: 'Phone number added successfully' });
+        // Connect to the database
+        const pool = await sql.connect(dbConfig);
+
+        // Create a request for the query
+        const request = pool.request();
+        request.input('EmailAddress', sql.VarChar, emailAddress);
+        request.input('TypeID', sql.Int, typeID);
+        request.input('EmployeeID', sql.UniqueIdentifier, employeeID); // Adjust type based on your schema
+
+        // SQL query to insert the email into tblEmails
+        const query = `
+            INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID)
+            VALUES (@EmailAddress, @TypeID, @EmployeeID);
+        `;
+
+        // Execute the query with parameterized inputs
+        await request.query(query);
+
+        res.status(200).json({ message: 'Email added successfully' });
     } catch (error) {
-      console.error('Error adding phone number:', error);
-      res.status(500).json({ error: 'An error occurred while adding the phone number' });
+        console.error('Error adding email:', error);
+        res.status(500).json({ error: 'An error occurred while adding the email' });
     }
-  });
+});
+
+app.post('/phonenumbers', async (req, res) => {
+    const { areaCode, phoneNumber, typeID, employeeID } = req.body;
+
+    if (!areaCode || !phoneNumber || !typeID || !employeeID) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // Connect to the database
+        const pool = await sql.connect(dbConfig);
+
+        // Create a request for the query
+        const request = pool.request();
+        request.input('AreaCode', sql.VarChar, areaCode);
+        request.input('PhoneNumber', sql.VarChar, phoneNumber);
+        request.input('TypeID', sql.Int, typeID);
+        request.input('EmployeeID', sql.UniqueIdentifier, employeeID); // Adjust type based on your schema
+
+        // SQL query to insert the phone number into tblPhoneNumbers
+        const query = `
+            INSERT INTO tblPhoneNumbers (AreaCode, PhoneNumber, TypeID, EmployeeID, Valid)
+            VALUES (@AreaCode, @PhoneNumber, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
+        `;
+
+        // Execute the query with parameterized inputs
+        await request.query(query);
+
+        res.status(200).json({ message: 'Phone number added successfully' });
+    } catch (error) {
+        console.error('Error adding phone number:', error);
+        res.status(500).json({ error: 'An error occurred while adding the phone number' });
+    }
+});
 
 // GET /users: Retrieve all users
 app.get('/users', async (req, res) => {
