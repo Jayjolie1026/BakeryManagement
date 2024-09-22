@@ -68,23 +68,36 @@ input[type="password"]:focus {
     outline: none;
 }
 
-/* Button Styles */
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #6E0D25;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+/* General button styling */
+.button {
+    width: 100%; /* Make the button take up the full width of the form */
+    padding: 15px; /* Increase padding for a more prominent button */
+    background-color: #774E24; /* Background color matching your theme */
+    color: #fff; /* White text for contrast */
+    border: none; /* Remove borders */
+    border-radius: 8px; /* Slightly rounded corners */
+    cursor: pointer; /* Pointer cursor for better UX */
+    font-size: 1.1rem; /* Make the text slightly bigger */
+    margin-top: 20px; /* Add margin for spacing from other elements */
+    transition: background-color 0.3s ease; /* Smooth hover transition */
 }
 
-button:hover {
-    background-color: #5a0a1c;
+.button:hover {
+    background-color: #9c2a3b; /* Darker shade on hover */
 }
 
-button:focus {
-    outline: none;
+/* Additional button for alternative actions */
+.button1 {
+    width: 100%; /* Same width as the primary button */
+    display: block;
+    text-align: center; /* Center align text */
+    text-decoration: none; /* Remove underline */
+    color: #774E24; /* Matching theme color */
+    background-color: transparent; /* No background */
+    margin-top: 15px; /* Add margin to separate from other elements */
+    font-size: 1rem; /* Slightly smaller font size */
+}
+
+.button1:hover {
+    color: #9c2a3b; /* Darken text color on hover */
 }

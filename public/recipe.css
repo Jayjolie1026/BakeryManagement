@@ -15,24 +15,13 @@
 }
 
 body {
-    background-image: url('login_bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background-color: rgb(228, 213, 194);
     color: #333;
     line-height: 1.6;
-    font-family: 'Playwrite BR', serif; /* Creative font choice for headers */
-    transition: opacity 1s ease-in-out;
 }
-
-/* Class that triggers the fade-out effect */
-body.fade-out {
-    opacity: 0;
-}
-
 
 .navbar {
-    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+    background: #baa384;
     height: 140px;
     display: flex;
     justify-content: center;
@@ -42,20 +31,20 @@ body.fade-out {
     top: 0;
     z-index: 1000;
     padding: 0 60px;
-    backdrop-filter: blur(10px); /* Adds a blur effect for better readability */
 }
 
+/* Navbar container */
 .navbar__container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 120%;
+    width: 100%;
     max-width: 1100px;
     margin: 0 auto;
-    position: relative;                
+    position: relative;
 }
 
-/*menu bar*/
+/* Menu bar */
 .navbar__menu {
     display: flex;
     align-items: center;
@@ -63,54 +52,53 @@ body.fade-out {
     text-align: center;
 }
 
-/*menu / front page*/
+/* Menu / front page links */
 .navbar__links {
+    text-decoration: none;
+    font-weight: 400;
     color: #000000;
     padding: 10px 15px;
     transition: color 0.3s ease;
     font-size: 1.1rem;
 }
 
-/* sign in button */
-.navbar__btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 2rem;
-    width: 30%;
-}
-
-/*sign in */
-.button {
-    display: flex;
-    align-items: center;
-    padding: 10px 20px;
-    text-decoration: #6E0D25;
-    height: 50px;
-    width: 100%;
-    border: 2px solid #fff;
-    outline: rgb(0, 0, 0);
-    border-radius: 5px;
-    background: transparent;
-    color:#6E0D25; 
-}
-
-.navbar__btn .button:hover {
-    background: bisque;
-    transition: all 0.3 ease;
-}
-
-/* transition color on menu bar*/
 .navbar__links:hover {
     color: bisque; 
     transition: all 0.5 ease;
 }
 
-/* header section */
+/* Log out button */
+.navbar__btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 1.5rem;
+}
+
+.button {
+    padding: 12px 20px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    height: 50px;
+    width: 100%;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    background-color: #774E24;
+    color: #ffffff; 
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.button:hover {
+    background-color: bisque;
+    color: #6E0D25;
+}
+
+/* Header section */
 .main {
     text-align: center;
     padding: 100px 20px;
-    background-color: rgb(193, 166, 133);
+    background-color: rgb(223, 202, 176);
 }
 
 .main__container {
@@ -128,33 +116,20 @@ body.fade-out {
     padding-right: 10px; /* Add space between text and image */
 }
 
-/*header line animation */
-@keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Animation for header 1 */
 .main__content h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: bold;
-    color: #ffffff; /* Changed to white for better contrast */
-    margin-bottom: 10px;
+    color: #492310;
+    margin-bottom: 1px;
     margin-left: 19px;
-    animation: fadeInUp 1.5s ease-in-out;
 }
-/* bread image */
+
+/* Bread image */
 .main__img {
     flex: 2; /* Image section will take up available space */
     display: flex;
-    justify-content:end; /* Align image to the right */
+    justify-content: end; /* Align image to the right */
 }
 
 .main__img img {
@@ -162,38 +137,16 @@ body.fade-out {
     border-radius: 50%; /* Circular style */
     margin-left: -200px;
     margin-bottom: -80px;
-    margin-right: 540px; /*move to the right*/
+    margin-right: 540px; /* Move to the right */
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* Animation for header 2 */
 .main__content h2 {
-    font-size: 2.5rem;
-    color: #746858; /* Softer color for header 2 */
-    margin-bottom: 30px;
+    font-size: 2.15rem;
+    color: #753623;
+    margin-bottom: 20px;
     margin-left: 10px;
     font-weight: 300;
-    animation: fadeInUp 2s ease-in-out; /* Delayed fade-in for creative effect */
-}
-
-/* Add animation to sign-in form */
-@keyframes fadeInRight {
-    0% {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.signin__container {
-    background-color: rgba(255, 255, 255, 0.9); /* Slight transparency for a modern look */
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 30px;
-    animation: fadeInRight 1.5s ease-in-out; /* Smooth slide-in effect */
 }
 
 /* Sign-in Form Section (Right Side) */
@@ -207,7 +160,7 @@ body.fade-out {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-left: 1050px; /* Adjust spacing from the text section */
     margin-bottom: 100px;
-    margin-top: -450px;
+    margin-top: -378px;
 }
 
 .signin__container h1 {
@@ -231,8 +184,9 @@ body.fade-out {
     border: 2px solid #ccc;
 }
 
+/* Sign-in button inside the form */
 .button {
-    width: 20%;
+    width: 100%;
     padding: 12px;
     background-color: #774E24;
     color: #fff;
@@ -254,4 +208,3 @@ body.fade-out {
     color: #774E24;
     margin-bottom: 10px;
 }
-
