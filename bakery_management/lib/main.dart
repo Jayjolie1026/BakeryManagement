@@ -5,8 +5,31 @@ import 'package:bakery_management/pages/vendors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/bakedgoods.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
+  void _logout(BuildContext context) async {
+    // Your logout logic here
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username'); // Clear the saved username
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
+  }
 
+  void _navigateToUserOptions(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const UserActionSelectionPage()),
+  );
+}
+
+  
+  Future<String?> getUsername() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('username');
+}
 void main() {
   runApp(const BakeryManagementApp());
 }
@@ -45,7 +68,6 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final _apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/login'); // Replace with your API URL
-
   Future<void> _signIn() async {
     final response = await http.post(
       _apiUrl,
@@ -59,10 +81,13 @@ class _SignInPageState extends State<SignInPage> {
     print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-    final responseBody = jsonDecode(response.body);
-    print('Decoded response body: $responseBody');
-    final employeeId = responseBody['employee_id'];
-    print('Employee ID: $employeeId');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+       await prefs.setString('username', _usernameController.text); 
+      final responseBody = jsonDecode(response.body);
+      print('Decoded response body: $responseBody');
+      final employeeId = responseBody['employee_id'];
+      await prefs.setString('employeeId', employeeId);
+      print('Employee ID: $employeeId');
 
     final sessionResponse = await http.post(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/sessions/start'),
@@ -99,6 +124,12 @@ class _SignInPageState extends State<SignInPage> {
       MaterialPageRoute(builder: (context) => const CreateAccountPage()),
     );
   }
+  void _navigateToForgotPassword() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+  );
+}
 
 @override
 Widget build(BuildContext context) {
@@ -167,7 +198,14 @@ Widget build(BuildContext context) {
           ),
           
           const SizedBox(height: 10),
-          
+          // Forgot Password Button
+          TextButton(
+            onPressed: _navigateToForgotPassword,
+            child: const Text(
+              'Forgot Password?',
+              style: TextStyle(color: Colors.blue),
+            ),
+          ),
           // Create Account Button
           ElevatedButton(
             onPressed: _navigateToCreateAccount,
@@ -204,6 +242,28 @@ class BakeryHomePage extends StatelessWidget {
       ),
         centerTitle: true,
         backgroundColor: const Color(0xFF422308), //const Color(0xFF422308)
+         leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu),
+          onSelected: (value) {
+            if (value == 'logout') {
+              _logout(context);
+            } else if (value == 'userOptions') {
+              _navigateToUserOptions(context);
+            }
+          },
+          itemBuilder: (BuildContext context) {
+            return [
+              const PopupMenuItem<String>(
+                value: 'userOptions',
+                child: Text('User Options'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ];
+          },
+        ),
       ),
       backgroundColor: const Color(0xFFEEC07B),
       body: Padding(
@@ -684,4 +744,883 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     ),
   );
 }
+}
+
+class ForgotPasswordPage extends StatefulWidget {
+  const ForgotPasswordPage({super.key});
+
+  @override
+  _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final TextEditingController _emailController = TextEditingController();
+
+  Future<void> _resetPassword() async {
+    final response = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': _emailController.text}),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset link sent to your email')),
+      );
+      Navigator.pop(context); // Return to Sign In page
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send password reset link')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Forgot Password')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Enter your email address and we will send you a link to reset your password.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _resetPassword,
+              child: const Text('Send Reset Link'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class UserOptionsPage extends StatefulWidget {
+  const UserOptionsPage({Key? key}) : super(key: key);
+
+  @override
+  _UserOptionsPageState createState() => _UserOptionsPageState();
+}
+class _UserOptionsPageState extends State<UserOptionsPage> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _areaCodeController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _streetAddressController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+  final int _selectedAddressType = 1; // Default or user-selected
+  final int _selectedPhoneType =1;
+  final int _selectedEmailType = 1;
+  String?_selectedState;
+  final List<String> _states = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 
+    'CO', 'CT', 'DE', 'FL', 'GA', 
+    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 
+    'KY', 'LA', 'ME', 'MD', 'MA', 
+    'MI', 'MN', 'MS', 'MO', 'MT', 
+    'NE', 'NV', 'NH', 'NJ', 'NM', 
+    'NY', 'NC', 'ND', 'OH', 'OK', 
+    'OR', 'PA', 'RI', 'SC', 'SD', 
+    'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 
+    'WV', 'WI', 'WY'
+  ];
+
+bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool _isValidPhoneNumber(String areaCode, String number) {
+    print('Area Code: $areaCode');
+    print('Number: $number');
+    
+    if (number.length < 7) {
+      print('Number is too short');
+      return false;
+    }
+    
+    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+    print('Formatted Number: $formattedNumber');
+    return phoneNumberRegex.hasMatch(formattedNumber);
+  }
+
+  bool isValidPostalCode(String postalCode) {
+    final postalCodeRegex = RegExp(r'^\d{5}$'); // Matches exactly 5 digits
+    return postalCodeRegex.hasMatch(postalCode);
+  }
+
+  bool isValidPassword(String password) {
+    final passwordRegex = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    return passwordRegex.hasMatch(password);
+  }
+
+
+  String? _username; 
+  List<dynamic> emails = [];
+  List<dynamic> phoneNumbers = [];
+  String? selectedEmail;
+  String? selectedPhoneNumber;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername(); // Load the username when the state is initialized
+      fetchContacts(_username); // Call fetchContacts on init
+  }
+
+  Future<void> fetchContacts(String? username) async {
+    print('Fetching contacts for username: $username');
+  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username/contacts'));
+   print('Response status code: ${response.statusCode}');
+  if (response.statusCode == 200) {
+     print('Response body: ${response.body}');
+    final data = jsonDecode(response.body);
+     setState(() {
+        emails = data['emails'] ?? [];
+        phoneNumbers = data['phoneNumbers'] ?? [];
+      });
+    // Now you can use data['emails'] and data['phoneNumbers'] to display the contacts
+  } else {
+    print('Failed to fetch contacts');
+  }
+}
+
+  Future<void> _loadUsername() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username'); // Retrieve the stored username
+      // Optionally, you can set the username controller's text if you want to pre-fill it
+      _usernameController.text = _username ?? '';
+    });
+  }
+
+  Future<void> _updateUser() async {
+    if (_username == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username not found')),
+      );
+      return;
+    }
+final email = _emailController.text;
+final areaCode = _areaCodeController.text;
+final phoneNumber = _phoneNumberController.text;
+final postalCode = _postalCodeController.text;
+final password = _passwordController.text;
+// Email validation
+if (!_isValidEmail(email)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Invalid email format')),
+  );
+  return;
+}
+
+// Phone number validation
+if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Invalid phone number format')),
+  );
+  return;
+}
+
+// Postal code validation
+if (!isValidPostalCode(postalCode)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
+  );
+  return;
+}
+
+// Password validation
+if (!isValidPassword(password)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
+  );
+  return;
+}
+    final response = await http.put(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+        'email': {
+        'emailAddress': _emailController.text,
+        'emailTypeID': _selectedEmailType,  // Add dropdown or fixed value for email type
+      },
+        'phoneNumber': {
+        'areaCode': _areaCodeController.text,  // Separate area code
+        'number': _phoneNumberController.text,
+        'phoneTypeID': _selectedPhoneType,  // Add dropdown or fixed value for phone type
+      },
+        'address': {
+        'streetAddress': _streetAddressController.text,
+        'city': _cityController.text,
+        'state': _stateController.text,
+        'postalCode': _postalCodeController.text,
+        'country': _countryController.text,
+        'addressTypeID': _selectedAddressType,
+      }
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User updated successfully')),
+      );
+      Navigator.pop(context); // Go back to the previous screen
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update user')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+                  controller: _firstNameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'First Name', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _lastNameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Last Name', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _usernameController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Username',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                TextField(
+                  controller: _passwordController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'Password', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: selectedEmail,
+                  hint: const Text('Select Email'),
+                  items: emails.map((email) {
+                    return DropdownMenuItem<String>(
+                      value: email['EmailID'].toString(), // Use EmailID for value
+                      child: Text(email['EmailAddress']),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedEmail = value;
+                      // Optionally, set the email controller to the selected email
+                      _emailController.text = emails.firstWhere((email) => email['EmailID'].toString() == value)['EmailAddress'];
+                    });
+                  },
+                ),
+                 DropdownButton<String>(
+                  value: selectedPhoneNumber,
+                  hint: const Text('Select Phone Number'),
+                  items: phoneNumbers.map((phone) {
+                    return DropdownMenuItem<String>(
+                      value: phone['PhoneNumberID'].toString(), // Use PhoneNumberID for value
+                      child: Text('${phone['AreaCode']} - ${phone['Number']}'), // Display formatted phone number
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedPhoneNumber = value;
+                      // Optionally, set the area code and phone number controllers to the selected values
+                      final selectedPhone = phoneNumbers.firstWhere((phone) => phone['PhoneNumberID'].toString() == value);
+                      _areaCodeController.text = selectedPhone['AreaCode'];
+                      _phoneNumberController.text = selectedPhone['Number'];
+                    });
+                  },
+                ),
+                        TextField(
+                          controller: _streetAddressController,
+                          style: const TextStyle(color: Color(0xFF6D3200)),
+                          decoration: const InputDecoration(labelText: 'Street Address',
+                          labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                            focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                            ),
+                          ),
+                        ),
+              TextField(
+                  controller: _cityController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'City',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
+                child: Theme(
+                  data: ThemeData(
+                    hintColor: const Color(0xFFEEC07B), 
+                    
+
+                  ),
+                  child: DropdownButton<String>(
+                    value: _selectedState,
+                    hint: const Text(
+                      'Select State',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Hint text color
+                        fontFamily: 'MyFont',
+                      ),
+                    ),
+                    items: _states.map((state) {
+                      return DropdownMenuItem<String>(
+                        value: state,
+                        child: Text(
+                          state,
+                          style: const TextStyle(color: Color(0xFF6D3200),
+                          fontFamily: 'MyFont',), // Dropdown item text color
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedState = newValue;
+                         _stateController.text = newValue ?? '';
+                      });
+                    },
+                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                    style: const TextStyle(
+                      color: Color(0xFFEEC07B), // Text color of the selected item
+                      fontSize: 16, // Text size of the selected item
+                    ),
+                    underline: Container(
+                      height: 2,
+                      color: const Color(0xFF6D3200), // Underline color
+                    ),
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Color(0xFF6D3200), // Arrow color
+                      ),
+                  ),
+                ),
+              ),     
+              TextField(
+                  controller: _postalCodeController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Postal Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+              ),
+              TextField(
+                  controller: _countryController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'County',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+              ),
+            const SizedBox(height: 20),
+            Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              // Cancel Button
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Go back to the previous page
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Color(0xFF6D3200),
+                      backgroundColor: Colors.transparent, // No background color
+                      shadowColor: Colors.transparent,
+                ),
+                child: const Text('Cancel'),
+              ),
+              // Update User Button
+              ElevatedButton(
+                onPressed: _updateUser,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308), // Background color
+                  foregroundColor: const Color(0xFFEEC07B), // Text color
+                ),
+                child: const Text('Update User'),
+              ),
+            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class UserActionSelectionPage extends StatelessWidget {
+  const UserActionSelectionPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(  // Center the entire content
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,  // Allows the column to take minimum space
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'What would you like to do?',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF6D3200),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to the update page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UserOptionsPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308),
+                  foregroundColor: const Color(0xFFEEC07B),
+                ),
+                child: const Text('Update Information'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to the add page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddInformationPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308),
+                  foregroundColor: const Color(0xFFEEC07B),
+                ),
+                child: const Text('Add Information'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Color(0xFF6D3200),
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+class AddInformationPage extends StatefulWidget {
+  const AddInformationPage({Key? key}) : super(key: key);
+
+  @override
+  _AddInformationPageState createState() => _AddInformationPageState();
+}
+
+class _AddInformationPageState extends State<AddInformationPage> {
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _areaCodeController = TextEditingController();
+
+  String? _selectedEmailType;
+  String? _selectedPhoneType;
+  String? employeeId;
+
+  final List<String> emailTypes = ['Personal', 'Work', 'Billing', 'Support', 'Other'];
+  final List<String> phoneTypes = ['Mobile', 'Home', 'Work', 'Fax', 'Other'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmployeeId(); // Load the employee ID when the page initializes
+  }
+
+bool _isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  bool _isValidPhoneNumber(String areaCode, String number) {
+    print('Area Code: $areaCode');
+    print('Number: $number');
+    
+    if (number.length < 7) {
+      print('Number is too short');
+      return false;
+    }
+    
+    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+    print('Formatted Number: $formattedNumber');
+    return phoneNumberRegex.hasMatch(formattedNumber);
+  }
+
+  Future<void> _loadEmployeeId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      employeeId = prefs.getString('employeeId'); // Retrieve the employee ID
+    });
+  }
+
+
+  Future<void> _addInformation() async {
+    final email = _emailController.text;
+    final areaCode = _areaCodeController.text;
+    final phoneNumber = _phoneController.text;
+
+// Email validation
+if (!_isValidEmail(email)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Invalid email format')),
+  );
+  return;
+}
+
+// Phone number validation
+if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Invalid phone number format')),
+  );
+  return;
+}
+
+    // Prepare the data to send
+    final emailData = {
+      'emailAddress': _emailController.text,
+      'typeID': _getEmailTypeID(_selectedEmailType),
+      'employeeID': employeeId, // Replace with actual employeeID
+    };
+
+    final phoneData = {
+      'areaCode': _areaCodeController.text,
+      'phoneNumber': _phoneController.text,
+      'typeID': _getPhoneTypeID(_selectedPhoneType),
+      'employeeID': employeeId, // Replace with actual employeeID
+    };
+
+    // Send the data to your API endpoint
+    final responseEmail = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/emails'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(emailData),
+    );
+
+    final responsePhone = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/phonenumbers'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(phoneData),
+    );
+
+    if (responseEmail.statusCode == 200 && responsePhone.statusCode == 200) {
+      // Handle successful response
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Information added successfully!')),
+      );
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add information')),
+      );
+    }
+  }
+
+  int _getEmailTypeID(String? type) {
+    switch (type) {
+      case 'Personal':
+        return 1;
+      case 'Work':
+        return 2;
+      case 'Billing':
+        return 3;
+      case 'Support':
+        return 4;
+      case 'Other':
+        return 5;
+      default:
+        return 1; // Default to Personal
+    }
+  }
+
+  int _getPhoneTypeID(String? type) {
+    switch (type) {
+      case 'Mobile':
+        return 1;
+      case 'Home':
+        return 2;
+      case 'Work':
+        return 3;
+      case 'Fax':
+        return 4;
+      case 'Other':
+        return 5;
+      default:
+        return 1; // Default to Mobile
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Email field
+           TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(labelText: 'Email', 
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                  ),
+                ),
+            // Email type dropdown
+
+            
+            DropdownButton<String>(
+              value: _selectedEmailType,
+              hint: const Text(
+                'Select Email Type',
+                style: TextStyle(
+                  color: Color(0xFF6D3200), // Hint text color
+                  fontFamily: 'MyFont',
+                ),
+              ),
+              items: emailTypes.map((String type) {
+                return DropdownMenuItem<String>(
+                  value: type,
+                  child: Text(
+                    type,
+                    style: const TextStyle(
+                      color: Color(0xFF6D3200), // Dropdown item text color
+                      fontFamily: 'MyFont',
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedEmailType = newValue;
+                });
+              },
+              dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+              style: const TextStyle(
+                color: Color(0xFFEEC07B), // Text color of the selected item
+                fontSize: 16, // Text size of the selected item
+              ),
+              underline: Container(
+                height: 2,
+                color: const Color(0xFF6D3200), // Underline color
+              ),
+              icon: const Icon(
+                Icons.arrow_drop_down,
+                color: Color(0xFF6D3200), // Arrow color
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            // Phone area code field
+            TextField(
+                  controller: _areaCodeController,  // Controller for the area code
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(
+                    labelText: 'Area Code',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,  // Set input type to number for area code
+                ),
+
+                TextField(
+                  controller: _phoneController,  // Controller for the remaining phone number
+                  style: const TextStyle(color: Color(0xFF6D3200)),
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number',
+                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,  // Set input type to phone for phone number
+                ),
+            // Phone type dropdown
+            DropdownButton<String>(
+              value: _selectedPhoneType,
+              hint: const Text(
+                'Select Phone Type',
+                style: TextStyle(
+                  color: Color(0xFF6D3200), // Hint text color
+                  fontFamily: 'MyFont',
+                ),
+              ),
+                items: phoneTypes.map((String type) {
+                  return DropdownMenuItem<String>(
+                    value: type,
+                    child: Text(
+                      type,
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dropdown item text color
+                        fontFamily: 'MyFont',
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                setState(() {
+                  _selectedPhoneType = newValue;
+                });
+              },
+              dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+              style: const TextStyle(
+                color: Color(0xFFEEC07B), // Text color of the selected item
+                fontSize: 16, // Text size of the selected item
+              ),
+              underline: Container(
+                height: 2,
+                color: const Color(0xFF6D3200), // Underline color
+              ),
+              icon: const Icon(
+                Icons.arrow_drop_down,
+                color: Color(0xFF6D3200), // Arrow color
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            // Add Information button
+             Row(
+                mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
+                children: [
+                  // Add Information button
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Color(0xFF6D3200),
+                      backgroundColor: Colors.transparent, // No background color
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 20), // Space between buttons
+                  // Cancel button
+                  ElevatedButton(
+                    onPressed: _addInformation,
+                    child: const Text('Add Information'),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Color(0xFFEEC07B),
+                      backgroundColor: const Color(0xFF422308),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }

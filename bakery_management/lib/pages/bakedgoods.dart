@@ -454,7 +454,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           fontSize: 20,
           color: Color(0xFF6D3200),
         ),
-        textAlign: TextAlign.center,
+        textAlign: TextAlign.left,
       );
     } else if (product.quantity < product.remakeAmount) {
       return const Text(
@@ -463,46 +463,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           fontSize: 20,
           color: Color(0xFF6D3200),
         ),
-        textAlign: TextAlign.center,
+        textAlign: TextAlign.left,
       );
     }
     return const SizedBox(); // Return an empty widget if no warnings
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      
-      backgroundColor: const Color(0xFFF0D1A0),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Centered Image
-              Container(
-                height: 150,
-                width: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(_getProductImage()),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product name as a header
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _product.name,
+              style: const TextStyle(
+                fontSize: 30,
+                color: Color(0xFF6D3200),
+                fontWeight: FontWeight.bold,
               ),
-              // Display Product Information
-              Text(
-                '${_product.name}',
-                style: const TextStyle(
-                  fontSize: 25,
-                  color: Color(0xFF6D3200),
-                  fontWeight: FontWeight.bold, // Bold product name
-                ),
-                textAlign: TextAlign.center,
-              ),
+              textAlign: TextAlign.left,
+            ),
+          ),
+          // Product image
+          SizedBox(
+            width: double.infinity,
+            height: 250, // Set the height of the image
+            child: Image.asset(
+              _getProductImage(),
+              fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+            ),
+          ),
               const SizedBox(height: 10),
               Text.rich(
                 TextSpan(
@@ -516,7 +512,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
               const SizedBox(height: 10),
               Text.rich(
@@ -539,7 +535,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
               const SizedBox(height: 10),
               Text.rich(
@@ -562,7 +558,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
               const SizedBox(height: 10),
               Text.rich(
@@ -585,7 +581,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
               const SizedBox(height: 10),
               Text.rich(
@@ -608,9 +604,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
@@ -631,7 +627,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
               ),
               const SizedBox(height: 10),
               _buildQuantityWarning(_product),
@@ -755,7 +751,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ],
           ),
         ),
-      ),
+
     );
   }
 }

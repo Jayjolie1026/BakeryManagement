@@ -103,7 +103,7 @@ class _VendorsPageState extends State<VendorsPage> {
     Icons.add,
     color: Color(0xFFEEC07B), // Light brown icon color
       ),
-      backgroundColor: const Color(0xFF6D3200),),
+      backgroundColor: const Color(0xFF422308),),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 

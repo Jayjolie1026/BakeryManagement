@@ -464,6 +464,25 @@ app.post('/users', async (req, res) => {
     }
 });
 
+// Endpoint to get emails and phone numbers for a specific employee
+app.get('/employee/:id/contacts', async (req, res) => {
+    const employeeID = req.params.id;
+    console.log(`Fetching contacts for employee ID: ${employeeID}`); // Debug statement
+    try {
+        const emails = await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
+            .query('SELECT EmailAddress, TypeID, Valid FROM tblEmails WHERE EmployeeID = @employeeID');
+        console.log('Fetched emails:', emails.recordset);
+        const phoneNumbers = await pool.request()
+            .input('employeeID', sql.UniqueIdentifier, employeeID)
+            .query('SELECT Number, AreaCode, TypeID, Valid FROM tblPhoneNumbers WHERE EmployeeID = @employeeID');
+            console.log('Fetched phone numbers:', phoneNumbers.recordset);
+        res.json({ emails: emails.recordset, phoneNumbers: phoneNumbers.recordset });
+    } catch (error) {
+        console.error('Error fetching contacts:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 // DELETE /users/username/:username: Remove a user by username
@@ -498,7 +517,10 @@ app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
     const { firstName, lastName, newUsername, password, address, phoneNumbers, emails } = req.body;
 
+    console.log(`Updating user: ${username}`); // Debug statement
+
     if (!username || (!firstName && !lastName && !newUsername && !password && !address && !phoneNumbers && !emails)) {
+        console.log('Validation failed: No fields to update provided'); // Debug statement
         return res.status(400).send('Username and at least one field to update are required');
     }
 
@@ -508,6 +530,7 @@ app.put('/users/:username', async (req, res) => {
         // Start transaction
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
+        console.log('Transaction started'); // Debug statement
 
         const request = new sql.Request(transaction);
 
@@ -518,19 +541,23 @@ app.put('/users/:username', async (req, res) => {
         if (firstName) {
             query += 'FirstName = @firstName, ';
             parameters.push({ name: 'firstName', type: sql.VarChar, value: firstName });
+            console.log(`Updating firstName: ${firstName}`); // Debug statement
         }
         if (lastName) {
             query += 'LastName = @lastName, ';
             parameters.push({ name: 'lastName', type: sql.VarChar, value: lastName });
+            console.log(`Updating lastName: ${lastName}`); // Debug statement
         }
         if (newUsername) {
             query += 'Username = @newUsername, ';
             parameters.push({ name: 'newUsername', type: sql.VarChar, value: newUsername });
+            console.log(`Updating newUsername: ${newUsername}`); // Debug statement
         }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             query += 'Password = @password, ';
             parameters.push({ name: 'password', type: sql.VarChar, value: hashedPassword });
+            console.log('Updating password'); // Debug statement
         }
 
         query = query.slice(0, -2);
@@ -538,10 +565,12 @@ app.put('/users/:username', async (req, res) => {
         parameters.push({ name: 'username', type: sql.VarChar, value: username });
 
         parameters.forEach(param => request.input(param.name, param.type, param.value));
+        console.log('Executing user update query:', query); // Debug statement
         await request.query(query);
 
         // Update user address
         if (address) {
+            console.log(`Updating address for user: ${username}`); // Debug statement
             for (const addr of address) {
                 const addrQuery = `
                     UPDATE tblAddresses 
@@ -557,11 +586,14 @@ app.put('/users/:username', async (req, res) => {
                     .input('AddressID', sql.Int, addr.AddressID)
                     .input('username', sql.VarChar, username)
                     .query(addrQuery);
+
+                console.log(`Updated address: ${JSON.stringify(addr)}`); // Debug statement
             }
         }
 
         // Update user phone numbers
         if (phoneNumbers) {
+            console.log(`Updating phone numbers for user: ${username}`); // Debug statement
             for (const phone of phoneNumbers) {
                 const phoneQuery = `
                     UPDATE tblPhoneNumbers 
@@ -574,11 +606,14 @@ app.put('/users/:username', async (req, res) => {
                     .input('PhoneNumberID', sql.Int, phone.PhoneNumberID)
                     .input('username', sql.VarChar, username)
                     .query(phoneQuery);
+
+                console.log(`Updated phone number: ${JSON.stringify(phone)}`); // Debug statement
             }
         }
 
         // Update user emails
         if (emails) {
+            console.log(`Updating emails for user: ${username}`); // Debug statement
             for (const email of emails) {
                 const emailQuery = `
                     UPDATE tblEmails 
@@ -590,22 +625,81 @@ app.put('/users/:username', async (req, res) => {
                     .input('EmailID', sql.Int, email.EmailID)
                     .input('username', sql.VarChar, username)
                     .query(emailQuery);
+
+                console.log(`Updated email: ${JSON.stringify(email)}`); // Debug statement
             }
         }
 
         // Commit transaction
         await transaction.commit();
+        console.log('Transaction committed'); // Debug statement
         res.send('User updated successfully');
     } catch (error) {
         // Rollback transaction in case of error
         await transaction.rollback();
+        console.error('Transaction rolled back due to error:', error); // Error log
         res.status(500).send(error.message);
     }
 });
 
 
 
+app.post('/emails', async (req, res) => {
+    const { emailAddress, typeID, employeeID } = req.body;
+  
+    if (!emailAddress || !typeID || !employeeID) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+  
+    try {
+      // SQL query to insert the email into tblEmails
+      const query = `
+        INSERT INTO tblEmails (EmailAddress, TypeID, EmployeeID)
+        VALUES (@EmailAddress, @TypeID, @EmployeeID);
+      `;
+  
+      // Execute the query with parameterized inputs
+      await sql.query(query, {
+        EmailAddress: emailAddress,
+        TypeID: typeID,
+        EmployeeID: employeeID,
+      });
+  
+      res.status(200).json({ message: 'Email added successfully' });
+    } catch (error) {
+      console.error('Error adding email:', error);
+      res.status(500).json({ error: 'An error occurred while adding the email' });
+    }
+  });
 
+  app.post('/phonenumbers', async (req, res) => {
+    const { areaCode, phoneNumber, typeID, employeeID } = req.body;
+  
+    if (!areaCode || !phoneNumber || !typeID || !employeeID) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+  
+    try {
+      // SQL query to insert the phone number into tblPhoneNumbers
+      const query = `
+        INSERT INTO tblPhoneNumbers (AreaCode, PhoneNumber, TypeID, EmployeeID, Valid)
+        VALUES (@AreaCode, @PhoneNumber, @TypeID, @EmployeeID, 1);  -- Assuming 'Valid' is a boolean field
+      `;
+  
+      // Execute the query with parameterized inputs
+      await sql.query(query, {
+        AreaCode: areaCode,
+        PhoneNumber: phoneNumber,
+        TypeID: typeID,
+        EmployeeID: employeeID,
+      });
+  
+      res.status(200).json({ message: 'Phone number added successfully' });
+    } catch (error) {
+      console.error('Error adding phone number:', error);
+      res.status(500).json({ error: 'An error occurred while adding the phone number' });
+    }
+  });
 
 // GET /users: Retrieve all users
 app.get('/users', async (req, res) => {
@@ -728,7 +822,61 @@ app.post('/login', async (req, res) => {
 });
  
 
-
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // Or use another email service
+    auth: {
+      user: 'your-email@gmail.com',
+      pass: 'your-email-password',
+    },
+  });
+  
+  // Password Reset Endpoint
+  app.post('/reset-password', async (req, res) => {
+    const { email } = req.body;
+  
+    if (!email) {
+      return res.status(400).send({ message: 'Email is required' });
+    }
+  
+    try {
+      // Connect to your database
+      const pool = await sql.connect(dbConfig);
+  
+      // Check if the email exists in your Users table
+      const result = await pool
+        .request()
+        .input('email', sql.VarChar, email)
+        .query('SELECT * FROM Users WHERE email = @email');
+  
+      if (result.recordset.length === 0) {
+        return res.status(404).send({ message: 'Email not found' });
+      }
+  
+      // Generate a reset token (this could also be stored in the database if needed)
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetLink = `https://yourfrontend.com/reset-password?token=${resetToken}`; // Link to your frontend
+  
+      // TODO: Save the reset token to the database (with expiration time)
+  
+      // Send the reset email
+      const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: email,
+        subject: 'Password Reset Request',
+        text: `You have requested to reset your password. Please click on the link below to reset your password: ${resetLink}`,
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      // Respond with success
+      res.status(200).send({ message: 'Password reset link has been sent to your email' });
+    } catch (err) {
+      console.error('Error processing password reset:', err);
+      res.status(500).send({ message: 'An error occurred while processing your request' });
+    }
+  });
+  
+ 
 
 
 
