@@ -624,8 +624,8 @@ if (address) {
     // First try to update the existing address
     const updateAddrQuery = `
         UPDATE tblAddresses
-        SET StreetAddress = @streetAddress, City = @city, State = @state, PostalCode = @postalCode, Country = @country,
-        WHERE EmployeeID = @employeeID AND StreetAddress = @streetAddress;
+        SET StreetAddress = @streetAddress, City = @city, State = @state, PostalCode = @postalCode, Country = @country
+        WHERE EmployeeID = @employeeID;
     `;
     const updateResult = await pool.request()
         .input('streetAddress', sql.VarChar, address.streetAddress)
