@@ -617,29 +617,57 @@ app.put('/users/:username', async (req, res) => {
                 .query(phoneQuery);
             console.log(`Updated phone number: ${phoneNumber.number}`);
         }
-
-        // Handle address updates
-        // Handle address updates
-if (address) {
-    // First try to update the existing address
-    const updateAddrQuery = `
-        UPDATE tblAddresses
-        SET StreetAddress = @streetAddress, City = @city, State = @state, PostalCode = @postalCode, Country = @country
-        WHERE EmployeeID = @employeeID;
-    `;
-    const updateResult = await pool.request()
-        .input('streetAddress', sql.VarChar, address.streetAddress)
-        .input('city', sql.VarChar, address.city)
-        .input('state', sql.VarChar, address.state)
-        .input('postalCode', sql.VarChar, address.postalCode)
-        .input('country', sql.VarChar, address.country)
-        .input('employeeID', sql.UniqueIdentifier, employeeID)
-        .query(updateAddrQuery);
-
-    console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
-
- 
-}
+        if (address) {
+            // Start building the update query
+            let updateSet = [];
+            const updateParams = {
+                employeeID: employeeID
+            };
+        
+            // Check each address field and add to the update query if it's provided
+            if (address.streetAddress) {
+                updateSet.push('StreetAddress = @streetAddress');
+                updateParams.streetAddress = address.streetAddress;
+            }
+            if (address.city) {
+                updateSet.push('City = @city');
+                updateParams.city = address.city;
+            }
+            if (address.state) {
+                updateSet.push('State = @state');
+                updateParams.state = address.state;
+            }
+            if (address.postalCode) {
+                updateSet.push('PostalCode = @postalCode');
+                updateParams.postalCode = address.postalCode;
+            }
+            if (address.country) {
+                updateSet.push('Country = @country');
+                updateParams.country = address.country;
+            }
+        
+            // Only proceed if there are fields to update
+            if (updateSet.length > 0) {
+                const updateAddrQuery = `
+                    UPDATE tblAddresses
+                    SET ${updateSet.join(', ')}
+                    WHERE EmployeeID = @employeeID;
+                `;
+                
+                const request = pool.request();
+                // Add all the parameters to the request
+                for (const [key, value] of Object.entries(updateParams)) {
+                    request.input(key, sql.VarChar, value);
+                }
+        
+                const updateResult = await request.query(updateAddrQuery);
+        
+                console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
+            } else {
+                console.log('No address fields to update.');
+            }
+        }
+        
 
 
         // Commit the transaction
