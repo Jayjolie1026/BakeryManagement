@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+// Adds ingredient to database, then opens dialog to add the item to inventory
 Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) async {
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -163,45 +164,43 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
         ElevatedButton(
           onPressed: () async {
             // Create new ingredient instance
-              final response = await http.post(
-                Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
-                body: jsonEncode({
-                  'name': nameController.text,
-                  'description': descriptionController.text,
-                  'category': categoryController.text,
-                  'measurement': measurementController.text,
-                  'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
-                  'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
-                  'minAmount': double.tryParse(minAmountController.text) ?? 0,
-                  'vendorID': int.tryParse(vendorIDController.text) ?? 19,
-                }),
-                headers: {"Content-Type": "application/json"},
-              );
-              print('Request body: ${response.body}');
+            final response = await http.post(
+              Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
+              body: jsonEncode({
+                'name': nameController.text,
+                'description': descriptionController.text,
+                'category': categoryController.text,
+                'measurement': measurementController.text,
+                'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
+                'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
+                'minAmount': double.tryParse(minAmountController.text) ?? 0,
+                'vendorID': int.tryParse(vendorIDController.text) ?? 19,
+              }),
+              headers: {"Content-Type": "application/json"},
+            );
+            print('Request body: ${response.body}');
 
+            if (response.statusCode == 201) {
+              // Parse the response body to extract the ingredient_id
+              final Map<String, dynamic> responseData = jsonDecode(response.body);
+              print('Response data: $responseData'); // Debugging step
+              final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
 
-              // TODO: receive ingredient ID and pass it to showAddInventoryItemDialog
-              if (response.statusCode == 201) {
-                // Parse the response body to extract the ingredient_id
-                final Map<String, dynamic> responseData = jsonDecode(response.body);
-                print('Response data: $responseData'); // Debugging step
-                final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
+              Navigator.of(context).pop(); // Close the ingredient dialog
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));
 
-                Navigator.of(context).pop(); // Close the ingredient dialog
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));
-
-                // Now show the inventory item dialog
-                await showAddInventoryItemDialog(context, ingredientID);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add ingredient item')));
-                throw Exception('Failed to add ingredient: ${response.body}');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6D3200), // Background color of the button
-              foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
-            ),
-            child: const Text('Add'),
+              // Now show the inventory item dialog
+              await showAddInventoryItemDialog(context, ingredientID);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add ingredient item')));
+              throw Exception('Failed to add ingredient: ${response.body}');
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6D3200), // Background color of the button
+            foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
+          ),
+          child: const Text('Add'),
         ),
       ],
     ),
@@ -356,19 +355,20 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
                 'ingredient_id': ingredientID,
                 'quantity': int.tryParse(quantityController.text) ?? 0,
                 'cost': double.tryParse(costController.text) ?? 0,
-                'notes': notesController.text ?? '',
-                createDateTime: createDateTime.toIso8601String(),
-                expireDateTime: expireDateTime.toIso8601String(),
+                'notes': notesController.text,
+                'create_datetime': createDateTime.toIso8601String(),
+                'expire_datetime': expireDateTime.toIso8601String(),
               }),
               headers: {"Content-Type": "application/json"},
             );
+            print('Response: ${response.body}');
 
             if (response.statusCode == 201) {
               Navigator.of(context).pop(); // Close the inventory dialog
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventory item added')));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add inventory item')));
-              throw Exception('Failed to add ingredient: ${response.body}');
+              throw Exception('Failed to add inventory item: ${response.body}');
             }
 
           },
@@ -382,6 +382,78 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
     ),
   );
 }
+
+
+// temporary code to delete item
+// Future<void> showDeleteIngredientDialog(BuildContext context, Function onDelete) {
+//   final TextEditingController ingredientController = TextEditingController();
+//
+//   return showDialog<void>(
+//     context: context,
+//     builder: (BuildContext context) {
+//       return AlertDialog(
+//         title: const Text('Delete Ingredient'),
+//         content: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: <Widget>[
+//             const Text('Enter the name of the ingredient you want to delete:'),
+//             const SizedBox(height: 10),
+//             TextField(
+//               controller: ingredientController,
+//               decoration: const InputDecoration(
+//                 border: OutlineInputBorder(),
+//                 labelText: 'Ingredient Name',
+//               ),
+//             ),
+//           ],
+//         ),
+//         actions: <Widget>[
+//           TextButton(
+//             child: const Text('Cancel'),
+//             onPressed: () {
+//               Navigator.of(context).pop(); // Close the dialog
+//             },
+//           ),
+//           TextButton(
+//             child: const Text('Delete'),
+//             onPressed: () async {
+//               final String ingredientName = Uri.encodeComponent(ingredientController.text.trim());
+//
+//               if (ingredientName.isNotEmpty) {
+//                 final invResponse = await http.delete(
+//                   Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/name/$ingredientName'),
+//                 );
+//
+//                 if (invResponse.statusCode != 200) {
+//                   throw Exception('Failed to delete inventory item');
+//                 } else {
+//                   print('Inventory item deleted successfully');
+//                 }
+//
+//                 final ingResponse = await http.delete(
+//                   Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients/$ingredientName'),
+//                 );
+//
+//                 if (ingResponse.statusCode != 200) {
+//                   throw Exception('Failed to delete ingredient');
+//                 } else {
+//                   print('Ingredient deleted successfully');
+//                 }
+//
+//                 Navigator.of(context).pop(); // Close the dialog after deleting
+//               } else {
+//                 // Optionally show an error message if the input is empty
+//                 ScaffoldMessenger.of(context).showSnackBar(
+//                   const SnackBar(content: Text('Please enter an ingredient name')),
+//                 );
+//               }
+//             },
+//           )
+//         ],
+//       );
+//     },
+//   );
+// }
 
 // Function to format dates
 String formatDate(DateTime dateTime) {

@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:bakery_management/pages/bakedgoods.dart';
+import 'dart:ffi';
+import 'bakedgoods.dart';
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
@@ -87,62 +88,97 @@ class _InventoryPageState extends State<InventoryPage> {
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),
         ),
         floatingActionButtonLocation:
-            FloatingActionButtonLocation.centerFloat, // Center at the bottom
-      );
+        FloatingActionButtonLocation.centerFloat, // Center at the bottom
+
+      // --------------------temporary code to delete items------------------------------
+      //   floatingActionButton: Row(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: [
+      //       FloatingActionButton.extended(
+      //         onPressed: () => showAddIngredientDialog(context, () {
+      //           // Refresh the inventory list after adding new item
+      //           setState(() {
+      //             init();
+      //           });
+      //         }), // Open form for new ingredient
+      //         label: const Text('Add Ingredient'),
+      //         icon: const Icon(Icons.add),
+      //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+      //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+      //       ),
+      //       const SizedBox(width: 16),
+      //       FloatingActionButton.extended(
+      //         onPressed: () {
+      //           showDeleteIngredientDialog(context, () {
+      //             setState(() {
+      //               init();
+      //             });
+      //           });
+      //         },
+      //         label: const Text('Delete Ingredient'),
+      //         icon: const Icon(Icons.delete),
+      //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+      //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),            ),
+      //     ],
+      //   ),
+      //   floatingActionButtonLocation:
+      //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
+
+  );
 
   // Search bar widget
   Widget buildSearch() => SearchWidget(
-      text: query, hintText: 'Search by Name', onChanged: searchItem);
+    text: query, hintText: 'Search by Name', onChanged: searchItem);
 
   // Search for an item by query
   Future searchItem(String query) async => debounce(() async {
-        final items = await InventoryApi.getItems(query);
+    final items = await InventoryApi.getItems(query);
 
-        if (!mounted) return;
+    if (!mounted) return;
 
-        setState(() {
-          this.query = query;
-          this.items = items;
-        });
-      });
+    setState(() {
+      this.query = query;
+      this.items = items;
+    });
+  });
 
-// Build list tile for each inventory item
+  // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItemDetailPage(item: item),
-            ),
-          );
-          if (result == true) {
-            init();
-          }
-        },
-        child: Card(
-          color: const Color(0xFF6D3200),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-          elevation: 4,
-          child: Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-            child: Center(
-              // Use Center to ensure the text is aligned properly within the card
-              child: Text(
-                item.ingredientName,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 243, 217, 162),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemDetailPage(item: item),
+        ),
+      );
+      if (result == true) {
+        init();
+      }
+    },
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+      elevation: 4,
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          // Use Center to ensure the text is aligned properly within the card
+          child: Text(
+            item.ingredientName,
+            style: const TextStyle(
+              color: Color.fromARGB(255, 243, 217, 162),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // Item Detail Page
