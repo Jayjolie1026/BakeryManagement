@@ -155,7 +155,7 @@ class _VendorsPageState extends State<VendorsPage> {
           vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
           style: const TextStyle(
             color: Color(0xFFEEC07B),
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),

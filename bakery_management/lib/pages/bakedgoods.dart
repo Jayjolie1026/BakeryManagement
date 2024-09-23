@@ -335,7 +335,7 @@ class _ProductsPageState extends State<ProductsPage> {
             product.name,
             style: const TextStyle(
               color: Color(0xFFEEC07B),  // Light brown text color
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
