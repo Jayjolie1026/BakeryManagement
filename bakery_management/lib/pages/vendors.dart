@@ -140,14 +140,7 @@ Future<void> _refreshVendors() async {
     }
   });
 
-  Widget buildItem(Vendor vendor) => Card(
-  color: const Color(0xFF6D3200),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(50),
-  ),
-  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-  elevation: 4,
-  child: GestureDetector(
+  Widget buildItem(Vendor vendor) => GestureDetector(
     onTap: () async {
       final result = await Navigator.push(
         context,
@@ -159,22 +152,29 @@ Future<void> _refreshVendors() async {
         _refreshVendors(); // Refresh the list if there were changes
       }
     },
-    child: Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-      child: Center(
-        child: Text(
-          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
-          style: const TextStyle(
-            color: Color(0xFFEEC07B),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+     elevation: 4,
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+            style: const TextStyle(
+              color: Color(0xFFEEC07B),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     ),
-  ),
-);
+  );
 }
 
 class VendorDetailsPage extends StatelessWidget {

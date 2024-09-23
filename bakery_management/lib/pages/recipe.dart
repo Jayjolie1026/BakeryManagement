@@ -109,24 +109,27 @@ class _RecipePageState extends State<RecipePage> {
   });
   
   // Build list tile for each inventory item
-  Widget buildItem(Item item) => Card(
-    color: const Color(0xFF6D3200),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50),
-    ),
-    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-    elevation: 4,
-    child: GestureDetector(
-      onTap: () {
-        // Navigate to the DetailedRecipePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID),
-            //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
-          ),
-        );
-      },
+  Widget buildItem(Item item) => GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+      // Navigate to the DetailedRecipePage
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID),
+          //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
+        ),
+      );
+      if (result == true) {
+        init();
+      }
+    },
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+      elevation: 4,
       child: Container(
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
