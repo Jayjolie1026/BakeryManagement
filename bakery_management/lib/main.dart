@@ -51,7 +51,7 @@ class BakeryManagementApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: const BakeryHomePage(),
+      home: const SignInPage(),
     );
   }
 }
