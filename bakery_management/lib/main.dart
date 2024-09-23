@@ -147,7 +147,7 @@ Widget build(BuildContext context) {
         children: [
           // Add the image here
           Image.asset(
-            'assets/chatlogo.png',
+            'assets/logo1.png',
             height: 207,
           ),
           const SizedBox(height: 20), // Spacing between image and form fields
@@ -234,10 +234,6 @@ class BakeryHomePage extends StatelessWidget {
       flexibleSpace: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
-          child: Image.asset(
-            'assets/chatlogo.png',
-            height: 70,
-          ),
         ),
       ),
         centerTitle: true,
