@@ -82,7 +82,12 @@ class _InventoryPageState extends State<InventoryPage> {
               init();
             });
           }), // Open form for new ingredient
-          label: const Text('Add Ingredient'),
+          label: const Text('Add Ingredient',
+          style: const TextStyle(
+            color: Color(0xFFEEC07B),
+            fontSize: 17,
+          ),
+          ),
           icon: const Icon(Icons.add),
           backgroundColor: const Color(0xFF422308),  // Dark brown background
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),
