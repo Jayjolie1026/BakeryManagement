@@ -111,7 +111,7 @@ class _VendorsPageState extends State<VendorsPage> {
     text: query,
     hintText: 'Search by Vendor',
     onChanged: searchVendor,
-    backgroundColor: Color(0XFFEEC07B)
+    backgroundColor: const Color(0XFFEEC07B)
   );
 
   Future<void> searchVendor(String query) async => debounce(() async {
@@ -200,7 +200,7 @@ class VendorDetailsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          '${vendor.vendorName}',
+                          vendor.vendorName,
                           style: const TextStyle(
                             color: Color(0xFF6D3200), // Dark brown
                             fontSize: 30,
@@ -212,7 +212,7 @@ class VendorDetailsPage extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: <TextSpan>[
-                              TextSpan(
+                              const TextSpan(
                                 text: 'ID: ',
                                 style: TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
@@ -235,7 +235,7 @@ class VendorDetailsPage extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: <TextSpan>[
-                              TextSpan(
+                              const TextSpan(
                                 text: 'Phone:\n',
                                 style: TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
@@ -260,7 +260,7 @@ class VendorDetailsPage extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: <TextSpan>[
-                              TextSpan(
+                              const TextSpan(
                                 text: 'Email:\n',
                                 style: TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
@@ -285,7 +285,7 @@ class VendorDetailsPage extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             children: <TextSpan>[
-                              TextSpan(
+                              const TextSpan(
                                 text: 'Address:\n',
                                 style: TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
@@ -320,8 +320,8 @@ class VendorDetailsPage extends StatelessWidget {
                                 }
                               },
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                                foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                                backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                                foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                               ),
                               child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -347,8 +347,8 @@ class VendorDetailsPage extends StatelessWidget {
                                 }
                               },
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                                foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                                backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                                foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                               ),
                               child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -379,16 +379,16 @@ class VendorDetailsPage extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop(); // Close the page
                         },
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                        ),
                           child: const Text(
                             'Close',
                             style: TextStyle(
                               fontSize: 17, // Font size
                             ),
                           ),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                          foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                        ),
                       ),
                     ),
                   ),

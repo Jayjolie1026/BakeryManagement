@@ -807,7 +807,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
 
 class UserOptionsPage extends StatefulWidget {
-  const UserOptionsPage({Key? key}) : super(key: key);
+  const UserOptionsPage({super.key});
 
   @override
   _UserOptionsPageState createState() => _UserOptionsPageState();
@@ -1333,7 +1333,7 @@ if (!isValidPassword(password)) {
                   Navigator.pop(context); // Go back to the previous page
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFF6D3200),
                       backgroundColor: Colors.transparent, // No background color
                       shadowColor: Colors.transparent,
                 ),
@@ -1357,7 +1357,7 @@ if (!isValidPassword(password)) {
   }
 }
 class UserActionSelectionPage extends StatelessWidget {
-  const UserActionSelectionPage({Key? key}) : super(key: key);
+  const UserActionSelectionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1412,7 +1412,7 @@ class UserActionSelectionPage extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFF6D3200),
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                 ),
@@ -1430,7 +1430,7 @@ class UserActionSelectionPage extends StatelessWidget {
 
 
 class AddInformationPage extends StatefulWidget {
-  const AddInformationPage({Key? key}) : super(key: key);
+  const AddInformationPage({super.key});
 
   @override
   _AddInformationPageState createState() => _AddInformationPageState();
@@ -1720,7 +1720,7 @@ if (response.statusCode == 200) {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFF6D3200),
                       backgroundColor: Colors.transparent, // No background color
                       shadowColor: Colors.transparent,
                     ),
@@ -1730,11 +1730,11 @@ if (response.statusCode == 200) {
                   // Cancel button
                   ElevatedButton(
                     onPressed: _addInformation,
-                    child: const Text('Add Information'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Color(0xFFEEC07B),
+                      foregroundColor: const Color(0xFFEEC07B),
                       backgroundColor: const Color(0xFF422308),
                     ),
+                    child: const Text('Add Information'),
                   ),
                 ],
               ),

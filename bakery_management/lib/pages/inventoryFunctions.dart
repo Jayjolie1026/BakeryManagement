@@ -188,12 +188,12 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
                 final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
 
                 Navigator.of(context).pop(); // Close the ingredient dialog
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingredient item added')));
 
                 // Now show the inventory item dialog
                 await showAddInventoryItemDialog(context, ingredientID);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add ingredient item')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add ingredient item')));
                 throw Exception('Failed to add ingredient: ${response.body}');
               }
             },
@@ -217,7 +217,7 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
   DateTime createDateTime = DateTime.now();
   DateTime expireDateTime = DateTime.now();
 
-  void _selectDate(BuildContext context, bool isCreateDate) async {
+  void selectDate(BuildContext context, bool isCreateDate) async {
     DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
 
     DateTime? selectedDate = await showDatePicker(
@@ -309,13 +309,13 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Color(0xFF6D3200),
+                      foregroundColor: const Color(0xFF6D3200),
                       side: const BorderSide(
                         color: Color(0xFF6D3200), // Border color
                         width: 1.5, // Border width
                       ),
                     ),
-                    onPressed: () => _selectDate(context, true),
+                    onPressed: () => selectDate(context, true),
                     child: const Text('Created'),
                   ),
                 ),
@@ -329,7 +329,7 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
                         width: 1.5, // Border width
                       ),
                     ),
-                    onPressed: () => _selectDate(context, false),
+                    onPressed: () => selectDate(context, false),
                     child: const Text('Expires'),
                   ),
                 ),
@@ -365,9 +365,9 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
 
             if (response.statusCode == 201) {
               Navigator.of(context).pop(); // Close the inventory dialog
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Inventory item added')));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventory item added')));
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add inventory item')));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to add inventory item')));
               throw Exception('Failed to add ingredient: ${response.body}');
             }
 

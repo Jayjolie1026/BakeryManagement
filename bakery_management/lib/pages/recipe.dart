@@ -4,7 +4,6 @@ import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
 import 'recipeFunctions.dart';
 import 'inventorySearchWidget.dart';
-import 'package:http/http.dart' as http;
 
 
 

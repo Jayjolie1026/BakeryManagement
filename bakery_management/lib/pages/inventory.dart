@@ -286,7 +286,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => VendorsPage(), // TODO: send user to corresponding vendor
+                        builder: (context) => const VendorsPage(), // TODO: send user to corresponding vendor
                       ),
                     );
                   },

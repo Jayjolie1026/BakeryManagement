@@ -504,7 +504,7 @@ Widget build(BuildContext context) {
                 TextSpan(
                   children: <TextSpan>[
                     TextSpan(
-                      text: '${_product.description}',
+                      text: _product.description,
                       style: const TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
                         fontSize: 20,
@@ -518,7 +518,7 @@ Widget build(BuildContext context) {
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
-                    TextSpan(
+                    const TextSpan(
                       text: 'Max Amount:\n',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
@@ -541,7 +541,7 @@ Widget build(BuildContext context) {
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
-                    TextSpan(
+                    const TextSpan(
                       text: 'Remake Amount:\n',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
@@ -564,7 +564,7 @@ Widget build(BuildContext context) {
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
-                    TextSpan(
+                    const TextSpan(
                       text: 'Min Amount:\n',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
@@ -587,7 +587,7 @@ Widget build(BuildContext context) {
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
-                    TextSpan(
+                    const TextSpan(
                       text: 'Quantity:\n',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
@@ -610,7 +610,7 @@ Widget build(BuildContext context) {
               Text.rich(
                 TextSpan(
                   children: <TextSpan>[
-                    TextSpan(
+                    const TextSpan(
                       text: 'Price:\n',
                       style: TextStyle(
                         color: Color(0xFF6D3200), // Dark brown
@@ -730,19 +730,19 @@ Widget build(BuildContext context) {
                     onPressed: () {
                       Navigator.pop(context, true); // Close the page
                     },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                      foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                      shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      )),
+                    ),
                     child: const Text(
                       'Close',
                       style: TextStyle(
                         fontSize: 17, // Font size
                         color: Color(0xFFEEC07B), // Light brown text
                       ),
-                    ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                      foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      )),
                     ),
                   ),
                 ),
