@@ -54,14 +54,23 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          toolbarHeight: 100,
-          title: Image.asset(
-            'assets/inventory_logo.png',
-            height: 100,
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/inventory.png',
+            height: 100,  // Matching the height from VendorsPage
           ),
-          centerTitle: true,
-          backgroundColor: const Color(0xFFF0D1A0),
-        ),
+          const SizedBox(height: 10),
+        ],
+      ),
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Dark brown back button color
+      ),
+    ),
         backgroundColor: const Color(0xFFF0D1A0),
         body: Column(
           children: <Widget>[

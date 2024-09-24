@@ -135,7 +135,7 @@ class _SignInPageState extends State<SignInPage> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: const Text("Welcome to Big Baller Bakery!"),
+      title: const Text("Welcome to Flour & Fantasy!"),
       centerTitle: true,
       backgroundColor: const Color(0xFF422308),
       foregroundColor: const Color(0xFFEEC07B),
