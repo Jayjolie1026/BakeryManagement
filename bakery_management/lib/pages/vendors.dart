@@ -6,11 +6,14 @@ import 'dart:async';
 import 'inventorySearchWidget.dart';
 
 class VendorsPage extends StatefulWidget {
-  const VendorsPage({super.key});
+  final int? vendorID;  // Add vendorID as an optional parameter
+
+  const VendorsPage({super.key, this.vendorID});  // Add vendorID to the constructor
 
   @override
   _VendorsPageState createState() => _VendorsPageState();
 }
+
 
 class _VendorsPageState extends State<VendorsPage> {
   List<Vendor> vendors = [];
@@ -36,22 +39,31 @@ class _VendorsPageState extends State<VendorsPage> {
     debouncer = Timer(duration, callback);
   }
 
-  Future<void> _refreshVendors() async {
-    setState(() {
-      query = ''; // Clear the search query
-      vendors = []; // Clear the existing vendor list
-    });
+Future<void> _refreshVendors() async {
+  setState(() {
+    query = ''; // Clear the search query
+    vendors = []; // Clear the existing vendor list
+  });
 
-    try {
-      final updatedVendors = await VendorsApi().fetchVendors();
+  try {
+    final updatedVendors = await VendorsApi().fetchVendors();
+
+    // If vendorID is provided, filter the list to only include that vendor
+    if (widget.vendorID != null) {
       setState(() {
-        vendors = updatedVendors; // Update the vendor list with fresh data
+        vendors = updatedVendors
+            .where((vendor) => vendor.vendorID == widget.vendorID)
+            .toList();
       });
-    } catch (e) {
-      print('Error fetching vendors: $e');
+    } else {
+      setState(() {
+        vendors = updatedVendors; // Show all vendors if no specific vendorID
+      });
     }
+  } catch (e) {
+    print('Error fetching vendors: $e');
   }
-
+}
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -128,14 +140,7 @@ class _VendorsPageState extends State<VendorsPage> {
     }
   });
 
-  Widget buildItem(Vendor vendor) => Card(
-  color: const Color(0xFF6D3200),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(50),
-  ),
-  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-  elevation: 4,
-  child: GestureDetector(
+  Widget buildItem(Vendor vendor) => GestureDetector(
     onTap: () async {
       final result = await Navigator.push(
         context,
@@ -147,22 +152,29 @@ class _VendorsPageState extends State<VendorsPage> {
         _refreshVendors(); // Refresh the list if there were changes
       }
     },
-    child: Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-      child: Center(
-        child: Text(
-          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
-          style: const TextStyle(
-            color: Color(0xFFEEC07B),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+     elevation: 4,
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+            style: const TextStyle(
+              color: Color(0xFFEEC07B),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     ),
-  ),
-);
+  );
 }
 
 class VendorDetailsPage extends StatelessWidget {

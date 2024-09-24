@@ -1,11 +1,15 @@
 import 'dart:async';
-import 'package:bakery_management/pages/bakedgoods.dart';
+import 'dart:ffi';
+import 'package:bakery_management/pages/vendorsItemClass.dart';
+
+import 'bakedgoods.dart';
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
 import 'inventoryFunctions.dart';
 import 'package:intl/intl.dart';
 import 'vendors.dart';
+import 'vendorsAPI.dart';
 
 // Inventory Page
 class InventoryPage extends StatefulWidget {
@@ -83,11 +87,45 @@ class _InventoryPageState extends State<InventoryPage> {
           }), // Open form for new ingredient
           label: const Text('Add Ingredient'),
           icon: const Icon(Icons.add),
-          backgroundColor: const Color(0xFF422308),  // Dark brown background
+          backgroundColor: const Color(0xFF422308), // Dark brown background
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),
         ),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.centerFloat, // Center at the bottom
+
+        // --------------------temporary code to delete items------------------------------
+        //   floatingActionButton: Row(
+        //     mainAxisAlignment: MainAxisAlignment.center,
+        //     children: [
+        //       FloatingActionButton.extended(
+        //         onPressed: () => showAddIngredientDialog(context, () {
+        //           // Refresh the inventory list after adding new item
+        //           setState(() {
+        //             init();
+        //           });
+        //         }), // Open form for new ingredient
+        //         label: const Text('Add Ingredient'),
+        //         icon: const Icon(Icons.add),
+        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+        //       ),
+        //       const SizedBox(width: 16),
+        //       FloatingActionButton.extended(
+        //         onPressed: () {
+        //           showDeleteIngredientDialog(context, () {
+        //             setState(() {
+        //               init();
+        //             });
+        //           });
+        //         },
+        //         label: const Text('Delete Ingredient'),
+        //         icon: const Icon(Icons.delete),
+        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),            ),
+        //     ],
+        //   ),
+        //   floatingActionButtonLocation:
+        //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
       );
 
   // Search bar widget
@@ -106,7 +144,7 @@ class _InventoryPageState extends State<InventoryPage> {
         });
       });
 
-// Build list tile for each inventory item
+  // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
         onTap: () async {
           final result = await Navigator.push(
@@ -281,14 +319,40 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                 const SizedBox(width: 4), // Spacer between Update and Vendor
                 // Vendor button
                 ElevatedButton(
-                  onPressed: () {
-                    // Navigate to the Vendor page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const VendorsPage(), // TODO: send user to corresponding vendor
-                      ),
-                    );
+                  onPressed: () async {
+                    try {
+                      // Assuming _item.vendorID holds the vendor ID
+                      final Vendor vendor =
+                          await VendorsApi().fetchVendorDetails(_item.vendorID);
+
+                      // After successfully fetching the vendor, navigate to the VendorDetailsPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              VendorDetailsPage(vendor: vendor),
+                        ),
+                      );
+                    } catch (e) {
+                      // Handle the error if the vendor details couldn't be fetched
+                      print('Failed to load vendor details: $e');
+                      // You might want to show an error dialog or message to the user
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Error'),
+                          content: const Text('Failed to load vendor details.'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6D3200),

@@ -19,8 +19,13 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         const result = await response.text();
   
         if (response.ok) {
-            // Login successful; redirect to recipe.html using a GET request
-            window.location.href = 'recipe.html'; // This triggers a GET request to the recipe page
+            // Login successful; add fade-out effect
+            document.body.classList.add('fade-out');
+            
+            // Wait for the fade-out to complete, then redirect to recipe.html
+            setTimeout(() => {
+                window.location.href = 'recipe.html'; // This triggers a GET request to the recipe page
+            }, 1000); // 1 second delay for fade-out effect
         } else {
             // Login failed; display the error message
             document.getElementById('responseMessage').textContent = `Login failed: ${result}`;
@@ -30,4 +35,4 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         console.error('Error during login:', error);
         document.getElementById('responseMessage').textContent = 'Error during login.';
     }
-  });
+});
