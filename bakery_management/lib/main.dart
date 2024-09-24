@@ -223,21 +223,49 @@ Widget build(BuildContext context) {
 }
 
 
-class BakeryHomePage extends StatelessWidget {
+class BakeryHomePage extends StatefulWidget {
   const BakeryHomePage({super.key});
+
+  @override
+  _BakeryHomePageState createState() => _BakeryHomePageState();
+}
+
+class _BakeryHomePageState extends State<BakeryHomePage> {
+  int _selectedIndex = 0; // Track selected tab
+
+  // List of pages corresponding to each tab (Home, Vendors, Recipes, Inventory, Baked Goods, Options)
+  final List<Widget> _pages = [
+    const HomePage(),          // New Home Page
+    const VendorsPage(),
+    const RecipePage(),
+    const InventoryPage(),
+    const ProductsPage(),
+    const OptionsPage(),       // Options Page for handling user options and logout
+  ];
+
+  // Handler for when a bottom navigation item is tapped
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: null, // Remove the title to use FlexibleSpaceBar
-      flexibleSpace: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+        flexibleSpace: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+            child: Image.asset(
+              'assets/chatlogo.png',
+              height: 70,
+            ),
+          ),
         ),
-      ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF422308), //const Color(0xFF422308)
+        backgroundColor: const Color(0xFF422308),
          leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu),
           onSelected: (value) {
@@ -261,80 +289,130 @@ class BakeryHomePage extends StatelessWidget {
           },
         ),
       ),
-      backgroundColor: const Color(0xFFEEC07B),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 2, // Two columns
-                crossAxisSpacing: 16, // Space between columns
-                mainAxisSpacing: 16, // Space between rows
-                children: [
-                  _buildGridButton(
-                    context,
-                    'assets/vendor2.png',
-                    '',
-                    const VendorsPage(),
-                  ),
-                  _buildGridButton(
-                    context,
-                    'assets/recipe2.png',
-                    '',
-                    const RecipePage(),
-                  ),
-                  _buildGridButton(
-                    context,
-                    'assets/inventory2.png',
-                    '',
-                    const InventoryPage(),
-                  ),
-                  _buildGridButton(
-                    context,
-                    'assets/bakedgoods2.png',
-                    '',
-                    const ProductsPage(), // Replace with the appropriate page for baked goods
-                  ),
-                ],
-              ),
-            ),
-               Expanded(
-              flex: 1, // Gives 1 part of the available space to the image
-              child: Image.asset(
-                'assets/bread2.png', // Path to your bread image
-                fit: BoxFit.cover,   // Make the image cover the available space
-                width: double.infinity, // Make the image stretch across the screen width
-              ),
-            ),
-          ],
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: _pages[_selectedIndex], // Display the selected page
+
+      // Bottom navigation bar
+bottomNavigationBar: BottomNavigationBar(
+  type: BottomNavigationBarType.fixed, // Ensures background color is applied
+  backgroundColor: const Color(0xFF422308), // Dark brown background color
+  selectedItemColor: const Color(0xFFEEC07B), // Light brown text for selected item
+  unselectedItemColor: const Color(0xFFB89C78), // Light brown text for unselected items
+  showSelectedLabels: true, // Always show full label for selected tab
+  showUnselectedLabels: true, // Always show full label for unselected tabs
+  items: const <BottomNavigationBarItem>[
+    BottomNavigationBarItem(
+      icon: Icon(Icons.home),
+      label: 'Home',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.store),
+      label: 'Vendors',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.book),
+      label: 'Recipes',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.inventory),
+      label: 'Stock', // Ensure the full label is displayed
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.cake),
+      label: 'Treats', // Ensure the full label is displayed
+    ),
+   // BottomNavigationBarItem(
+     // icon: Icon(Icons.settings),
+      //label: 'Options',
+    //),
+  ],
+  currentIndex: _selectedIndex, // Highlight the selected tab
+  onTap: _onItemTapped, // Handle tab tap
+),
+
+    );
+  }
+}
+
+// Home Page widget
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Welcome to the \n Big Baller Bakery!',
+        style: TextStyle(
+          fontSize: 24,
+          color: Colors.brown[900], // Dark brown text
         ),
       ),
     );
   }
-  Widget _buildGridButton(BuildContext context, String imagePath, String label, Widget page) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
+}
+
+// Options Page for handling User Options and Logout
+class OptionsPage extends StatelessWidget {
+  const OptionsPage({super.key});
+
+  void _logout(BuildContext context) {
+    // Implement your logout logic here
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Logout'),
+              onPressed: () {
+                // Perform logout action here
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
         );
       },
+    );
+  }
+
+  void _navigateToUserOptions(BuildContext context) {
+    // Implement navigation to user options page
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserOptionsPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.cover,
+          ElevatedButton(
+            onPressed: () => _navigateToUserOptions(context),
+            child: const Text('User Options'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF422308), // Dark brown button
+              foregroundColor: const Color(0xFFEEC07B), // Light brown text
             ),
           ),
-          const SizedBox(height: 8), // Space between image and text
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,           // Adjust text size as needed
-              color: Colors.white,    // Adjust text color as needed
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => _logout(context),
+            child: const Text('Logout'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF422308), // Dark brown button
+              foregroundColor: const Color(0xFFEEC07B), // Light brown text
             ),
           ),
         ],
@@ -342,6 +420,25 @@ class BakeryHomePage extends StatelessWidget {
     );
   }
 }
+
+// User Options Page (you can customize it further)
+class UserOptionssPage extends StatelessWidget {
+  const UserOptionssPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Options'),
+        backgroundColor: const Color(0xFF422308),
+      ),
+      body: Center(
+        child: const Text('User Options Page Content'),
+      ),
+    );
+  }
+}
+
 
 
 

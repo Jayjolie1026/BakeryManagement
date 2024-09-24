@@ -53,14 +53,14 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
+    appBar: AppBar(
       toolbarHeight: 125,
       title: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/inventory.png',
-            height: 100,  // Matching the height from VendorsPage
+            'assets/inventory_logo.png',
+            height: 150,
           ),
           const SizedBox(height: 10),
         ],
@@ -68,8 +68,8 @@ class _InventoryPageState extends State<InventoryPage> {
       centerTitle: true,
       backgroundColor: const Color(0xFFF0D1A0),
       iconTheme: const IconThemeData(
-        color: Color(0xFF6D3200), // Dark brown back button color
-      ),
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
     ),
         backgroundColor: const Color(0xFFF0D1A0),
         body: Column(
@@ -94,7 +94,12 @@ class _InventoryPageState extends State<InventoryPage> {
               init();
             });
           }), // Open form for new ingredient
-          label: const Text('Add Ingredient'),
+          label: const Text('Add Ingredient',
+          style: const TextStyle(
+            color: Color(0xFFEEC07B),
+            fontSize: 17,
+          ),
+          ),
           icon: const Icon(Icons.add),
           backgroundColor: const Color(0xFF422308), // Dark brown background
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),

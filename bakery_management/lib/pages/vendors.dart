@@ -4,6 +4,7 @@ import 'vendorsFunctions.dart';
 import 'vendorsItemClass.dart';
 import 'dart:async';
 import 'inventorySearchWidget.dart';
+import 'package:url_launcher/url_launcher.dart'; // For launching phone and email
 
 class VendorsPage extends StatefulWidget {
   final int? vendorID;  // Add vendorID as an optional parameter
@@ -152,24 +153,16 @@ Future<void> _refreshVendors() async {
         _refreshVendors(); // Refresh the list if there were changes
       }
     },
-    child: Card(
-      color: const Color(0xFF6D3200),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(50),
-      ),
-     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-     elevation: 4,
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-        child: Center(
-          child: Text(
-            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
-            style: const TextStyle(
-              color: Color(0xFFEEC07B),
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    child: Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+      child: Center(
+        child: Text(
+          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+          style: const TextStyle(
+            color: Color(0xFFEEC07B),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -186,6 +179,22 @@ class VendorDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0D1A0),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF0D1A0),
+        elevation: 0,
+        toolbarHeight: 100,
+        title: Image.asset(
+          'assets/vendor2.png',
+          height: 100,
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF6D3200)), // Back button
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
       body: FutureBuilder<Vendor>(
         future: fetchVendorDetails(vendor.vendorID),
         builder: (BuildContext context, AsyncSnapshot<Vendor> snapshot) {
@@ -195,217 +204,204 @@ class VendorDetailsPage extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Color(0xFF6D3200))));
           } else if (snapshot.hasData) {
             final vendor = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        const SizedBox(height: 50),
-                        Image.asset(
-                          'assets/vendor.png', // Replace with your image asset
-                          height: 100,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          vendor.vendorName,
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200), // Dark brown
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text.rich(
-                          TextSpan(
-                            children: <TextSpan>[
-                              const TextSpan(
-                                text: 'ID: ',
-                                style: TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold, // Bold heading
-                                ),
-                              ),
-                              TextSpan(
-                                text: '${vendor.vendorID}',
-                                style: const TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text.rich(
-                          TextSpan(
-                            children: <TextSpan>[
-                              const TextSpan(
-                                text: 'Phone:\n',
-                                style: TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold, // Bold heading
-                                ),
-                              ),
-                              TextSpan(
-                                text: vendor.phoneNumbers.isNotEmpty
-                                  ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)} '
-                                  : 'No phone number available',
-                                style: const TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text.rich(
-                          TextSpan(
-                            children: <TextSpan>[
-                              const TextSpan(
-                                text: 'Email:\n',
-                                style: TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold, // Bold heading
-                                ),
-                              ),
-                              TextSpan(
-                                text: vendor.emails.isNotEmpty
-                                  ? vendor.emails.first.emailAddress
-                                  : 'No email provided',
-                                style: const TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 10),
-                        Text.rich(
-                          TextSpan(
-                            children: <TextSpan>[
-                              const TextSpan(
-                                text: 'Address:\n',
-                                style: TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold, // Bold heading
-                                ),
-                              ),
-                              TextSpan(
-                                text: vendor.addresses.isNotEmpty
-                                  ? '${vendor.addresses.first.streetAddress}\n${vendor.addresses.first.city}, ${vendor.addresses.first.state}\n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
-                                  : 'No address provided',
-                                style: const TextStyle(
-                                  color: Color(0xFF6D3200), // Dark brown
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 25),
-                        
-                        // Row for buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start, // Aligns all children to the left
                           children: <Widget>[
-                            ElevatedButton(
-                              onPressed: () async {
-                                final updatedVendor = await handleEditVendor(context, vendor);
-                                if (updatedVendor) {
-                                  Navigator.of(context).pop(true); // Return true to indicate update
-                                }
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                                foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                            // Centered Vendor Name
+                            Center(
+                              child: Text(
+                                '${vendor.vendorName}',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200), // Dark brown
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.add, color: Color(0xFFEEC07B)), // Light brown icon color
-                                SizedBox(width: 8), // Spacing between icon and text
-                                Text(
-                                  'Update',
-                                  style: TextStyle(
-                                    fontSize: 17, // Consistent font size
-                                    color: Color(0xFFEEC07B), // Light brown text
-                                                          ),
-                                                        ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Vendor ID
+                            Text(
+                              'ID:',
+                              style: const TextStyle(
+                                color: Color(0xFF6D3200), // Dark brown
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0), // Indent the details
+                              child: Text(
+                                '${vendor.vendorID}',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Phone Number
+                            Text(
+                              'Phone:',
+                              style: const TextStyle(
+                                color: Color(0xFF6D3200),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: InkWell(
+                                onTap: vendor.phoneNumbers.isNotEmpty
+                                    ? () => launchUrl(Uri.parse('sms:${vendor.phoneNumbers.first.phoneNumber}'))
+                                    : null,
+                                child: Text(
+                                  vendor.phoneNumbers.isNotEmpty
+                                      ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)}'
+                                      : 'No phone number available',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6D3200),
+                                    fontSize: 20,
+                                    decoration: TextDecoration.underline, // To signify it's clickable
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Email
+                            Text(
+                              'Email:',
+                              style: const TextStyle(
+                                color: Color(0xFF6D3200),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: InkWell(
+                                onTap: vendor.emails.isNotEmpty
+                                    ? () => launchUrl(Uri.parse('mailto:${vendor.emails.first.emailAddress}'))
+                                    : null,
+                                child: Text(
+                                  vendor.emails.isNotEmpty
+                                      ? vendor.emails.first.emailAddress
+                                      : 'No email provided',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6D3200),
+                                    fontSize: 20,
+                                    decoration: TextDecoration.underline, // To signify it's clickable
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Address
+                            Text(
+                              'Address:',
+                              style: const TextStyle(
+                                color: Color(0xFF6D3200),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: Text(
+                                vendor.addresses.isNotEmpty
+                                    ? '${vendor.addresses.first.streetAddress}\n${vendor.addresses.first.city}, ${vendor.addresses.first.state}\n${vendor.addresses.first.postalCode} ${vendor.addresses.first.country}'
+                                    : 'No address provided',
+                                style: const TextStyle(
+                                  color: Color(0xFF6D3200),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 25),
+
+                            // Buttons (Update/Delete)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final updatedVendor = await handleEditVendor(context, vendor);
+                                    if (updatedVendor) {
+                                      Navigator.of(context).pop(true);
+                                    }
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
+                                    foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.add, color: Color(0xFFEEC07B)),
+                                      SizedBox(width: 8),
+                                      Text('Update', style: TextStyle(fontSize: 17)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final updated = await handleRemoveVendor(context, vendor.vendorID);
+                                    if (updated) {
+                                      Navigator.of(context).pop(true);
+                                    }
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
+                                    foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.delete, color: Color(0xFFEEC07B)),
+                                      SizedBox(width: 8),
+                                      Text('Delete', style: TextStyle(fontSize: 17)),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
-                            ),
-                            const SizedBox(width: 20), // Space between the buttons
-                            ElevatedButton(
-                              onPressed: () async {
-                                final updated = await handleRemoveVendor(context, vendor.vendorID);
-                                if (updated) {
-                                  Navigator.of(context).pop(true);
-                                }
-                              },
-                              style: ButtonStyle(
-                                backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                                foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                              ),
-                              child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.delete, color: Color(0xFFEEC07B)), // Light brown icon color
-                                SizedBox(width: 8), // Spacing between icon and text
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(
-                                    fontSize: 17, // Consistent font size
-                                    color: Color(0xFFEEC07B), // Light brown text
-                                                          ),
-                                                        ),
-                              ],
-                            ),
-                            ),
+                            const SizedBox(height: 80), // Added space for the close button
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Close the page
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                          foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                        ),
-                          child: const Text(
-                            'Close',
-                            style: TextStyle(
-                              fontSize: 17, // Font size
-                            ),
-                          ),
                       ),
+                    ],
+                  ),
+                ),
+
+                // Close Button at the Bottom
+                Positioned(
+                  bottom: 0, // Aligns the close button to the bottom of the screen
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
+                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                      ),
+                      child: const Text('Close', style: TextStyle(fontSize: 17)),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           }
           return const Center(child: Text('No vendor details available', style: TextStyle(color: Color(0xFF6D3200))));
@@ -414,4 +410,3 @@ class VendorDetailsPage extends StatelessWidget {
     );
   }
 }
-

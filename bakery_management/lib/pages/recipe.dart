@@ -50,13 +50,22 @@ class _RecipePageState extends State<RecipePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      toolbarHeight: 100,
-      title: Image.asset(
-        'assets/recipe2.png',
-        height: 100,
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/recipe.png',
+            height: 100,
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
       centerTitle: true,
       backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
     ),
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
