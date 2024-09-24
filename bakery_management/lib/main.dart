@@ -266,6 +266,28 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
         ),
         centerTitle: true,
         backgroundColor: const Color(0xFF422308),
+         leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu),
+          onSelected: (value) {
+            if (value == 'logout') {
+              _logout(context);
+            } else if (value == 'userOptions') {
+              _navigateToUserOptions(context);
+            }
+          },
+          itemBuilder: (BuildContext context) {
+            return [
+              const PopupMenuItem<String>(
+                value: 'userOptions',
+                child: Text('User Options'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ];
+          },
+        ),
       ),
       backgroundColor: const Color(0xFFF0D1A0),
       body: _pages[_selectedIndex], // Display the selected page
@@ -299,10 +321,10 @@ bottomNavigationBar: BottomNavigationBar(
       icon: Icon(Icons.cake),
       label: 'Treats', // Ensure the full label is displayed
     ),
-    BottomNavigationBarItem(
-      icon: Icon(Icons.settings),
-      label: 'Options',
-    ),
+   // BottomNavigationBarItem(
+     // icon: Icon(Icons.settings),
+      //label: 'Options',
+    //),
   ],
   currentIndex: _selectedIndex, // Highlight the selected tab
   onTap: _onItemTapped, // Handle tab tap
@@ -320,7 +342,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Welcome to the Big Baller Bakery!',
+        'Welcome to the \n Big Baller Bakery!',
         style: TextStyle(
           fontSize: 24,
           color: Colors.brown[900], // Dark brown text

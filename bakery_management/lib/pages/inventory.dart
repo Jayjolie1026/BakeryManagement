@@ -50,15 +50,24 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 100,
-          title: Image.asset(
+    appBar: AppBar(
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
             'assets/inventory_logo.png',
-            height: 100,
+            height: 150,
           ),
-          centerTitle: true,
-          backgroundColor: const Color(0xFFF0D1A0),
-        ),
+          const SizedBox(height: 10),
+        ],
+      ),
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
+    ),
         backgroundColor: const Color(0xFFF0D1A0),
         body: Column(
           children: <Widget>[
