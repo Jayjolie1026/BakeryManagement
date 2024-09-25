@@ -245,6 +245,43 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Method to return the corresponding ingredient image for ingredient
+    String getIngredientImage(int ingredientID) {
+    // Mapping ingredientID to image file names
+    Map<int, String> ingredientImages = {
+      16: 'assets/flour.jpg',
+      17: 'assets/flour.jpg',
+      18: 'assets/sugar.jpg',
+      19: 'assets/brown_sugar.jpg',
+      20: 'assets/butter.jpg',
+      21: 'assets/milk.jpg',
+      22: 'assets/eggs.jpg',
+      23: 'assets/baking_powder.jpg',
+      24: 'assets/baking_soda.jpg',
+      25: 'assets/yeast.jpg',
+      26: 'assets/chocolate_chips.jpg',
+      27: 'assets/vanilla.jpg',
+      28: 'assets/cinnamon_sticks.jpg',
+      29: 'assets/salt.jpg',
+      30: 'assets/starter.jpg',
+      31: 'assets/almond_flour.jpg',
+      32: 'assets/raspberry_jam.jpg',
+      33: 'assets/lemon_juice.jpg',
+      34: 'assets/cocoa_powder.jpg',
+      35: 'assets/honey.jpg',
+      36: 'assets/water.jpg',
+      37: 'assets/milk_chocolate.jpg',
+      38: 'assets/dark_chocolate.jpg',
+      39: 'assets/apples.jpg',
+      // Add more mappings for other ingredients
+    };
+    // Return the image path if the ingredientID exists in the map
+    if (ingredientImages.containsKey(ingredientID)) {
+      return ingredientImages[ingredientID]!;
+    }
+    // Default image if ingredientID is not found
+    return 'assets/bread2.png';
+}
     return Scaffold(
       backgroundColor: const Color(0xFFF0d1a0),
       body: Center(
@@ -256,10 +293,10 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
               Container(
                 height: 150,
                 width: 150,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: AssetImage('assets/bread2.png'),
+                    image: AssetImage(getIngredientImage(_item.ingredientID)),
                     fit: BoxFit.cover,
                   ),
                 ),
