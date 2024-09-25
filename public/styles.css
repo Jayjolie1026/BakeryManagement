@@ -65,11 +65,12 @@ body.fade-out {
     transition: all 0.5 ease;
 }
 
-/* header section */
+/* header section the brown bar part */
 .main {
     text-align: center;
-    padding: 100px 20px;
+    padding: 100px 30px;
     background-color: rgb(193, 166, 133);
+    margin-top: -50px;
 }
 
 .main__container {
@@ -130,7 +131,8 @@ body.fade-out {
 .main__content h2 {
     font-size: 2.5rem;
     color: #746858; /* Softer color for header 2 */
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
     animation: fadeInUp 2s ease-in-out; /* Delayed fade-in for creative effect */
@@ -214,5 +216,4 @@ body.fade-out {
     color: #774E24;
     margin-bottom: 10px;
 }
-
 
