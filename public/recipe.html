@@ -7,31 +7,35 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
     integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
     <link rel="stylesheet" href="recipe.css">
+    <link rel="stylesheet" href="navbar.css">
 
 
     <style>
+        body {
+            min-height: 100vh;
+            background-color: rgb(228, 213, 194);
+            font-family: Georgia, Times, 'Times New Roman', serif;
+            color: #333;
+            }
+
         .main-body-container{
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center; 
-            height: 100vh;
+            flex-wrap: wrap;
         }
+
         .recipe-container{
             background: #dcab6b;
-            display: flex;
-            flex-direction:column;
+            /* flex-direction:column; */
             align-items:center;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 5%;
             border-style: solid;
 
         }
         .recipe-button {
             /* width: 100%; */
             min-width: 200px;
+            min-height: 300px;
             margin: 10px 0;
             padding: 10px;
             background-color: #774E24;
@@ -39,54 +43,53 @@
             text-align: center;
             text-decoration: none;
             border-radius: 5px;
+            border-style:solid;
             cursor: pointer;
-            position: relative;
+            /* position: relative; */
         }
         .recipe-header{
             background-color: #ffffb3;
             width: 100%;
             text-align: center;
-        }
+        } 
 
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="navbar__container">
-            <img src="final_logo.png" alt="Bigballer Bakery logo" height="150" width="190">
-            <ul class="navbar__menu">
-                <li class="navbar__item">
-                    <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
-                </li>
-                <li class="navbar__item">
-                    <a href="/" class="navbar__links"><i class="/" aria-hidden="true"></i> Task</a>
-                </li>
-                <li class="navbar__item">
-                    <a href="account.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Employee</a>
-                </li>
-                <li class="navbar__btn">
-                    <a href="index.html" class="button">Log out</a>
-                </li>
-            </ul>
+        <div class="logo">
+        <img src="final_logo.png" alt="Bigballer Bakery logo" >
         </div>
+
+        <ul class="navbar__menu">
+            <li class="navbar__item">
+                <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
+            </li>
+            <li class="navbar__item">
+                <a href="/" class="navbar__links"><i class="/" aria-hidden="true"></i> Task</a>
+            </li>
+            <li class="navbar__item">
+                <a href="account.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Employee</a>
+            </li>
+            <li class="navbar__btn">
+                <a href="index.html" class="button">Log out</a>
+            </li>
+        </ul>
+        <button class="nav-button"> <a href="index.html">Log out</a> </button>
     </nav>
+    <h1 class="recipe-header">Big Baller Recipes</h1>
 
     <div class="main-body-container">
     <!--Recipe Container-->
-    <div id="recipe-container" class="recipe-container">
-        <h1 class="recipe-header">Big Baller Recipes</h1>
-    </div>
+    <input type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+    <div id="recipe-container" class="recipe-container"></div>
     </div>
 
-    <!-- Placeholder for future dynamic content -->
-    <!-- <section id="dynamicRecipes" class="recipes">
-        <h2>More Recipes Coming Soon...</h2>
-        <p>Stay tuned for more delicious recipes!</p>
-    </section> -->
 
+    <script src="recipe.js"></script>
     <!-- Link to JS will add to JS file after webpage is complete-->
-    <script>
+    <!-- <script>
         //function creating button for each recipe
         async function loadRecipes(){
             try{
@@ -117,6 +120,6 @@
         }
         //calls load recipe function when webpage loads
         window.onload = loadRecipes;
-    </script>
+    </script> -->
 </body>
 </html>
