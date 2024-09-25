@@ -302,10 +302,10 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
                 'description': descriptionController.text,
                 'category': categoryController.text,
                 'measurement': ingMeasurementController.text,
-                'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
-                'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
-                'minAmount': double.tryParse(minAmountController.text) ?? 0,
-                'vendorID': int.tryParse(vendorIDController.text) ?? 19,
+                'maxAmount': double.tryParse(maxAmountController.text),
+                'reorderAmount': double.tryParse(reorderAmountController.text),
+                'minAmount': double.tryParse(minAmountController.text),
+                'vendorID': int.tryParse(vendorIDController.text),
               });
 
               // Print ingredient body before sending request
@@ -372,11 +372,11 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
 
 void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, ValueChanged<Item> onItemUpdated) {
   final nameController = TextEditingController(text: item.ingredientName);
-  final descriptionController = TextEditingController();
+  final descriptionController = TextEditingController(text: item.description);
   final notesController = TextEditingController(text: item.notes);
   final costController = TextEditingController(text: item.cost.toString());
   final quantityController = TextEditingController(text: item.quantity.toString());
-  final categoryController = TextEditingController();
+  final categoryController = TextEditingController(text: item.category);
   final invMeasurementController = TextEditingController(text: item.invMeasurement);
   final maxAmountController = TextEditingController(text: item.maxAmount.toString());
   final reorderAmountController = TextEditingController(text: item.reorderAmount.toString());
@@ -526,7 +526,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                 child: TextField(
                   controller: invMeasurementController,
                   style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Measurement',
+                  decoration: const InputDecoration(labelText: 'Stock Measurement',
                     labelStyle: TextStyle(color: Color(0xFF6D3200)),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color

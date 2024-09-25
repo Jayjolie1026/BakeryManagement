@@ -15,6 +15,8 @@ class Item {
   final int vendorID;
   final int ingredientID;
   final String invMeasurement;
+  final String category;
+  final String description;
 
   // Constructor
   Item({
@@ -33,6 +35,8 @@ class Item {
     required this.vendorID,
     required this.ingredientID,
     required this.invMeasurement,
+    required this.category,
+    required this.description,
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -57,6 +61,8 @@ class Item {
       vendorID: json['VendorID'].toInt(),
       ingredientID: json['IngredientID'].toInt(),
       invMeasurement: json['InventoryMeasurement'] ?? '',
+      category: json['Category'] ?? '',
+      description: json['Description'] ?? '',
     );
   }
 
@@ -77,5 +83,7 @@ class Item {
     'VendorID': vendorID,
     'IngredientID': ingredientID,
     'InventoryMeasurement': invMeasurement,
+    'Category': category,
+    'Description': description,
   };
 }
