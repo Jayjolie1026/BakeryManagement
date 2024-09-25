@@ -4,7 +4,6 @@ import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
 import 'recipeFunctions.dart';
 import 'inventorySearchWidget.dart';
-import 'package:http/http.dart' as http;
 
 
 
@@ -51,13 +50,22 @@ class _RecipePageState extends State<RecipePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      toolbarHeight: 100,
-      title: Image.asset(
-        'assets/recipe2.png',
-        height: 100,
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/recipe.png',
+            height: 100,
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
       centerTitle: true,
       backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
     ),
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
@@ -109,24 +117,27 @@ class _RecipePageState extends State<RecipePage> {
   });
   
   // Build list tile for each inventory item
-  Widget buildItem(Item item) => Card(
-    color: const Color(0xFF6D3200),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50),
-    ),
-    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-    elevation: 4,
-    child: GestureDetector(
-      onTap: () {
-        // Navigate to the DetailedRecipePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID),
-            //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
-          ),
-        );
-      },
+  Widget buildItem(Item item) => GestureDetector(
+    onTap: () async {
+      final result = await Navigator.push(
+      // Navigate to the DetailedRecipePage
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID),
+          //builder: (context) => DetailedRecipePage(recipeName: item.name, recipeID: item.recipeID), // Pass the item if needed
+        ),
+      );
+      if (result == true) {
+        init();
+      }
+    },
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+      elevation: 4,
       child: Container(
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),

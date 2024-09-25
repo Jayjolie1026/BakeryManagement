@@ -30,47 +30,6 @@ body.fade-out {
     opacity: 0;
 }
 
-
-.navbar {
-    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
-    height: 140px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 0 60px;
-    backdrop-filter: blur(10px); /* Adds a blur effect for better readability */
-}
-
-.navbar__container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 120%;
-    max-width: 1100px;
-    margin: 0 auto;
-    position: relative;                
-}
-
-/*menu bar*/
-.navbar__menu {
-    display: flex;
-    align-items: center;
-    list-style: none;
-    text-align: center;
-}
-
-/*menu / front page*/
-.navbar__links {
-    color: #000000;
-    padding: 10px 15px;
-    transition: color 0.3s ease;
-    font-size: 1.1rem;
-}
-
 /* sign in button */
 .navbar__btn {
     display: flex;
@@ -80,7 +39,7 @@ body.fade-out {
     width: 30%;
 }
 
-/*sign in */
+/* sign in */
 .button {
     display: flex;
     align-items: center;
@@ -92,7 +51,7 @@ body.fade-out {
     outline: rgb(0, 0, 0);
     border-radius: 5px;
     background: transparent;
-    color:#6E0D25; 
+    color: #6E0D25; 
 }
 
 .navbar__btn .button:hover {
@@ -100,17 +59,18 @@ body.fade-out {
     transition: all 0.3 ease;
 }
 
-/* transition color on menu bar*/
+/* transition color on menu bar */
 .navbar__links:hover {
     color: bisque; 
     transition: all 0.5 ease;
 }
 
-/* header section */
+/* header section the brown bar part */
 .main {
     text-align: center;
-    padding: 100px 20px;
+    padding: 100px 30px;
     background-color: rgb(193, 166, 133);
+    margin-top: -50px;
 }
 
 .main__container {
@@ -128,7 +88,7 @@ body.fade-out {
     padding-right: 10px; /* Add space between text and image */
 }
 
-/*header line animation */
+/* header line animation */
 @keyframes fadeInUp {
     0% {
         opacity: 0;
@@ -150,11 +110,12 @@ body.fade-out {
     margin-left: 19px;
     animation: fadeInUp 1.5s ease-in-out;
 }
+
 /* bread image */
 .main__img {
     flex: 2; /* Image section will take up available space */
     display: flex;
-    justify-content:end; /* Align image to the right */
+    justify-content: end; /* Align image to the right */
 }
 
 .main__img img {
@@ -162,7 +123,7 @@ body.fade-out {
     border-radius: 50%; /* Circular style */
     margin-left: -200px;
     margin-bottom: -80px;
-    margin-right: 540px; /*move to the right*/
+    margin-right: 540px; /* move to the right */
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -170,7 +131,8 @@ body.fade-out {
 .main__content h2 {
     font-size: 2.5rem;
     color: #746858; /* Softer color for header 2 */
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
     animation: fadeInUp 2s ease-in-out; /* Delayed fade-in for creative effect */

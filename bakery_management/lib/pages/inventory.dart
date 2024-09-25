@@ -1,11 +1,13 @@
 import 'dart:async';
-import 'package:bakery_management/pages/bakedgoods.dart';
+import 'vendorsItemClass.dart';
+import 'bakedgoods.dart';
 import 'package:flutter/material.dart';
 import 'inventoryItemClass.dart';
 import 'inventoryAPI.dart';
 import 'inventoryFunctions.dart';
 import 'package:intl/intl.dart';
 import 'vendors.dart';
+import 'vendorsAPI.dart';
 
 // Inventory Page
 class InventoryPage extends StatefulWidget {
@@ -49,15 +51,24 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 100,
-          title: Image.asset(
+    appBar: AppBar(
+      toolbarHeight: 125,
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
             'assets/inventory_logo.png',
-            height: 100,
+            height: 150,
           ),
-          centerTitle: true,
-          backgroundColor: const Color(0xFFF0D1A0),
-        ),
+          const SizedBox(height: 10),
+        ],
+      ),
+      centerTitle: true,
+      backgroundColor: const Color(0xFFF0D1A0),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
+  ),
+    ),
         backgroundColor: const Color(0xFFF0D1A0),
         body: Column(
           children: <Widget>[
@@ -81,13 +92,52 @@ class _InventoryPageState extends State<InventoryPage> {
               init();
             });
           }), // Open form for new ingredient
-          label: const Text('Add Ingredient'),
+          label: const Text('Add Ingredient',
+          style: const TextStyle(
+            color: Color(0xFFEEC07B),
+            fontSize: 17,
+          ),
+          ),
           icon: const Icon(Icons.add),
-          backgroundColor: const Color(0xFF422308),  // Dark brown background
+          backgroundColor: const Color(0xFF422308), // Dark brown background
           foregroundColor: const Color.fromARGB(255, 243, 217, 162),
         ),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.centerFloat, // Center at the bottom
+
+        // --------------------temporary code to delete items------------------------------
+        //   floatingActionButton: Row(
+        //     mainAxisAlignment: MainAxisAlignment.center,
+        //     children: [
+        //       FloatingActionButton.extended(
+        //         onPressed: () => showAddIngredientDialog(context, () {
+        //           // Refresh the inventory list after adding new item
+        //           setState(() {
+        //             init();
+        //           });
+        //         }), // Open form for new ingredient
+        //         label: const Text('Add Ingredient'),
+        //         icon: const Icon(Icons.add),
+        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+        //       ),
+        //       const SizedBox(width: 16),
+        //       FloatingActionButton.extended(
+        //         onPressed: () {
+        //           showDeleteIngredientDialog(context, () {
+        //             setState(() {
+        //               init();
+        //             });
+        //           });
+        //         },
+        //         label: const Text('Delete Ingredient'),
+        //         icon: const Icon(Icons.delete),
+        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),            ),
+        //     ],
+        //   ),
+        //   floatingActionButtonLocation:
+        //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
       );
 
   // Search bar widget
@@ -106,7 +156,7 @@ class _InventoryPageState extends State<InventoryPage> {
         });
       });
 
-// Build list tile for each inventory item
+  // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
         onTap: () async {
           final result = await Navigator.push(
@@ -248,22 +298,13 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                 ElevatedButton(
                   onPressed: () async {
                     // Navigate to the update page and wait for result
-                    final updatedItem = await Navigator.push(
+                    showInventoryAndIngredientUpdateDialog(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => ItemUpdatePage(
-                          item: _item,
-                          onItemUpdated: _updateItem,
-                        ),
-                      ),
+                      _item, // Pass the product you want to update
+                          (updatedItem) {
+                        _updateItem(updatedItem);
+                      },
                     );
-
-                    // If an updated product was returned, update the state
-                    if (updatedItem != null) {
-                      _updateItem(updatedItem);
-                      Navigator.pop(
-                          context, true); // Pass true to indicate an update
-                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6D3200),
@@ -281,14 +322,40 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                 const SizedBox(width: 4), // Spacer between Update and Vendor
                 // Vendor button
                 ElevatedButton(
-                  onPressed: () {
-                    // Navigate to the Vendor page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => VendorsPage(), // TODO: send user to corresponding vendor
-                      ),
-                    );
+                  onPressed: () async {
+                    try {
+                      // Assuming _item.vendorID holds the vendor ID
+                      final Vendor vendor =
+                          await VendorsApi().fetchVendorDetails(_item.vendorID);
+
+                      // After successfully fetching the vendor, navigate to the VendorDetailsPage
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              VendorDetailsPage(vendor: vendor),
+                        ),
+                      );
+                    } catch (e) {
+                      // Handle the error if the vendor details couldn't be fetched
+                      print('Failed to load vendor details: $e');
+                      // You might want to show an error dialog or message to the user
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Error'),
+                          content: const Text('Failed to load vendor details.'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6D3200),
@@ -304,300 +371,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ItemUpdatePage extends StatefulWidget {
-  final Item item;
-  final ValueChanged<Item> onItemUpdated;
-
-  const ItemUpdatePage(
-      {super.key, required this.item, required this.onItemUpdated});
-
-  @override
-  _ItemUpdatePageState createState() => _ItemUpdatePageState();
-}
-
-class _ItemUpdatePageState extends State<ItemUpdatePage> {
-  late TextEditingController _nameController;
-  late TextEditingController _notesController;
-  late TextEditingController _quantityController;
-  late TextEditingController _maxAmountController;
-  late TextEditingController _reorderAmountController;
-  late TextEditingController _minAmountController;
-  late TextEditingController _costController;
-  late TextEditingController _vendorIDController;
-  late DateTime _createDateTime;
-  late DateTime _expireDateTime;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.item.ingredientName);
-    _notesController = TextEditingController(text: widget.item.notes);
-    _quantityController =
-        TextEditingController(text: widget.item.quantity.toString());
-    _maxAmountController =
-        TextEditingController(text: widget.item.maxAmount.toString());
-    _reorderAmountController =
-        TextEditingController(text: widget.item.reorderAmount.toString());
-    _minAmountController =
-        TextEditingController(text: widget.item.minAmount.toString());
-    _costController = TextEditingController(text: widget.item.cost.toString());
-    _vendorIDController =
-        TextEditingController(text: widget.item.vendorID.toString());
-    _createDateTime = widget.item.createDateTime;
-    _expireDateTime = widget.item.expireDateTime;
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _notesController.dispose();
-    _quantityController.dispose();
-    _maxAmountController.dispose();
-    _reorderAmountController.dispose();
-    _minAmountController.dispose();
-    _costController.dispose();
-    super.dispose();
-  }
-
-  // Format DateTime for display
-  String formatDate(DateTime dateTime) {
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
-    return formatter.format(dateTime);
-  }
-
-  // Show DatePicker to select Date
-  Future<void> _selectDate(BuildContext context, DateTime initialDate,
-      ValueChanged<DateTime> onDateSelected) async {
-    final DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (selectedDate != null && selectedDate != initialDate) {
-      setState(() {
-        onDateSelected(selectedDate);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update item'),
-        backgroundColor: const Color(0xFFF0d1a0),
-        foregroundColor: const Color(0xFF6D3200),
-        iconTheme: const IconThemeData(color: Color(0xFF6D3200)),
-      ),
-      backgroundColor: const Color(0xFFF0d1a0),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Editable Fields
-            TextField(
-              controller: _nameController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Ingredient Name',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-            ),
-            TextField(
-              controller: _notesController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-            ),
-            TextField(
-              controller: _quantityController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _maxAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Max Amount',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _reorderAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Reorder Amount',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _minAmountController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Min Amount',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _costController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Cost',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _vendorIDController,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Vendor ID',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Focused border color
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Color(0xFF6D3200)), // Enabled border color
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            Text('Create Date: ${formatDate(_createDateTime)}'),
-            TextButton(
-                onPressed: () => _selectDate(context, _createDateTime, (date) {
-                      _createDateTime = date;
-                    }),
-                child: const Text('Change Create Date')),
-            const SizedBox(height: 16),
-            Text('Expire Date: ${formatDate(_expireDateTime)}'),
-            TextButton(
-                onPressed: () => _selectDate(context, _expireDateTime, (date) {
-                      _expireDateTime = date;
-                    }),
-                child: const Text('Change Expire Date')),
-            const SizedBox(height: 20),
-            // Buttons
-            ElevatedButton(
-              onPressed: () async {
-                // Update the item with new values
-                final updatedItem = Item(
-                  entryID: widget.item.entryID, // Keep the same item ID
-                  ingredientName: _nameController.text,
-                  quantity: int.parse(_quantityController.text),
-                  notes: _notesController.text,
-                  maxAmount: double.parse(_maxAmountController.text),
-                  reorderAmount: double.parse(_reorderAmountController.text),
-                  minAmount: double.parse(_minAmountController.text),
-                  cost: double.parse(_costController.text),
-                  createDateTime: _createDateTime,
-                  expireDateTime: _expireDateTime,
-                  vendorID: int.parse(_vendorIDController.text),
-                );
-
-                // Call update API
-                await InventoryApi.updateItem(updatedItem);
-
-                // Notify parent widget of the update
-                widget.onItemUpdated(updatedItem);
-
-                // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item updated successfully!')),
-                );
-
-                // Navigate back to the previous page with the updated product
-                Navigator.of(context).pop(updatedItem);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6D3200),
-                foregroundColor: const Color(0xFFF0d1a0),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add),
-                  SizedBox(width: 8), // Spacing between image and text
-                  Text('Update'),
-                ],
-              ),
             ),
           ],
         ),
