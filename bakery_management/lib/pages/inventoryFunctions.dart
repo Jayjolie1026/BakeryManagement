@@ -4,22 +4,58 @@ import 'dart:convert';
 import 'inventoryItemClass.dart';
 
 // Adds ingredient to database, then opens dialog to add the item to inventory
-Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAdded) async {
+Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallback onItemAdded) async {
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
+  final notesController = TextEditingController();
+  final costController = TextEditingController();
+  final quantityController = TextEditingController();
   final categoryController = TextEditingController();
-  final measurementController = TextEditingController();
+  final ingMeasurementController = TextEditingController();
+  final invMeasurementController = TextEditingController();
   final maxAmountController = TextEditingController();
   final reorderAmountController = TextEditingController();
   final minAmountController = TextEditingController();
   final vendorIDController = TextEditingController();
+  DateTime createDateTime = DateTime.now();
+  DateTime expireDateTime = DateTime.now();
+
+  void selectDate(BuildContext context, bool isCreateDate) async {
+    DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
+
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      // Set time to midnight (00:00:00) since you don't need a time selection
+      DateTime selectedDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        0, // hour
+        0, // minute
+        0, // second
+      );
+
+      if (isCreateDate) {
+        createDateTime = selectedDateTime;
+      } else {
+        expireDateTime = selectedDateTime;
+      }
+    }
+  }
+
 
   showDialog(
     context: context,
     builder: (BuildContext context) => AlertDialog(
       backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
       titleTextStyle: const TextStyle(color: Color(0xFF6D3200)),
-      title: const Text('Add New Ingredient'),
+      title: const Text('Add New Item'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -43,7 +79,7 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
               child: TextField(
                 controller: descriptionController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Description',
+                decoration: const InputDecoration(labelText: 'Ingredient Description',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -56,9 +92,9 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
             ),
             Flexible(
               child: TextField(
-                controller: categoryController,
+                controller: notesController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Category',
+                decoration: const InputDecoration(labelText: 'Inventory Notes',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -72,9 +108,71 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
             ),
             Flexible(
               child: TextField(
-                controller: measurementController,
+                controller: costController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Measurement',
+                decoration: const InputDecoration(labelText: 'Cost',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: quantityController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: ingMeasurementController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Ingredient Measurement',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: invMeasurementController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Inventory Measurement',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+            Flexible(
+              child: TextField(
+                controller: categoryController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(labelText: 'Category',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -150,159 +248,6 @@ Future<void> showAddIngredientDialog(BuildContext context, VoidCallback onItemAd
                 keyboardType: TextInputType.number,
               ),
             ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            backgroundColor: const Color(0xFF6D3200), // Text color of the button
-            foregroundColor: const Color(0xFFF0d1a0),
-          ),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            // Create new ingredient instance
-            final response = await http.post(
-              Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
-              body: jsonEncode({
-                'name': nameController.text,
-                'description': descriptionController.text,
-                'category': categoryController.text,
-                'measurement': measurementController.text,
-                'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
-                'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
-                'minAmount': double.tryParse(minAmountController.text) ?? 0,
-                'vendorID': int.tryParse(vendorIDController.text) ?? 19,
-              }),
-              headers: {"Content-Type": "application/json"},
-            );
-            print('Request body: ${response.body}');
-
-            if (response.statusCode == 201) {
-              // Parse the response body to extract the ingredient_id
-              final Map<String, dynamic> responseData = jsonDecode(response.body);
-              print('Response data: $responseData'); // Debugging step
-              final int ingredientID = responseData['ingredientID']; // Assume the server returns the ID
-
-              Navigator.of(context).pop(); // Close the ingredient dialog
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ingredient item added')));
-
-              // Now show the inventory item dialog
-              await showAddInventoryItemDialog(context, ingredientID);
-
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add ingredient item')));
-              throw Exception('Failed to add ingredient: ${response.body}');
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF6D3200), // Background color of the button
-            foregroundColor: const Color(0xFFF0d1a0), // Text color of the button
-          ),
-          child: const Text('Add'),
-        ),
-      ],
-    ),
-  );
-}
-
-Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) async {
-  final quantityController = TextEditingController();
-  final costController = TextEditingController();
-  final notesController = TextEditingController();
-
-  DateTime createDateTime = DateTime.now();
-  DateTime expireDateTime = DateTime.now();
-
-  void selectDate(BuildContext context, bool isCreateDate) async {
-    DateTime initialDate = isCreateDate ? createDateTime : expireDateTime;
-
-    DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (selectedDate != null) {
-      // Set time to midnight (00:00:00) since you don't need a time selection
-      DateTime selectedDateTime = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        0, // hour
-        0, // minute
-        0, // second
-      );
-
-      if (isCreateDate) {
-        createDateTime = selectedDateTime;
-      } else {
-        expireDateTime = selectedDateTime;
-      }
-    }
-  }
-
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) => AlertDialog(
-      backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
-      titleTextStyle: const TextStyle(color: Color(0xFF6D3200)),
-      title: const Text('Add Inventory Item'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: TextField(
-                controller: quantityController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Quantity',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                ),
-              ),
-            ),
-            Flexible(
-              child: TextField(
-                controller: costController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Cost',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                ),
-              ),
-            ),
-            Flexible(
-              child: TextField(
-                controller: notesController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(labelText: 'Notes',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -349,29 +294,70 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
         ),
         ElevatedButton(
           onPressed: () async {
-            // Create new ingredient instance
-            final response = await http.post(
-              Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory'),
-              body: jsonEncode({
-                'ingredient_id': ingredientID,
-                'quantity': int.tryParse(quantityController.text) ?? 0,
-                'cost': double.tryParse(costController.text) ?? 0,
-                'notes': notesController.text,
-                'create_datetime': createDateTime.toIso8601String(),
-                'expire_datetime': expireDateTime.toIso8601String(),
-              }),
-              headers: {"Content-Type": "application/json"},
-            );
-            print('Response: ${response.body}');
+            try {
+              // Create new ingredient instance
+              // Prepare ingredient JSON body
+              final ingredientBody = jsonEncode({
+                'name': nameController.text,
+                'description': descriptionController.text,
+                'category': categoryController.text,
+                'measurement': ingMeasurementController.text,
+                'maxAmount': double.tryParse(maxAmountController.text) ?? 0,
+                'reorderAmount': double.tryParse(reorderAmountController.text) ?? 0,
+                'minAmount': double.tryParse(minAmountController.text) ?? 0,
+                'vendorID': int.tryParse(vendorIDController.text) ?? 19,
+              });
 
-            if (response.statusCode == 201) {
-              Navigator.of(context).pop(); // Close the inventory dialog
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventory item added')));
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add inventory item')));
-              throw Exception('Failed to add inventory item: ${response.body}');
+              // Print ingredient body before sending request
+              print('Sending ingredient request with body: $ingredientBody');
+
+              // Send ingredient POST request
+              final ingredientResponse = await http.post(
+                Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
+                body: ingredientBody,
+                headers: {"Content-Type": "application/json"},
+              );
+
+              if (ingredientResponse.statusCode == 201) {
+                // Parse the response body to extract the ingredient_id
+                final Map<String, dynamic> ingredientData = jsonDecode(ingredientResponse.body);
+                final int ingredientID = ingredientData['ingredientID'];
+
+                // Now create the inventory instance using the ingredientID
+                // Prepare inventory JSON body
+                final inventoryBody = jsonEncode({
+                  'ingredient_id': ingredientID,
+                  'quantity': int.tryParse(quantityController.text),
+                  'cost': double.tryParse(costController.text),
+                  'notes': notesController.text,
+                  'measurement': invMeasurementController.text,
+                  'create_datetime': createDateTime.toIso8601String(),
+                  'expire_datetime': expireDateTime.toIso8601String(),
+                });
+
+                // Print inventory body before sending request
+                print('Sending inventory request with body: $inventoryBody');
+
+                // Send inventory POST request
+                final inventoryResponse = await http.post(
+                  Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory'),
+                  body: inventoryBody,
+                  headers: {"Content-Type": "application/json"},
+                );
+
+                if (inventoryResponse.statusCode == 201) {
+                  Navigator.of(context).pop(); // Close the dialogs
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item added')),
+                  );
+                } else {
+                  print('Failed to add inventory item: ${inventoryResponse.body}');
+                }
+              } else {
+                print('Failed to add ingredient: ${ingredientResponse.body}');
+              }
+            } catch (e) {
+              print('Error: $e');
             }
-
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6D3200), // Background color of the button
@@ -383,10 +369,7 @@ Future<void> showAddInventoryItemDialog(BuildContext context, int ingredientID) 
     ),
   );
 }
-/*
-inventory: ingID, quantity, notes, cost, create, expire, measurement by entryID
-ingredient: name, description, category, measurement, maxAmt, reorderAmt, minAmt, vendorID
-*/
+
 void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, ValueChanged<Item> onItemUpdated) {
   final nameController = TextEditingController(text: item.ingredientName);
   final descriptionController = TextEditingController();
@@ -394,7 +377,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
   final costController = TextEditingController(text: item.cost.toString());
   final quantityController = TextEditingController(text: item.quantity.toString());
   final categoryController = TextEditingController();
-  final measurementController = TextEditingController(text: item.measurement);
+  final invMeasurementController = TextEditingController(text: item.invMeasurement);
   final maxAmountController = TextEditingController(text: item.maxAmount.toString());
   final reorderAmountController = TextEditingController(text: item.reorderAmount.toString());
   final minAmountController = TextEditingController(text: item.minAmount.toString());
@@ -464,7 +447,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                 child: TextField(
                   controller: descriptionController,
                   style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Description',
+                  decoration: const InputDecoration(labelText: 'Ingredient Description',
                     labelStyle: TextStyle(color: Color(0xFF6D3200)),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -479,7 +462,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                 child: TextField(
                   controller: notesController,
                   style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Notes',
+                  decoration: const InputDecoration(labelText: 'Inventory Notes',
                     labelStyle: TextStyle(color: Color(0xFF6D3200)),
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -541,7 +524,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
               ),
               Flexible(
                 child: TextField(
-                  controller: measurementController,
+                  controller: invMeasurementController,
                   style: const TextStyle(color: Color(0xFF6D3200)),
                   decoration: const InputDecoration(labelText: 'Measurement',
                     labelStyle: TextStyle(color: Color(0xFF6D3200)),
@@ -679,7 +662,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                       'cost': double.tryParse(costController.text),
                       'create_datetime': createDateTime.toIso8601String(),
                       'expire_datetime': expireDateTime.toIso8601String(),
-                      'measurements': measurementController.text,
+                      'measurement': invMeasurementController.text,
                     }),
                     headers: {"Content-Type": "application/json"},
                   ),
@@ -692,7 +675,6 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                       'name': nameController.text,
                       'description': descriptionController.text,
                       'category': categoryController.text,
-                      'measurement': measurementController.text,
                       'maxAmount': double.tryParse(maxAmountController.text),
                       'reorderAmount': double.tryParse(reorderAmountController.text),
                       'minAmount': double.tryParse(minAmountController.text),
@@ -716,7 +698,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                 }
 
                 // Success messages for both
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Inventory and ingredient updated successfully')));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item updated successfully')));
 
                 // Close dialog after success
                 Navigator.of(context).pop();

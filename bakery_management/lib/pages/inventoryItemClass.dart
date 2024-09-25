@@ -14,7 +14,7 @@ class Item {
   final double reorderAmount;
   final int vendorID;
   final int ingredientID;
-  final String measurement;
+  final String invMeasurement;
 
   // Constructor
   Item({
@@ -32,7 +32,7 @@ class Item {
     required this.reorderAmount,
     required this.vendorID,
     required this.ingredientID,
-    required this.measurement,
+    required this.invMeasurement,
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -56,7 +56,7 @@ class Item {
       reorderAmount: json['ReorderAmount'].toDouble(),  // Extract ReorderAmount
       vendorID: json['VendorID'].toInt(),
       ingredientID: json['IngredientID'].toInt(),
-      measurement: json['Measurement'] ?? '',
+      invMeasurement: json['InventoryMeasurement'] ?? '',
     );
   }
 
@@ -76,6 +76,6 @@ class Item {
     'ReorderAmount': reorderAmount,
     'VendorID': vendorID,
     'IngredientID': ingredientID,
-    'Measurement': measurement,
+    'InventoryMeasurement': invMeasurement,
   };
 }
