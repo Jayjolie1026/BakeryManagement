@@ -1706,7 +1706,7 @@ app.post('/inventory', async (req, res) => {
             .input('expire_datetime', sql.DateTime, expireDate)  // Optional field
             .input('measurement', sql.VarChar, measurement)  // Adding measurement
             .query(`
-                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, Measurements)
+                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, Measurement)
                 VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime, @measurement)
             `);
 
@@ -1761,7 +1761,7 @@ app.put('/inventory/:item_id', async (req, res) => {
             updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
         }
         if (measurement !== undefined) {
-            updateQuery += 'Measurements = @measurement, ';
+            updateQuery += 'Measurement = @measurement, ';
             updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
         }
 
