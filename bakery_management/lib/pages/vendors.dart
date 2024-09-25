@@ -258,11 +258,15 @@ class VendorDetailsPage extends StatelessWidget {
                               padding: const EdgeInsets.only(left: 16.0),
                               child: InkWell(
                                 onTap: vendor.phoneNumbers.isNotEmpty
-                                    ? () => launchUrl(Uri.parse('sms:${vendor.phoneNumbers.first.phoneNumber}'))
+                                    ? () {
+                                        final phoneNumber = vendor.phoneNumbers.first;
+                                        final fullPhoneNumber = phoneNumber.areaCode + phoneNumber.phoneNumber;
+                                        launchUrl(Uri.parse('sms:$fullPhoneNumber'));
+                                      }
                                     : null,
                                 child: Text(
                                   vendor.phoneNumbers.isNotEmpty
-                                      ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)}'
+                                      ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(3, 7)}'
                                       : 'No phone number available',
                                   style: const TextStyle(
                                     color: Color(0xFF6D3200),

@@ -342,7 +342,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Welcome to the \n Big Baller Bakery!',
+        'Welcome to the \n Flour and Fantasy!',
         style: TextStyle(
           fontSize: 24,
           color: Colors.brown[900], // Dark brown text
