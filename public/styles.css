@@ -23,6 +23,8 @@ body {
     line-height: 1.6;
     font-family: 'Playwrite BR', serif; /* Creative font choice for headers */
     transition: opacity 1s ease-in-out;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Class that triggers the fade-out effect */
@@ -74,18 +76,18 @@ body.fade-out {
 }
 
 .main__container {
-    max-width: 1500px;
+    max-width: 1200px;
+    width: 90%;
     margin: 0 auto;
     display: flex;
-    flex-direction: row; /* Align content side by side (text left, image right) */
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
 }
 
 .main__content {
-    flex: 1; /* Text section will take up available space */
-    padding-right: 10px; /* Add space between text and image */
+    flex: 1;
+    padding-right: 10px;
 }
 
 /* header line animation */
@@ -103,9 +105,9 @@ body.fade-out {
 /* Animation for header 1 */
 .main__content h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
+    font-size: calc(2rem + 1vw); /* Dynamic scaling */
     font-weight: bold;
-    color: #ffffff; /* Changed to white for better contrast */
+    color: #ffffff;
     margin-bottom: 10px;
     margin-left: 19px;
     animation: fadeInUp 1.5s ease-in-out;
@@ -113,29 +115,27 @@ body.fade-out {
 
 /* bread image */
 .main__img {
-    flex: 2; /* Image section will take up available space */
+    flex: 2;
     display: flex;
-    justify-content: end; /* Align image to the right */
+    justify-content: end;
 }
 
 .main__img img {
-    max-width: 450px; /* Keep it responsive */
-    border-radius: 50%; /* Circular style */
-    margin-left: -200px;
-    margin-bottom: -80px;
-    margin-right: 540px; /* move to the right */
+    width: 100%;
+    max-width: 400px;
+    border-radius: 50%;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Animation for header 2 */
 .main__content h2 {
-    font-size: 2.5rem;
-    color: #746858; /* Softer color for header 2 */
+    font-size: calc(1.5rem + 0.5vw);
+    color: #746858;
     margin-bottom: 40px;
     margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
-    animation: fadeInUp 2s ease-in-out; /* Delayed fade-in for creative effect */
+    animation: fadeInUp 2s ease-in-out;
 }
 
 /* Add animation to sign-in form */
@@ -151,23 +151,19 @@ body.fade-out {
 }
 
 .signin__container {
-    background-color: rgba(255, 255, 255, 0.9); /* Slight transparency for a modern look */
+    background-color: rgba(255, 255, 255, 0.9);
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 30px;
-    animation: fadeInRight 1.5s ease-in-out; /* Smooth slide-in effect */
-}
-
-/* Sign-in Form Section (Right Side) */
-.signin__container {
-    flex: 1; /* Form will occupy the available space on the right */
+    animation: fadeInRight 1.5s ease-in-out;
+    flex: 1;
     max-width: 410px;
     background-color: #f5f5f5;
     padding: 30px;
     position: sticky;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-left: 1050px; /* Adjust spacing from the text section */
+    margin-left: 1050px;
     margin-bottom: 100px;
     margin-top: -450px;
 }
@@ -217,21 +213,21 @@ body.fade-out {
     margin-bottom: 10px;
 }
 
-/* Media Queries for Smaller Laptops */
+/* Media Queries for Smaller Screens */
 @media (max-width: 1366px) {
     .signin__container {
-        margin-left: 2%; /* Reduce the margin for better fit */
-        margin-top: -400px; /* Adjust margin-top for better fit on smaller screens */
+        margin-left: 2%;
+        margin-top: -400px;
     }
 
     .main__img img {
-        max-width: 90%; /* Slightly reduce image size on smaller screens */
+        max-width: 90%;
         margin-left: 0;
         margin-right: 0;
     }
 
     .main__content h1 {
-        font-size: 3rem; /* Slightly reduce header size */
+        font-size: 3rem;
     }
 
     .main__content h2 {
@@ -241,16 +237,16 @@ body.fade-out {
 
 @media (max-width: 1024px) {
     .signin__container {
-        margin-left: 0; /* Remove the margin on smaller laptops */
+        margin-left: 0;
         margin-top: -350px;
     }
 
     .main__img img {
-        max-width: 80%; /* Scale image down more for smaller laptops */
+        max-width: 80%;
     }
 
     .button {
-        width: 50%; /* Make buttons larger for smaller screens */
+        width: 50%;
     }
 
     .main__content h1 {
@@ -259,5 +255,21 @@ body.fade-out {
 
     .main__content h2 {
         font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .main__container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .signin__container {
+        margin: 20px auto;
+        width: 100%;
+    }
+
+    .main__img img {
+        max-width: 70%;
     }
 }
