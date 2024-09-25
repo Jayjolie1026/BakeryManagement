@@ -1627,7 +1627,7 @@ app.get('/inventory', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
-                   inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName,
+                   inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName, ing.Category, ing.Description
                    inv.Quantity AS IngredientQuantity,
                    ing.MinAmount, ing.MaxAmount, ing.ReorderAmount, ing.VendorID
             FROM dbo.tblInventory inv
