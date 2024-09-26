@@ -61,7 +61,7 @@ class _VendorsPageState extends State<VendorsPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/vendor.png',
+            'assets/vendor2.png',
             height: 100,
           ),
           const SizedBox(height: 10),
