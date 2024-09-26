@@ -227,194 +227,170 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
   String searchQuery = "";
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
-      body: Column(
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              widget.recipeName, // Recipe name as a header
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF6D3200), // Same dark brown color
-              ),
-              textAlign: TextAlign.center,
+          Text(
+            widget.recipeName, // Recipe name as a header
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6D3200), // Same dark brown color
             ),
+            textAlign: TextAlign.left,
           ),
-          // Image below the title, above instructions
           const SizedBox(height: 10),
-          Expanded(
-            child: FutureBuilder<List<Item>>(
-              future: RecipeApi.getItems(searchQuery),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (snapshot.hasData) {
-                  final items = snapshot.data!;
-                  final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
-                  if (recipe.isEmpty) {
-                    return const Center(child: Text('Recipe not found'));
-                  }
-
-                  final item = recipe.first; // The selected recipe
-
-                  return SingleChildScrollView(
-                   padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset(
-                          productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID, default is bagel
-                          width: double.infinity,
-                          height: 250, // Image height
-                          fit: BoxFit.cover,
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Ingredients:',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF6D3200),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (item.ingredients.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:item.ingredients.map<Widget>((ingredient) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                '- ${ingredient.quantity} ${ingredient.measurement} of ${ingredient.name}', // Display the ingredient name and quantity
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xFF6D3200),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-
-                          )
-                        else
-                          const Text(
-                            'No ingredients available',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFF6D3200),
-                            ),
-                          ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Directions:',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF6D3200),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          item.steps.replaceAll('\\n', '\n'),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF6D3200),
-                          ),
-                        ),
-                        const SizedBox(height: 80), // Extra space before the bottom buttons
-                      ],
-                    ),
-                  );
-                } else {
-                  return const Center(child: Text('No data found'));
-                }
-              },
-            ),
-          ),
           FutureBuilder<List<Item>>(
             future: RecipeApi.getItems(searchQuery),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                final item = snapshot.data!.firstWhere((item) => item.recipeID == widget.recipeID);
-                return Container(
-  padding: const EdgeInsets.all(16.0),
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.center, // Align vertically in the center
-    crossAxisAlignment: CrossAxisAlignment.center, // Align horizontally in the center
-    children: [
-      ElevatedButton(
-        onPressed: () async {
-          // Open the recipe update dialog
-          await showRecipeUpdateDialog(
-            context,
-            item, // Pass the current recipe item
-            (updatedRecipe) {
-              setState(() {
-                // Handle updated recipe
-              });
-            },
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6D3200),
-          foregroundColor: const Color(0xFFF0D1A0),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.add),
-            const SizedBox(width: 8), // Spacing between icon and text
-            const Text('Update'),
-          ],
-        ),
-      ),
-      const SizedBox(height: 20), // Spacing between the buttons
-      Align(
-        alignment: Alignment.center, // Ensure the button is centered
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context, true); // Close the page
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6D3200), // Dark brown background
-              foregroundColor: const Color(0xFFEEC07B), // Light brown text
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-            ),
-            child: const Text(
-              'Close',
-              style: TextStyle(
-                fontSize: 17, // Font size
-                color: Color(0xFFEEC07B), // Light brown text
-              ),
-            ),
-          ),
-        ),
-      ),
-    ],
-  ),
-);
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (snapshot.hasData) {
+                final items = snapshot.data!;
+                final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+                if (recipe.isEmpty) {
+                  return const Center(child: Text('Recipe not found'));
+                }
 
+                final item = recipe.first; // The selected recipe
 
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID, default is bagel
+                      width: double.infinity,
+                      height: 250, // Image height
+                      fit: BoxFit.cover,
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Ingredients:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6D3200),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (item.ingredients.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: item.ingredients.map<Widget>((ingredient) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              '- ${ingredient.quantity} ${ingredient.measurement} of ${ingredient.name}', // Display the ingredient name and quantity
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Color(0xFF6D3200),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    else
+                      const Text(
+                        'No ingredients available',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Color(0xFF6D3200),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Directions:',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF6D3200),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      item.steps.replaceAll('\\n', '\n'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF6D3200),
+                      ),
+                    ),
+                    const SizedBox(height: 20), // Extra space before the bottom buttons
+                    
+                    // Use Align to center the buttons at the bottom
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              // Open the recipe update dialog
+                              await showRecipeUpdateDialog(
+                                context,
+                                item, // Pass the current recipe item
+                                (updatedRecipe) {
+                                  setState(() {
+                                    // Handle updated recipe
+                                  });
+                                },
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6D3200),
+                              foregroundColor: const Color(0xFFF0D1A0),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.add),
+                                SizedBox(width: 8),
+                                Text('Update'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20), // Spacing between the buttons
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context, true); // Close the page
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6D3200),
+                              foregroundColor: const Color(0xFFEEC07B),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                            ),
+                            child: const Text(
+                              'Close',
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: Color(0xFFEEC07B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
               } else {
-                return const SizedBox.shrink(); // Avoid rendering buttons until data is ready
+                return const Center(child: Text('No data found'));
               }
             },
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+
 
 
 
