@@ -13,24 +13,20 @@
             padding: 0;
             line-height: 1.6;
             display: flex;
-            height: 100vh; /* Full viewport height */
-        }
-
-        .background {
-            flex: 1; /* Takes the remaining space */
-            background-image: url('bread3.jpeg'); /* Path to your background image */
-            background-size: cover; /* Make the background image cover the area */
-            background-position: center; /* Center the background image */
-            background-repeat: no-repeat; /* Prevent the background image from repeating */
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(241, 212, 164, 0.967); /* Light background */
         }
 
         .register {
-            max-width: 400px; /* Set a max width for the form */
-            margin: auto; /* Center the form vertically */
-            padding: 20px;
+            width: 100%;
+            max-width: 400px;
             background-color: rgba(255, 255, 255, 0.9); /* Slight transparency */
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin: 0 auto;
         }
 
         h1 {
@@ -81,28 +77,20 @@
         input[type="email"]::placeholder,
         input[type="tel"]::placeholder {
             color: #aaa; /* Placeholder color */
-            opacity: 1; /* Show placeholder fully */
-        }
-
-        input[type="password"]:focus::placeholder,
-        input[type="text"]:focus::placeholder,
-        input[type="email"]:focus::placeholder,
-        input[type="tel"]:focus::placeholder {
-            color: transparent; /* Hide placeholder on focus */
         }
 
         /* Button Styles */
         .button {
             width: 100%;
             padding: 15px;
-            background-color: #774E24; /* Background color matching your theme */
-            color: #fff; /* White text for contrast */
-            border: none; /* Remove borders */
-            border-radius: 8px; /* Slightly rounded corners */
-            cursor: pointer; /* Pointer cursor for better UX */
-            font-size: 1.1rem; /* Make the text slightly bigger */
-            margin-top: 20px; /* Add margin for spacing from other elements */
-            transition: background-color 0.3s ease; /* Smooth hover transition */
+            background-color: #774E24; /* Button background color */
+            color: #fff; /* White text */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
         }
 
         .button:hover {
@@ -111,23 +99,21 @@
 
         /* Additional button for alternative actions */
         .button1 {
-            width: 100%; /* Same width as the primary button */
-            display: block;
-            text-align: center; /* Center align text */
-            text-decoration: none; /* Remove underline */
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
             color: #774E24; /* Matching theme color */
-            background-color: transparent; /* No background */
-            margin-top: 15px; /* Add margin to separate from other elements */
-            font-size: 1rem; /* Slightly smaller font size */
+            background-color: transparent;
+            margin-top: 15px;
+            font-size: 1rem;
         }
 
         .button1:hover {
-            color: #9c2a3b; /* Darken text color on hover */
+            color: #9c2a3b; /* Darker text color on hover */
         }
     </style>
 </head>
 <body>
-    <div class="background"></div>
     <div class="register">
         <h1>Create Account</h1>
         <form id="employeeForm">
@@ -164,7 +150,5 @@
             </div>
         </form>
     </div>
-
-    <script src="register.js"></script>
 </body>
 </html>

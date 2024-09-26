@@ -7,14 +7,11 @@ import 'inventorySearchWidget.dart';
 import 'package:url_launcher/url_launcher.dart'; // For launching phone and email
 
 class VendorsPage extends StatefulWidget {
-  final int? vendorID;  // Add vendorID as an optional parameter
-
-  const VendorsPage({super.key, this.vendorID});  // Add vendorID to the constructor
+  const VendorsPage({super.key});
 
   @override
   _VendorsPageState createState() => _VendorsPageState();
 }
-
 
 class _VendorsPageState extends State<VendorsPage> {
   List<Vendor> vendors = [];
@@ -40,31 +37,22 @@ class _VendorsPageState extends State<VendorsPage> {
     debouncer = Timer(duration, callback);
   }
 
-Future<void> _refreshVendors() async {
-  setState(() {
-    query = ''; // Clear the search query
-    vendors = []; // Clear the existing vendor list
-  });
+  Future<void> _refreshVendors() async {
+    setState(() {
+      query = ''; // Clear the search query
+      vendors = []; // Clear the existing vendor list
+    });
 
-  try {
-    final updatedVendors = await VendorsApi().fetchVendors();
-
-    // If vendorID is provided, filter the list to only include that vendor
-    if (widget.vendorID != null) {
+    try {
+      final updatedVendors = await VendorsApi().fetchVendors();
       setState(() {
-        vendors = updatedVendors
-            .where((vendor) => vendor.vendorID == widget.vendorID)
-            .toList();
+        vendors = updatedVendors; // Update the vendor list with fresh data
       });
-    } else {
-      setState(() {
-        vendors = updatedVendors; // Show all vendors if no specific vendorID
-      });
+    } catch (e) {
+      print('Error fetching vendors: $e');
     }
-  } catch (e) {
-    print('Error fetching vendors: $e');
   }
-}
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -73,7 +61,7 @@ Future<void> _refreshVendors() async {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/vendor.png',
+            'assets/vendor2.png',
             height: 100,
           ),
           const SizedBox(height: 10),
@@ -124,7 +112,7 @@ Future<void> _refreshVendors() async {
     text: query,
     hintText: 'Search by Vendor',
     onChanged: searchVendor,
-    backgroundColor: const Color(0XFFEEC07B)
+    backgroundColor: Color(0XFFEEC07B)
   );
 
   Future<void> searchVendor(String query) async => debounce(() async {
@@ -141,7 +129,14 @@ Future<void> _refreshVendors() async {
     }
   });
 
-  Widget buildItem(Vendor vendor) => GestureDetector(
+  Widget buildItem(Vendor vendor) => Card(
+  color: const Color(0xFF6D3200),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(50),
+  ),
+  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+  elevation: 4,
+  child: GestureDetector(
     onTap: () async {
       final result = await Navigator.push(
         context,
@@ -167,7 +162,8 @@ Future<void> _refreshVendors() async {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
 class VendorDetailsPage extends StatelessWidget {
@@ -262,11 +258,15 @@ class VendorDetailsPage extends StatelessWidget {
                               padding: const EdgeInsets.only(left: 16.0),
                               child: InkWell(
                                 onTap: vendor.phoneNumbers.isNotEmpty
-                                    ? () => launchUrl(Uri.parse('sms:${vendor.phoneNumbers.first.phoneNumber}'))
+                                    ? () {
+                                        final phoneNumber = vendor.phoneNumbers.first;
+                                        final fullPhoneNumber = phoneNumber.areaCode + phoneNumber.phoneNumber;
+                                        launchUrl(Uri.parse('sms:$fullPhoneNumber'));
+                                      }
                                     : null,
                                 child: Text(
                                   vendor.phoneNumbers.isNotEmpty
-                                      ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(4, 8)}'
+                                      ? '(${vendor.phoneNumbers.first.areaCode}) ${vendor.phoneNumbers.first.phoneNumber.substring(0, 3)} - ${vendor.phoneNumbers.first.phoneNumber.substring(3, 7)}'
                                       : 'No phone number available',
                                   style: const TextStyle(
                                     color: Color(0xFF6D3200),

@@ -147,7 +147,7 @@ Widget build(BuildContext context) {
         children: [
           // Add the image here
           Image.asset(
-            'assets/logo1.png',
+            'assets/Final_logo2.png',
             height: 207,
           ),
           const SizedBox(height: 20), // Spacing between image and form fields
@@ -258,10 +258,6 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
         flexibleSpace: Center(
           child: Padding(
             padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
-            child: Image.asset(
-              'assets/chatlogo.png',
-              height: 70,
-            ),
           ),
         ),
         centerTitle: true,
@@ -341,16 +337,34 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        'Welcome to the \n Big Baller Bakery!',
-        style: TextStyle(
-          fontSize: 24,
-          color: Colors.brown[900], // Dark brown text
+      child: Stack(
+        alignment: Alignment.topCenter, // Center alignment for both image and text
+        children: [
+          Container(
+          padding: EdgeInsets.only(top: 130), // Adjust the padding as needed
+          child: Text(
+            'Welcome to',
+            style: TextStyle(
+              fontSize: 24,
+              fontFamily: 'MyFont',
+              color: Colors.brown[900],
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
+          Image.asset(
+            'assets/Final_logo.png',
+            width: 500,
+            height: 500,
+          ),
+          // Positioned to adjust the text position over the image if needed
+         
+        ],
       ),
     );
   }
 }
+
 
 // Options Page for handling User Options and Logout
 class OptionsPage extends StatelessWidget {
