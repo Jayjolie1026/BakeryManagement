@@ -1627,7 +1627,9 @@ app.get('/inventory', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
            SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
-                   ing.Name AS IngredientName, inv.Quantity AS IngredientQuantity, ing.MinAmount,ing.MaxAmount, ing.ReorderAmount, ing.VendorID
+                   inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName, ing.Category, ing.Description,
+                   inv.Quantity AS IngredientQuantity,
+                   ing.MinAmount, ing.MaxAmount, ing.ReorderAmount, ing.VendorID
             FROM dbo.tblInventory inv
             JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
         `);
@@ -1638,6 +1640,7 @@ app.get('/inventory', async (req, res) => {
         res.status(500).send('Error retrieving inventory items: ' + error.message);
     }
 });
+
 
 
 // GET /inventory/name/:name: Retrieve inventory items by partial name match
@@ -1675,11 +1678,11 @@ app.get('/inventory/name/:name', async (req, res) => {
 
 // POST /inventory: Add a new inventory item
 app.post('/inventory', async (req, res) => {
-    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, recipe_id } = req.body;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
     // Validate input
-    if (ingredient_id === undefined || quantity === undefined || cost === undefined || !create_datetime) {
-        return res.status(400).send('IngredientID, quantity, cost, and create date/time are required');
+    if (ingredient_id === undefined || quantity === undefined || cost === undefined || !create_datetime || !measurement) {
+        return res.status(400).send('IngredientID, quantity, cost, create date/time, and measurement are required');
     }
 
     try {
@@ -1693,7 +1696,7 @@ app.post('/inventory', async (req, res) => {
 
         const pool = await sql.connect(dbConfig);
 
-        // Insert the new inventory item
+        // Insert the new inventory item with measurement
         await pool.request()
             .input('ingredient_id', sql.Int, ingredient_id)
             .input('quantity', sql.Decimal, quantity)
@@ -1701,10 +1704,12 @@ app.post('/inventory', async (req, res) => {
             .input('cost', sql.Decimal, cost)
             .input('create_datetime', sql.DateTime, createDate)
             .input('expire_datetime', sql.DateTime, expireDate)  // Optional field
+            .input('measurement', sql.VarChar, measurement)  // Adding measurement
             .query(`
-                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime)
-                VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime)
+                INSERT INTO tblInventory (IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, Measurement)
+                VALUES (@ingredient_id, @quantity, @notes, @cost, @create_datetime, @expire_datetime, @measurement)
             `);
+
         res.status(201).send('Item added');
     } catch (error) {
         res.status(500).send(error.message);
@@ -1717,17 +1722,15 @@ app.post('/inventory', async (req, res) => {
 // PUT /inventory/:item_id: Update an inventory item by ID
 app.put('/inventory/:item_id', async (req, res) => {
     const { item_id } = req.params;
-    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime } = req.body;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
     // Validate input
-    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime  && ingredient_id === undefined) {
-        return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, or recipe_id) is required for update');
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && ingredient_id === undefined && measurement === undefined) {
+        return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, or measurement) is required for update');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-
-    
 
         // Prepare update query
         let updateQuery = 'UPDATE tblInventory SET ';
@@ -1751,13 +1754,16 @@ app.put('/inventory/:item_id', async (req, res) => {
         }
         if (create_datetime !== undefined) {
             updateQuery += 'CreateDateTime = @create_datetime, ';
-            updateParams.push({ name: 'create_datetime', value: create_datetime, type: sql.DateTime });
+            updateParams.push({ name: 'create_datetime', value: new Date(create_datetime), type: sql.DateTime });
         }
         if (expire_datetime !== undefined) {
             updateQuery += 'ExpireDateTime = @expire_datetime, ';
-            updateParams.push({ name: 'expire_datetime', value: expire_datetime, type: sql.DateTime });
+            updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
         }
-        
+        if (measurement !== undefined) {
+            updateQuery += 'Measurement = @measurement, ';
+            updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
+        }
 
         // Remove trailing comma and space
         updateQuery = updateQuery.slice(0, -2);
@@ -1782,6 +1788,7 @@ app.put('/inventory/:item_id', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
 
 
 

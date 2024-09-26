@@ -335,7 +335,7 @@ class _ProductsPageState extends State<ProductsPage> {
             product.name,
             style: const TextStyle(
               color: Color(0xFFEEC07B),  // Light brown text color
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -448,57 +448,64 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildQuantityWarning(Product product) {
     if (product.quantity < product.minAmount) {
-      return const Text(
-        'QUANTITY IS VERY LOW! REMAKE NOW!',
-        style: TextStyle(
-          fontSize: 20,
-          color: Color(0xFF6D3200),
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'QUANTITY IS VERY LOW! REMAKE NOW!',
+          style: TextStyle(
+            fontSize: 20,
+            color: Color(0xFF6D3200),
+          ),
+          textAlign: TextAlign.left,
         ),
-        textAlign: TextAlign.left,
       );
     } else if (product.quantity < product.remakeAmount) {
-      return const Text(
-        'Quantity is getting low. Please remake!',
-        style: TextStyle(
-          fontSize: 20,
-          color: Color(0xFF6D3200),
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'Quantity is getting low. Please remake!',
+          style: TextStyle(
+            fontSize: 20,
+            color: Color(0xFF6D3200),
+          ),
+          textAlign: TextAlign.left,
         ),
-        textAlign: TextAlign.left,
       );
     }
-    return const SizedBox(); // Return an empty widget if no warnings
+    return const SizedBox(); // Empty widget
   }
 
+
  @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF0D1A0),
-    body: SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product name as a header
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              _product.name,
-              style: const TextStyle(
-                fontSize: 30,
-                color: Color(0xFF6D3200),
-                fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name as a header
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _product.name,
+                style: const TextStyle(
+                  fontSize: 30,
+                  color: Color(0xFF6D3200),
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
-          ),
-          // Product image
-          SizedBox(
-            width: double.infinity,
-            height: 250, // Set the height of the image
-            child: Image.asset(
-              _getProductImage(),
-              fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+            // Product image
+            SizedBox(
+              width: double.infinity,
+              height: 250, // Set the height of the image
+              child: Image.asset(
+                _getProductImage(),
+                fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+              ),
             ),
-          ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -517,9 +524,8 @@ Widget build(BuildContext context) {
                   textAlign: TextAlign.left,
                 ),
               ),
-              const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(16.0), // You can adjust this value as needed
                 child: Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -545,7 +551,7 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(16.0),
                 child: Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -571,7 +577,7 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(15.0),
                 child: Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -597,7 +603,7 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(16.0),
                 child: Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -618,12 +624,12 @@ Widget build(BuildContext context) {
                       ),
                     ],
                   ),
-                  textAlign: TextAlign.left
+                  textAlign: TextAlign.left,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(16.0),
                 child: Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -647,6 +653,7 @@ Widget build(BuildContext context) {
                   textAlign: TextAlign.left,
                 ),
               ),
+
               const SizedBox(height: 10),
               _buildQuantityWarning(_product),
               // Buttons
@@ -685,22 +692,19 @@ Widget build(BuildContext context) {
                     onPressed: () {
                       // Navigate to recipe page
                       Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) {
-      // Print the recipe name and ID for debugging
-      print('Recipe Name: ${_product.name}');
-      print('Recipe ID: ${_product.productID}');
-      
-      return DetailedRecipePage(
-        recipeName: _product.name,  // Assuming _product.name is non-null
-        recipeID: _product.productID! + 8,  // Assert productID is non-null
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            // Print the recipe name and ID for debugging
+                            print('Recipe Name: ${_product.name}');
+                            print('Recipe ID: ${_product.productID}');
+
+                            return DetailedRecipePage(
+                              recipeName: _product.name,  // Assuming _product.name is non-null
+                              recipeID: _product.productID! + 8,  // Assert productID is non-null
 
 
-        /*
-
-
-
+                              /*
 
 
 
@@ -708,18 +712,21 @@ Widget build(BuildContext context) {
 
 
 
-        TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
+
+
+
+                              TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
 
 
 
 
 
 
-        */
-      );
-    },
-  ),
-);
+                              */
+                            );
+                          },
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6D3200),
@@ -748,19 +755,19 @@ Widget build(BuildContext context) {
                     onPressed: () {
                       Navigator.pop(context, true); // Close the page
                     },
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                      foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                      shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      )),
+                    ),
                     child: const Text(
                       'Close',
                       style: TextStyle(
                         fontSize: 17, // Font size
                         color: Color(0xFFEEC07B), // Light brown text
                       ),
-                    ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                      foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      )),
                     ),
                   ),
                 ),

@@ -25,6 +25,8 @@ const Map<int, String> productImages = {
 };
 
 class AddRecipePage extends StatefulWidget {
+  const AddRecipePage({super.key});
+
   @override
   _AddRecipePageState createState() => _AddRecipePageState();
 }
@@ -230,7 +232,7 @@ class DetailedRecipePage extends StatefulWidget {
   final String recipeName;
   final int recipeID;
 
-  DetailedRecipePage({required this.recipeName, required this.recipeID, Key? key}) : super(key: key);
+  const DetailedRecipePage({required this.recipeName, required this.recipeID, super.key});
 
   @override
   _DetailedRecipePageState createState() => _DetailedRecipePageState();
@@ -271,7 +273,6 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                 } else if (snapshot.hasData) {
                   final items = snapshot.data!;
                   final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
-
                   if (recipe.isEmpty) {
                     return const Center(child: Text('Recipe not found'));
                   }
@@ -419,9 +420,9 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
 
 
 Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {
-  TextEditingController _nameController = TextEditingController(text: recipe.name);
-  TextEditingController _stepsController = TextEditingController(text: recipe.steps);
-  TextEditingController _ingredientsController = TextEditingController(text: recipe.ingredients.join(", "));
+  TextEditingController nameController = TextEditingController(text: recipe.name);
+  TextEditingController stepsController = TextEditingController(text: recipe.steps);
+  TextEditingController ingredientsController = TextEditingController(text: recipe.ingredients.join(", "));
 
   await showDialog(
     context: context,
@@ -434,7 +435,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
             children: [
               // Editable Fields for Recipe
               TextField(
-                controller: _nameController,
+                controller: nameController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Name', 
@@ -448,7 +449,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
               ),
               TextField(
-                controller: _ingredientsController,
+                controller: ingredientsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Ingredients (comma-separated)', 
@@ -462,7 +463,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
               ),
               TextField(
-                controller: _stepsController,
+                controller: stepsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Steps', 
@@ -491,10 +492,10 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
               // Update the recipe with new values
               final updatedRecipe = Item(
                 recipeID: recipe.recipeID, // Keep the same recipe ID
-                name: _nameController.text,
-                steps: _stepsController.text,
+                name: nameController.text,
+                steps: stepsController.text,
                 productID: recipe.productID,
-                ingredients: _ingredientsController.text.split(',').map((ingredientString) {
+                ingredients: ingredientsController.text.split(',').map((ingredientString) {
                   // Split each string by ':' to get ingredientID, name, and quantity
                 final parts = ingredientString.split(':');
 
