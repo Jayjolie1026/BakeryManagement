@@ -49,24 +49,7 @@ class _RecipePageState extends State<RecipePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      toolbarHeight: 125,
-      title: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/recipe.png',
-            height: 100,
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFF0D1A0),
-      iconTheme: const IconThemeData(
-        color: Color(0xFF6D3200), // Set your desired back button color (dark brown)
-  ),
-    ),
+   
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
@@ -84,15 +67,24 @@ class _RecipePageState extends State<RecipePage> {
       ],
     ),
     floatingActionButton: FloatingActionButton.extended(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AddRecipePage()),
-      );
-    },
-    label: const Text('Add Recipe'),
-    icon: const Icon(Icons.add),
-    backgroundColor: const Color.fromARGB(255, 243, 217, 162),
+      onPressed: () => showAddRecipeDialog(context, () {
+        // Refresh the product list after adding a new product
+        setState(() {
+          init(); // Call init to reload products
+        });
+      }),
+      label: const Text(
+        'Add Recipe',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),  // Light brown text color
+          fontSize: 17,
+        ),
+      ),
+      icon: const Icon(
+        Icons.add,
+        color: Color(0xFFEEC07B),  // Light brown icon color
+      ),
+      backgroundColor: const Color(0xFF422308),  // Dark brown background
     ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );

@@ -225,24 +225,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      toolbarHeight: 125,
-      title: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/bakedgoods.png',
-            height: 100,  // Matching the height from VendorsPage
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFF0D1A0),
-      iconTheme: const IconThemeData(
-        color: Color(0xFF6D3200), // Dark brown back button color
-      ),
-    ),
+   
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
