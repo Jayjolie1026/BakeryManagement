@@ -250,14 +250,24 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
       body: Center(
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              // Item name as a header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _item.ingredientName,
+                  style: const TextStyle(
+                    fontSize: 30,
+                    color: Color(0xFF6D3200),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               // Centered Image
               Container(
                 height: 150,
-                width: 150,
                 decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
                   image: DecorationImage(
                     image: AssetImage('assets/bread2.png'),
                     fit: BoxFit.cover,
@@ -265,26 +275,36 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Display Product Information
-              Text('Name: ${_item.ingredientName}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Notes: ${_item.notes}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Quantity: ${_item.quantity}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Max Amount: ${_item.maxAmount}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Reorder Amount: ${_item.reorderAmount}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Min Amount: ${_item.minAmount}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Cost: ${_item.cost}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Created: ${formatDate(_item.createDateTime)}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-              Text('Expires: ${formatDate(_item.expireDateTime)}',
-                  style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Display Product Information
+                      Text('Name: ${_item.ingredientName}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Notes: ${_item.notes}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Quantity: ${_item.quantity}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Max Amount: ${_item.maxAmount}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Reorder Amount: ${_item.reorderAmount}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Min Amount: ${_item.minAmount}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Cost: ${_item.cost}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Created: ${formatDate(_item.createDateTime)}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                      Text('Expires: ${formatDate(_item.expireDateTime)}',
+                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
+                    ],
+                  ),
+                ),
+              ),
               _buildQuantityWarning(_item),
               const SizedBox(height: 20),
               // Buttons
