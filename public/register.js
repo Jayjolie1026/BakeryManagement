@@ -1,5 +1,5 @@
-document.getElementById('registerForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
+document.getElementById('addUserForm').addEventListener('submit', async function (event) {
+    event.preventDefault(); // Prevent form from submitting the traditional way
   
     const firstName = document.getElementById('firstName').value;
     const lastName = document.getElementById('lastName').value;
@@ -7,12 +7,17 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
     const password = document.getElementById('password').value;
     const email = document.getElementById('email').value;
     const phoneNumber = document.getElementById('phoneNumber').value;
-    const address = {
-        streetAddress: document.getElementById('streetAddress').value,
-        city: document.getElementById('city').value,
-        state: document.getElementById('state').value,
-        postalCode: document.getElementById('postalCode').value,
-        country: document.getElementById('country').value,
+    const address = document.getElementById('address').value;
+  
+    // Construct the user object to be sent to the backend
+    const userData = {
+        firstName,
+        lastName,
+        username,
+        password,
+        email: email ? { emailAddress: email, emailTypeID: 1 } : null,  // Assuming 1 as default email type
+        phoneNumber: phoneNumber ? { number: phoneNumber, areaCode: "123", phoneTypeID: 1 } : null, // Assuming default area code and type
+        address: address ? { streetAddress: address, city: "City", state: "State", postalCode: "12345", country: "Country", addressTypeID: 1 } : null // Assuming address breakdown
     };
   
     try {
@@ -21,14 +26,18 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ firstName, lastName, username, password, email, phoneNumber, address }),
+            body: JSON.stringify(userData),
         });
   
-        const result = await response.text();
-        document.getElementById('responseMessage').textContent = result;
+        if (response.ok) {
+            alert('User added successfully!');
+            // Optionally reset the form or redirect the user
+            document.getElementById('addUserForm').reset();
+        } else {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
     } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('responseMessage').textContent = 'Error registering user.';
+        document.getElementById('errorMessage').innerText = `Error: ${error.message}`;
     }
   });
-  
