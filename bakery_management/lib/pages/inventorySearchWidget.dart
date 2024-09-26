@@ -21,6 +21,12 @@ class _SearchWidgetState extends State<SearchWidget> {
   final controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    controller.text = widget.text;
+  }
+
+  @override
   Widget build(BuildContext context) {
     const styleActive = TextStyle(color:Color(0xFF6D3200));
     const styleHint = TextStyle(color:Color(0xFF6D3200));

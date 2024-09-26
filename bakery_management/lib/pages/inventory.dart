@@ -88,43 +88,43 @@ class _InventoryPageState extends State<InventoryPage> {
         floatingActionButtonLocation:
             FloatingActionButtonLocation.centerFloat, // Center at the bottom
 
-        // --------------------temporary code to delete items------------------------------
-        //   floatingActionButton: Row(
-        //     mainAxisAlignment: MainAxisAlignment.center,
-        //     children: [
-        //       FloatingActionButton.extended(
-        //         heroTag: 'uniqueTag2',
-        //         onPressed: () => showAddIngredientAndInventoryDialog(context, () {
-        //           // Refresh the inventory list after adding new item
-        //           setState(() {
-        //             init();
-        //           });
-        //         }), // Open form for new ingredient
-        //         label: const Text('Add Ingredient'),
-        //         icon: const Icon(Icons.add),
-        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-        //       ),
-        //       const SizedBox(width: 16),
-        //       FloatingActionButton.extended(
-        //         heroTag: 'uniqueTag1',
-        //         onPressed: () {
-        //           showDeleteIngredientDialog(context, () {
-        //             setState(() {
-        //               init();
-        //             });
-        //           });
-        //         },
-        //         label: const Text('Delete Ingredient'),
-        //         icon: const Icon(Icons.delete),
-        //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-        //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-        //       ),
-        //     ],
-        //   ),
-        //   floatingActionButtonLocation:
-        //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
-      );
+    // --------------------temporary code to delete items------------------------------
+    //   floatingActionButton: Row(
+    //     mainAxisAlignment: MainAxisAlignment.center,
+    //     children: [
+    //       FloatingActionButton.extended(
+    //         heroTag: 'uniqueTag2',
+    //         onPressed: () => showAddIngredientAndInventoryDialog(context, () {
+    //           // Refresh the inventory list after adding new item
+    //           setState(() {
+    //             init();
+    //           });
+    //         }), // Open form for new ingredient
+    //         label: const Text('Add Ingredient'),
+    //         icon: const Icon(Icons.add),
+    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+    //       ),
+    //       const SizedBox(width: 16),
+    //       FloatingActionButton.extended(
+    //         heroTag: 'uniqueTag1',
+    //         onPressed: () {
+    //           showDeleteIngredientDialog(context, () {
+    //             setState(() {
+    //               init();
+    //             });
+    //           });
+    //         },
+    //         label: const Text('Delete Ingredient'),
+    //         icon: const Icon(Icons.delete),
+    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
+    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+    //       ),
+    //     ],
+    //   ),
+    //   floatingActionButtonLocation:
+    //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
+  );
 
   // Search bar widget
   Widget buildSearch() => SearchWidget(
@@ -144,41 +144,41 @@ class _InventoryPageState extends State<InventoryPage> {
 
   // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItemDetailPage(item: item),
-            ),
-          );
-          if (result == true) {
-            init();
-          }
-        },
-        child: Card(
-          color: const Color(0xFF6D3200),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-          elevation: 4,
-          child: Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-            child: Center(
-              // Use Center to ensure the text is aligned properly within the card
-              child: Text(
-                item.ingredientName,
-                style: const TextStyle(
-                  color: Color.fromARGB(255, 243, 217, 162),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+    onTap: () async {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemDetailPage(item: item),
+        ),
+      );
+      if (result == true) {
+        init();
+      }
+    },
+    child: Card(
+      color: const Color(0xFF6D3200),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(50),
+      ),
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+      elevation: 4,
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          // Use Center to ensure the text is aligned properly within the card
+          child: Text(
+            item.ingredientName,
+            style: const TextStyle(
+              color: Color.fromARGB(255, 243, 217, 162),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // Item Detail Page
@@ -227,37 +227,37 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   }
 
   @override
-Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
   // Method to return the corresponding ingredient image for ingredient
-  String getIngredientImage(int ingredientID) {
+    String getIngredientImage(int ingredientID) {
     // Mapping ingredientID to image file names
-    Map<int, String> ingredientImages = {
-      16: 'assets/flour.jpg',
-      17: 'assets/flour.jpg',
-      18: 'assets/sugar.jpg',
-      19: 'assets/brown_sugar.jpg',
-      20: 'assets/butter.jpg',
-      21: 'assets/milk.jpg',
-      22: 'assets/eggs.jpg',
-      23: 'assets/baking_powder.jpg',
-      24: 'assets/baking_soda.jpg',
-      25: 'assets/yeast.jpg',
-      26: 'assets/chocolate_chips.jpg',
-      27: 'assets/vanilla.jpg',
-      28: 'assets/cinnamon_sticks.jpg',
-      29: 'assets/salt.jpg',
-      30: 'assets/starter.jpg',
-      31: 'assets/almond_flour.jpg',
-      32: 'assets/raspberry_jam.jpg',
-      33: 'assets/lemon_juice.jpg',
-      34: 'assets/cocoa_powder.jpg',
-      35: 'assets/honey.jpg',
-      36: 'assets/water.jpg',
-      37: 'assets/milk_chocolate.jpg',
-      38: 'assets/dark_chocolate.jpg',
-      39: 'assets/apples.jpg',
+      Map<int, String> ingredientImages = {
+        16: 'assets/flour.jpg',
+        17: 'assets/flour.jpg',
+        18: 'assets/sugar.jpg',
+        19: 'assets/brown_sugar.jpg',
+        20: 'assets/butter.jpg',
+        21: 'assets/milk.jpg',
+        22: 'assets/eggs.jpg',
+        23: 'assets/baking_powder.jpg',
+        24: 'assets/baking_soda.jpg',
+        25: 'assets/yeast.jpg',
+        26: 'assets/chocolate_chips.jpg',
+        27: 'assets/vanilla.jpg',
+        28: 'assets/cinnamon_sticks.jpg',
+        29: 'assets/salt.jpg',
+        30: 'assets/starter.jpg',
+        31: 'assets/almond_flour.jpg',
+        32: 'assets/raspberry_jam.jpg',
+        33: 'assets/lemon_juice.jpg',
+        34: 'assets/cocoa_powder.jpg',
+        35: 'assets/honey.jpg',
+        36: 'assets/water.jpg',
+        37: 'assets/milk_chocolate.jpg',
+        38: 'assets/dark_chocolate.jpg',
+        39: 'assets/apples.jpg',
       // Add more mappings for other ingredients
-    };
+      };
     return ingredientImages[ingredientID] ?? 'assets/bread2.png';
   }
 
@@ -368,7 +368,7 @@ Widget build(BuildContext context) {
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(0.0),
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context, true); // Close the page
@@ -379,7 +379,7 @@ Widget build(BuildContext context) {
                   foregroundColor:
                       MaterialStateProperty.all(const Color(0xFFEEC07B)),
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
+                    borderRadius: BorderRadius.circular(50.0),
                   )),
                 ),
                 child: const Text(

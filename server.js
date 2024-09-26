@@ -1314,7 +1314,9 @@ app.get('/recipes', async (req, res) => {
         const result = await pool.request().query(`
             SELECT 
                 r.RecipeID, r.Name, r.Steps, r.ProductID,
-                ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                ri.IngredientID, i.Name AS IngredientName, 
+                ri.Quantity AS IngredientQuantity, 
+                ri.Measurement AS IngredientMeasurement
             FROM tblRecipes r
             LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
             LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
@@ -1336,7 +1338,8 @@ app.get('/recipes', async (req, res) => {
                 recipe.Ingredients.push({
                     IngredientID: row.IngredientID,
                     Name: row.IngredientName,
-                    Quantity: row.IngredientQuantity
+                    Quantity: row.IngredientQuantity,
+                    Measurement: row.IngredientMeasurement // Include measurement here
                 });
             }
             return acc;
@@ -1455,7 +1458,7 @@ app.get('/recipes/search/:name', async (req, res) => {
 
 // POST /recipes: Create a new recipe
 app.post('/recipes', async (req, res) => {
-    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity }]
+    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
     if (!name || !steps || !product_id || !Array.isArray(ingredients)) {
         return res.status(400).send('Name, steps, product ID, and ingredients are required');
@@ -1492,9 +1495,10 @@ app.post('/recipes', async (req, res) => {
                 .input('recipe_id', sql.Int, newRecipeID)
                 .input('ingredient_id', sql.Int, ingredient.IngredientID)
                 .input('quantity', sql.Decimal, ingredient.Quantity)
+                .input('measurement', sql.VarChar, ingredient.Measurement) // Include measurement
                 .query(`
-                    INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity) 
-                    VALUES (@recipe_id, @ingredient_id, @quantity)
+                    INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
+                    VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
                 `);
         }
 
@@ -1505,6 +1509,61 @@ app.post('/recipes', async (req, res) => {
 });
 
 
+app.put('/recipes/:recipeId', async (req, res) => {
+    const { recipeId } = req.params;
+    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+
+    if (!name || !steps || !product_id || !Array.isArray(ingredients)) {
+        return res.status(400).send('Name, steps, product ID, and ingredients are required');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Check if the RecipeID exists
+        const recipeCheckResult = await pool.request()
+            .input('recipe_id', sql.Int, recipeId)
+            .query('SELECT COUNT(*) AS Count FROM tblRecipes WHERE RecipeID = @recipe_id');
+
+        if (recipeCheckResult.recordset[0].Count === 0) {
+            return res.status(404).send('Recipe not found');
+        }
+
+        // Update the recipe details
+        await pool.request()
+            .input('recipe_id', sql.Int, recipeId)
+            .input('name', sql.VarChar, name)
+            .input('steps', sql.Text, steps)
+            .input('product_id', sql.Int, product_id)
+            .query(`
+                UPDATE tblRecipes 
+                SET Name = @name, Steps = @steps, ProductID = @product_id 
+                WHERE RecipeID = @recipe_id
+            `);
+
+        // Update ingredients: First, delete existing ingredients
+        await pool.request()
+            .input('recipe_id', sql.Int, recipeId)
+            .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+
+        // Insert the updated ingredients
+        for (const ingredient of ingredients) {
+            await pool.request()
+                .input('recipe_id', sql.Int, recipeId)
+                .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                .input('quantity', sql.Decimal, ingredient.Quantity)
+                .input('measurement', sql.VarChar, ingredient.Measurement) // Include measurement
+                .query(`
+                    INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
+                    VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
+                `);
+        }
+
+        res.status(200).send('Recipe updated successfully');
+    } catch (error) {
+        res.status(500).send('Error updating recipe: ' + error.message);
+    }
+});
 
 
 
