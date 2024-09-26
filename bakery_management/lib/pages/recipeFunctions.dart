@@ -6,6 +6,24 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+const Map<int, String> productImages = {
+  12: 'assets/sourdough.jpg',
+  13: 'assets/choclatechip.jpg',
+  14: 'assets/buttercroissant.jpg',
+  15: 'assets/blueberrymuffins.jpg',
+  16: 'assets/cinnaon.jpg',
+  17: 'assets/frecnh.jpg',
+  18: 'assets/lemon.jpg',
+  19: 'assets/eclair.jpg',
+  20: 'assets/pie.jpg',
+  21: 'assets/vanilla.jpg',
+  22: 'assets/pie.jpg',
+  23: 'assets/almond.jpg',
+  24: 'assets/raspberry.jpg',
+  25: 'assets/brownies.jpg',
+  26: 'assets/macarons.jpg',
+};
+
 class AddRecipePage extends StatefulWidget {
   @override
   _AddRecipePageState createState() => _AddRecipePageState();
@@ -207,6 +225,7 @@ class _AddRecipePageState extends State<AddRecipePage> {
   }
 }
 
+
 class DetailedRecipePage extends StatefulWidget {
   final String recipeName;
   final int recipeID;
@@ -223,141 +242,179 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 100,
-        title: Image.asset(
-          'assets/recipe2.png',
-          height: 100,
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xEEC07B),
-      ),
-      body: FutureBuilder<List<Item>>(
-        future: RecipeApi.getItems(searchQuery),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final items = snapshot.data!;
-            
-            // Debugging: Print all fetched recipe IDs
-            print("Fetched Items IDs: ${items.map((item) => item.recipeID).toList()}");
-            print("Passed Recipe ID: ${widget.recipeID}");
+      backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
+      body: Column(
+        children: [
+          // Recipe title in big letters (like in baked goods)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              widget.recipeName, // Recipe name as a header
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF6D3200), // Same dark brown color
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // Image below the title, above instructions
+          const SizedBox(height: 10),
+          Expanded(
+            child: FutureBuilder<List<Item>>(
+              future: RecipeApi.getItems(searchQuery),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (snapshot.hasData) {
+                  final items = snapshot.data!;
+                  final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
 
-            // Filter to find the recipe with the passed recipeID
-            final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+                  if (recipe.isEmpty) {
+                    return const Center(child: Text('Recipe not found'));
+                  }
 
-            // Debugging: Print the filtered recipe
-            print("Filtered Recipe: $recipe");
+                  final item = recipe.first; // The selected recipe
 
-            if (recipe.isEmpty) {
-              return const Center(child: Text('Recipe not found'));
-            }
-
-            final item = recipe.first;
-
-            return Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Recipe title
-                      Text(
-                        "${widget.recipeName} Recipe",
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset(
+                          productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID, default is bagel
+                          width: double.infinity,
+                          height: 250, // Image height
+                          fit: BoxFit.cover,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Recipe image
-                      Image.asset(
-                        'assets/bagel3.jpg', // Replace with your image path
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Ingredients section
-                      const Text(
-                        'Ingredients',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-
-                      if (item.ingredients.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: item.ingredients.map<Widget>((ingredient) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                '- ${ingredient.quantity} of ${ingredient.name}',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            );
-                          }).toList(),
-                        )
-                      else
+                        const SizedBox(height: 20),
                         const Text(
-                          'No ingredients available',
-                          style: TextStyle(fontSize: 18),
+                          'Ingredients',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6D3200),
+                          ),
                         ),
+                        const SizedBox(height: 10),
+                        if (item.ingredients.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: item.ingredients.map<Widget>((ingredient) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Text(
+                                  '- ${ingredient.quantity} of ${ingredient.name}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF6D3200),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          )
+                        else
+                          const Text(
+                            'No ingredients available',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF6D3200),
+                            ),
+                          ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Directions',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6D3200),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          item.steps.replaceAll('\\n', '\n'),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF6D3200),
+                          ),
+                        ),
+                        const SizedBox(height: 80), // Extra space before the bottom buttons
+                      ],
+                    ),
+                  );
+                } else {
+                  return const Center(child: Text('No data found'));
+                }
+              },
+            ),
+          ),
+          // Fixed Update and Back buttons at the bottom
+          FutureBuilder<List<Item>>(
+            future: RecipeApi.getItems(searchQuery),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                final item = snapshot.data!.firstWhere((item) => item.recipeID == widget.recipeID);
 
-                      const SizedBox(height: 20),
-
-                      // Directions section
-                      const Text(
-                        'Directions',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                return Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF0D1A0), // Same background as ProductPage
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26, // Slight shadow to separate from content
+                        blurRadius: 5.0,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        item.steps.replaceAll('\\n', '\n'),
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 80), // Add space to prevent text overlap with FAB
                     ],
                   ),
-                ),
-                Positioned(
-                  bottom: 20, // Position the button above the text
-                  right: 20,
-                  child: FloatingActionButton.extended(
-                    onPressed: () async {
-                      // Open the recipe update dialog
-                      await showRecipeUpdateDialog(
-                        context,
-                        item, // Pass the current recipe item
-                        (updatedRecipe) {
-                          // Handle the updated recipe
-                          setState(() {
-                            // Since we're in a StatefulWidget, we can now update the state
-                            // Perform any actions needed to update the recipe here
-                          });
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Go back to the previous page
                         },
-                      );
-                    },
-                    label: const Text('Update Recipe'),
-                    backgroundColor: const Color(0xFFF5E0C3),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D3200), // Same button color
+                          foregroundColor: const Color(0xFFF0D1A0), // Same text color
+                        ),
+                        child: const Text('Back'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          // Open the recipe update dialog
+                          await showRecipeUpdateDialog(
+                            context,
+                            item, // Pass the current recipe item
+                            (updatedRecipe) {
+                              setState(() {
+                                // Handle updated recipe
+                              });
+                            },
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D3200), // Same button color
+                          foregroundColor: const Color(0xFFF0D1A0), // Same text color
+                        ),
+                        child: const Text('Update Recipe'),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            );
-          } else {
-            return const Center(child: Text('No data found'));
-          }
-        },
+                );
+              } else {
+                return const SizedBox.shrink(); // Avoid rendering buttons until data is ready
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 }
+
+
 
 
 
