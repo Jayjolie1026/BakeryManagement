@@ -481,21 +481,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0D1A0),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product name as a header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
+              Text(
                 _product.name,
                 style: const TextStyle(
                   fontSize: 30,
                   color: Color(0xFF6D3200),
                   fontWeight: FontWeight.bold,
+                  height: 1.2
                 ),
                 textAlign: TextAlign.left,
-              ),
+
             ),
             // Product image
             SizedBox(
@@ -507,9 +507,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text.rich(
+
+                Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -517,16 +516,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.5
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0), // You can adjust this value as needed
-                child: Text.rich(
+               Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -535,6 +532,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
                           fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
                         ),
                       ),
                       TextSpan(
@@ -542,17 +540,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.2
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
+           
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text.rich(
+                 Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -568,17 +565,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.2
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
+
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Text.rich(
+               Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -587,6 +583,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
                           fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
                         ),
                       ),
                       TextSpan(
@@ -594,17 +591,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.2
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
+              
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text.rich(
+               Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -613,6 +609,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
                           fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
                         ),
                       ),
                       TextSpan(
@@ -620,17 +617,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.2
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
+              
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text.rich(
+               Text.rich(
                   TextSpan(
                     children: <TextSpan>[
                       TextSpan(
@@ -639,6 +635,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
                           fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
                         ),
                       ),
                       TextSpan(
@@ -646,13 +643,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         style: const TextStyle(
                           color: Color(0xFF6D3200), // Dark brown
                           fontSize: 20,
+                          height: 1.2
                         ),
                       ),
                     ],
                   ),
                   textAlign: TextAlign.left,
                 ),
-              ),
+              
 
               const SizedBox(height: 10),
               _buildQuantityWarning(_product),
@@ -702,27 +700,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             return DetailedRecipePage(
                               recipeName: _product.name,  // Assuming _product.name is non-null
                               recipeID: _product.productID! + 8,  // Assert productID is non-null
-
-
-                              /*
-
-
-
-
-
-
-
-
-
-
-                              TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
-
-
-
-
-
-
-                              */
                             );
                           },
                         ),

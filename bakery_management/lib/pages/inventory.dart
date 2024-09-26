@@ -244,9 +244,9 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Method to return the corresponding ingredient image for ingredient
-    String getIngredientImage(int ingredientID) {
+Widget build(BuildContext context) {
+  // Method to return the corresponding ingredient image for ingredient
+  String getIngredientImage(int ingredientID) {
     // Mapping ingredientID to image file names
     Map<int, String> ingredientImages = {
       16: 'assets/flour.jpg',
@@ -275,188 +275,167 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
       39: 'assets/apples.jpg',
       // Add more mappings for other ingredients
     };
-    // Return the image path if the ingredientID exists in the map
-    if (ingredientImages.containsKey(ingredientID)) {
-      return ingredientImages[ingredientID]!;
-    }
-    // Default image if ingredientID is not found
-    return 'assets/bread2.png';
-}
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0d1a0),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              // Item name as a header
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  _item.ingredientName,
-                  style: const TextStyle(
-                    fontSize: 30,
-                    color: Color(0xFF6D3200),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              // Centered Image
-              Container(
-                height: 150,
-                width: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage(getIngredientImage(_item.ingredientID)),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Display Product Information
-                      Text('Name: ${_item.ingredientName}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Notes: ${_item.notes}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Quantity: ${_item.quantity}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Max Amount: ${_item.maxAmount}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Reorder Amount: ${_item.reorderAmount}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Min Amount: ${_item.minAmount}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Cost: ${_item.cost}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Created: ${formatDate(_item.createDateTime)}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                      Text('Expires: ${formatDate(_item.expireDateTime)}',
-                          style: const TextStyle(fontSize: 18, color: Color(0xFF6D3200))),
-                    ],
-                  ),
-                ),
-              ),
-              _buildQuantityWarning(_item),
-              const SizedBox(height: 20),
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Update button
-                  ElevatedButton(
-                    onPressed: () async {
-                      // Navigate to the update page and wait for result
-                      showInventoryAndIngredientUpdateDialog(
-                        context,
-                        _item, // Pass the product you want to update
-                            (updatedItem) {
-                          _updateItem(updatedItem);
-                        },
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D3200),
-                      foregroundColor: const Color(0xFFF0d1a0),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add),
-                        SizedBox(width: 8), // Spacing between image and text
-                        Text('Update'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  // Vendor button
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        // Assuming _item.vendorID holds the vendor ID
-                        final Vendor vendor =
-                            await VendorsApi().fetchVendorDetails(_item.vendorID);
+    return ingredientImages[ingredientID] ?? 'assets/bread2.png';
+  }
 
-                        // After successfully fetching the vendor, navigate to the VendorDetailsPage
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                VendorDetailsPage(vendor: vendor),
-                          ),
-                        );
-                      } catch (e) {
-                        // Handle the error if the vendor details couldn't be fetched
-                        print('Failed to load vendor details: $e');
-                        // You might want to show an error dialog or message to the user
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Error'),
-                            content: const Text('Failed to load vendor details.'),
-                            actions: <Widget>[
-                              TextButton(
-                                child: const Text('OK'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D3200),
-                      foregroundColor: const Color(0xFFF0d1a0),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.store),
-                        SizedBox(width: 8), // Spacing between icon and text
-                        Text('Vendor'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context, true); // Close the page
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                      foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50.0),
-                      )),
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(
-                        fontSize: 17, // Font size
-                        color: Color(0xFFEEC07B), // Light brown text
-                      ),
-                    ),
-                  ),
+  return Scaffold(
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _item.ingredientName,
+            style: const TextStyle(
+              fontSize: 30,
+              color: Color(0xFF6D3200),
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.left,
+          ),
+          SizedBox(
+            width: double.infinity,
+            height: 250, // Set the height of the image
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(getIngredientImage(_item.ingredientID)),
+                  fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
                 ),
-              )
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildDetailRow('Notes', _item.notes),
+              buildDetailRow('Quantity', '${_item.quantity} ${_item.invMeasurement}'),
+              buildDetailRow('Max Amount', _item.maxAmount.toString()),
+              buildDetailRow('Reorder Amount', _item.reorderAmount.toString()),
+              buildDetailRow('Min Amount', _item.minAmount.toString()),
+              buildDetailRow('Cost', _item.cost.toString()),
+              buildDetailRow('Created', formatDate(_item.createDateTime)),
+              buildDetailRow('Expires', formatDate(_item.expireDateTime)),
             ],
           ),
+          const SizedBox(height: 20),
+          // Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  // Update action
+                  showInventoryAndIngredientUpdateDialog(
+                    context,
+                    _item,
+                    (updatedItem) {
+                      _updateItem(updatedItem);
+                    },
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFFF0D1A0),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add),
+                    SizedBox(width: 8), // Spacing between image and text
+                    Text('Update'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final Vendor vendor =
+                        await VendorsApi().fetchVendorDetails(_item.vendorID);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            VendorDetailsPage(vendor: vendor),
+                      ),
+                    );
+                  } catch (e) {
+                    print('Failed to load vendor details: $e');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFFF0D1A0),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.business),
+                    SizedBox(width: 8), // Spacing between image and text
+                    Text('Vendor'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context, true); // Close the page
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all(const Color(0xFF6D3200)),
+                  foregroundColor:
+                      MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                  )),
+                ),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(
+                    fontSize: 17, // Font size
+                    color: Color(0xFFEEC07B), // Light brown text
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget buildDetailRow(String label, String value) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+          color: Color(0xFF6D3200),
         ),
       ),
-    );
-  }
+      Text(
+        value,
+        style: const TextStyle(
+          fontSize: 18,
+          color: Color(0xFF6D3200),
+        ),
+      ),
+      const SizedBox(height: 4), // Adjust the space between label and value
+    ],
+  );
+}
 }
