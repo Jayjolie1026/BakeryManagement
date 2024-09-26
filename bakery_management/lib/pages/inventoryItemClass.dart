@@ -12,7 +12,9 @@ class Item {
   final double minAmount;
   final double maxAmount;
   final double reorderAmount;
-  final vendorID;
+  final int vendorID;
+  final int ingredientID;
+  final String invMeasurement;
 
   // Constructor
   Item({
@@ -29,6 +31,8 @@ class Item {
     required this.maxAmount,
     required this.reorderAmount,
     required this.vendorID,
+    required this.ingredientID,
+    required this.invMeasurement,
   });
 
   // Factory constructor to create an Item from a JSON object
@@ -36,7 +40,7 @@ class Item {
     return Item(
       entryID: json['EntryID'],
       quantity: json['Quantity'].toInt(),
-      cost: json['Cost'].toDouble(),
+      cost: json['Cost'] != null ? json['Cost'].toDouble() : 0.0,
       notes: json['Notes'] ?? '', // Default to empty string if null
       createDateTime: json['CreateDateTime'] != null && json['CreateDateTime'].isNotEmpty
           ? DateTime.parse(json['CreateDateTime'])
@@ -51,6 +55,8 @@ class Item {
       maxAmount: json['MaxAmount'].toDouble(),  // Extract MaxAmount
       reorderAmount: json['ReorderAmount'].toDouble(),  // Extract ReorderAmount
       vendorID: json['VendorID'].toInt(),
+      ingredientID: json['IngredientID'].toInt(),
+      invMeasurement: json['InventoryMeasurement'] ?? '',
     );
   }
 
@@ -69,5 +75,7 @@ class Item {
     'MaxAmount': maxAmount,
     'ReorderAmount': reorderAmount,
     'VendorID': vendorID,
+    'IngredientID': ingredientID,
+    'InventoryMeasurement': invMeasurement,
   };
 }

@@ -99,7 +99,29 @@ flutter:
     - assets/choclatechip.jpg
     - assets/sourdough.jpg
     - assets/frecnh.jpg
-    - assets/Final_logo.png
+    # Ingredient assets below
+    - assets/yeast.jpg
+    - assets/water.jpg
+    - assets/sugar.jpg
+    - assets/starter.jpg
+    - assets/salt.jpg
+    - assets/raspberry_jam.jpg
+    - assets/milk.jpg
+    - assets/milk_chocolate.jpg
+    - assets/lemon_juice.jpg
+    - assets/honey.jpg
+    - assets/flour.jpg
+    - assets/eggs.jpg
+    - assets/dark_chocolate.jpg
+    - assets/cocoa_powder.jpg
+    - assets/cinnamon_sticks.jpg
+    - assets/chocolate_chips.jpg
+    - assets/butter.jpg
+    - assets/brown_sugar.jpg
+    - assets/baking_soda.jpg
+    - assets/baking_powder.jpg
+    - assets/apples.jpg
+    - assets/almond_flour.jpg    - assets/Final_logo.png
     - assets/Final_logo2.png
 
 

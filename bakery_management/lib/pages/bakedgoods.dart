@@ -446,66 +446,66 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     });
   }
 
-Widget _buildQuantityWarning(Product product) {
-  if (product.quantity < product.minAmount) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Text(
-        'QUANTITY IS VERY LOW! REMAKE NOW!',
-        style: TextStyle(
-          fontSize: 20,
-          color: Color(0xFF6D3200),
+  Widget _buildQuantityWarning(Product product) {
+    if (product.quantity < product.minAmount) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'QUANTITY IS VERY LOW! REMAKE NOW!',
+          style: TextStyle(
+            fontSize: 20,
+            color: Color(0xFF6D3200),
+          ),
+          textAlign: TextAlign.left,
         ),
-        textAlign: TextAlign.left,
-      ),
-    );
-  } else if (product.quantity < product.remakeAmount) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Text(
-        'Quantity is getting low. Please remake!',
-        style: TextStyle(
-          fontSize: 20,
-          color: Color(0xFF6D3200),
+      );
+    } else if (product.quantity < product.remakeAmount) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+          'Quantity is getting low. Please remake!',
+          style: TextStyle(
+            fontSize: 20,
+            color: Color(0xFF6D3200),
+          ),
+          textAlign: TextAlign.left,
         ),
-        textAlign: TextAlign.left,
-      ),
-    );
+      );
+    }
+    return const SizedBox(); // Empty widget
   }
-  return const SizedBox(); // Empty widget
-}
 
 
  @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF0D1A0),
-    body: SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product name as a header
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              _product.name,
-              style: const TextStyle(
-                fontSize: 30,
-                color: Color(0xFF6D3200),
-                fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name as a header
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _product.name,
+                style: const TextStyle(
+                  fontSize: 30,
+                  color: Color(0xFF6D3200),
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.left,
               ),
-              textAlign: TextAlign.left,
             ),
-          ),
-          // Product image
-          SizedBox(
-            width: double.infinity,
-            height: 250, // Set the height of the image
-            child: Image.asset(
-              _getProductImage(),
-              fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+            // Product image
+            SizedBox(
+              width: double.infinity,
+              height: 250, // Set the height of the image
+              child: Image.asset(
+                _getProductImage(),
+                fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
+              ),
             ),
-          ),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -525,134 +525,134 @@ Widget build(BuildContext context) {
                 ),
               ),
               Padding(
-  padding: const EdgeInsets.all(16.0), // You can adjust this value as needed
-  child: Text.rich(
-    TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: 'Max Amount:\n',
-          style: TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold heading
-          ),
-        ),
-        TextSpan(
-          text: '${_product.maxAmount}',
-          style: const TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    textAlign: TextAlign.left,
-  ),
-),
-const SizedBox(height: 10),
-Padding(
-  padding: const EdgeInsets.all(16.0),
-  child: Text.rich(
-    TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: 'Remake Amount:\n',
-          style: TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold heading
-          ),
-        ),
-        TextSpan(
-          text: '${_product.remakeAmount}',
-          style: const TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    textAlign: TextAlign.left,
-  ),
-),
-const SizedBox(height: 10),
-Padding(
-  padding: const EdgeInsets.all(15.0),
-  child: Text.rich(
-    TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: 'Min Amount:\n',
-          style: TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold heading
-          ),
-        ),
-        TextSpan(
-          text: '${_product.minAmount}',
-          style: const TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    textAlign: TextAlign.left,
-  ),
-),
-const SizedBox(height: 10),
-Padding(
-  padding: const EdgeInsets.all(16.0),
-  child: Text.rich(
-    TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: 'Quantity:\n',
-          style: TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold heading
-          ),
-        ),
-        TextSpan(
-          text: '${_product.quantity}',
-          style: const TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    textAlign: TextAlign.left,
-  ),
-),
-const SizedBox(height: 10),
-Padding(
-  padding: const EdgeInsets.all(16.0),
-  child: Text.rich(
-    TextSpan(
-      children: <TextSpan>[
-        TextSpan(
-          text: 'Price:\n',
-          style: TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-            fontWeight: FontWeight.bold, // Bold heading
-          ),
-        ),
-        TextSpan(
-          text: '${_product.price}',
-          style: const TextStyle(
-            color: Color(0xFF6D3200), // Dark brown
-            fontSize: 20,
-          ),
-        ),
-      ],
-    ),
-    textAlign: TextAlign.left,
-  ),
-),
+                padding: const EdgeInsets.all(16.0), // You can adjust this value as needed
+                child: Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Max Amount:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.maxAmount}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Remake Amount:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.remakeAmount}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Min Amount:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.minAmount}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Quantity:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.quantity}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Price:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.price}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ),
 
               const SizedBox(height: 10),
               _buildQuantityWarning(_product),
@@ -692,22 +692,19 @@ Padding(
                     onPressed: () {
                       // Navigate to recipe page
                       Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) {
-      // Print the recipe name and ID for debugging
-      print('Recipe Name: ${_product.name}');
-      print('Recipe ID: ${_product.productID}');
-      
-      return DetailedRecipePage(
-        recipeName: _product.name,  // Assuming _product.name is non-null
-        recipeID: _product.productID! + 8,  // Assert productID is non-null
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            // Print the recipe name and ID for debugging
+                            print('Recipe Name: ${_product.name}');
+                            print('Recipe ID: ${_product.productID}');
+
+                            return DetailedRecipePage(
+                              recipeName: _product.name,  // Assuming _product.name is non-null
+                              recipeID: _product.productID! + 8,  // Assert productID is non-null
 
 
-        /*
-
-
-
+                              /*
 
 
 
@@ -715,18 +712,21 @@ Padding(
 
 
 
-        TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
+
+
+
+                              TEMPORARY FIX FOR THE OFFSET OF THE DATABASE, COME BACK AND IMPLEMENT CORRECTLY
 
 
 
 
 
 
-        */
-      );
-    },
-  ),
-);
+                              */
+                            );
+                          },
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6D3200),
