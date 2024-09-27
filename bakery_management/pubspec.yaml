@@ -66,6 +66,12 @@ flutter:
     - family: MyFont
       fonts:
         - asset: assets/fonts/SofadiOne-Regular.ttf
+    - family: MyFont2
+      fonts:
+        - asset: assets/fonts/PlaywriteDEGrund-Regular.ttf
+    - family: MyFont3
+      fonts:
+        - asset: assets/fonts/Fredoka_Condensed-Light.ttf
   assets:
     - assets/logo1.png
     - assets/bread2.png

@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'vendors.dart';
 import 'vendorsAPI.dart';
 
-// Inventory Page
+
 class InventoryPage extends StatefulWidget {
   const InventoryPage({super.key});
 
@@ -19,6 +19,7 @@ class InventoryPage extends StatefulWidget {
 
 class _InventoryPageState extends State<InventoryPage> {
   List<Item> items = [];
+  List<Item> allItems = [];  // This holds all items
   String query = '';
   Timer? debouncer;
 
@@ -46,47 +47,72 @@ class _InventoryPageState extends State<InventoryPage> {
   // Initialize inventory items
   Future init() async {
     final items = await InventoryApi.getItems(query);
-    setState(() => this.items = items);
+    setState(() {
+      this.items = items;
+      this.allItems = items; // Store all items for future reference
+    });
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    
-        backgroundColor: const Color(0xFFF0D1A0),
-        body: Column(
-          children: <Widget>[
-            buildSearch(),
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return buildItem(item);
-                },
-              ),
-            ),
-            const SizedBox(height: 80)
-          ],
+  backgroundColor: const Color(0xFFF0D1A0),
+  body: Column(
+    children: <Widget>[
+       SizedBox(height: 25.0),
+      // Search bar with filter
+      buildSearchWithFilter(),
+      Expanded(
+        child: ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return GestureDetector(
+              onTap: () async {
+                // Navigate to the item details page
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ItemDetailPage(item: item),
+                  ),
+                );
+
+                // Re-apply the current query/filter after returning
+                if (query.isNotEmpty) {
+                  searchItem(query);  // Re-apply the search/filter query
+                } else {
+                  setState(() {
+                    items = allItems;  // Reset to full list if no filter is applied
+                  });
+                }
+              },
+              child: buildItem(item), // Your custom widget to display the item
+            );
+          },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => showAddIngredientAndInventoryDialog(context, () {
-            // Refresh the inventory list after adding new item
-            setState(() {
-              init();
-            });
-          }), // Open form for new ingredient
-          label: const Text('Add Ingredient',
-          style: const TextStyle(
-            color: Color(0xFFEEC07B),
-            fontSize: 17,
-          ),
-          ),
-          icon: const Icon(Icons.add),
-          backgroundColor: const Color(0xFF422308), // Dark brown background
-          foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-        ),
-        floatingActionButtonLocation:
-            FloatingActionButtonLocation.centerFloat, // Center at the bottom
+      ),
+      const SizedBox(height: 50),  // Add some space at the bottom
+    ],
+  ),
+  floatingActionButton: FloatingActionButton.extended(
+    onPressed: () => showAddIngredientAndInventoryDialog(context, () {
+      // Refresh the inventory list after adding a new item
+      init(); // Re-fetch the full list after a new item is added
+    }),
+    label: const Text(
+      'Add Ingredient',
+      style: TextStyle(
+        color: Color(0xFFEEC07B),
+        fontSize: 17,
+      ),
+    ),
+    icon: const Icon(Icons.add),
+    backgroundColor: const Color(0xFF422308),  // Dark brown background
+    foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
+
+ // Center at the bottom
 
     // --------------------temporary code to delete items------------------------------
     //   floatingActionButton: Row(
@@ -126,35 +152,172 @@ class _InventoryPageState extends State<InventoryPage> {
     //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
 
+  
+// Search bar and filter button
+Widget buildSearchWithFilter() => Row(
+    
+      children: [
+        SizedBox(height: 5.0),
+        Expanded(
+          // The search widget takes up the remaining space
+          child: SearchWidget(
+            text: query,
+            hintText: 'Search by Name',
+            onChanged: searchItem,
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.filter_list),
+          color: Colors.brown,  // Adjust color to match your theme
+          onPressed: () {
+            // Open filter dialog or perform any filter action here
+            _showFilterOptions();
+          },
+        ),
+      ],
+    );
+
+    
+
+
+
+void _showFilterOptions() {
+  final categories = _getCategories(); // Get unique categories from items
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
+        title: Text(
+          'Filter by Category',
+          style: TextStyle(
+            color: const Color(0xFF6D3200), // Set the title text color
+          ),
+        ),
+        content: SingleChildScrollView( // Make content scrollable
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: categories.map((category) {
+              return ListTile(
+                title: Text(
+                  category,
+                  style: TextStyle(
+                    color: const Color(0xFF6D3200), // Set the ListTile text color
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog
+                  applyCategoryFilter(category); // Apply the category filter
+                },
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.close, color: const Color(0xFF422308)), // Set the close button icon color
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+              setState(() {
+                items = allItems; // Reset to show all items
+                query = ''; // Clear the query as well
+              });
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
+
+
+
+
+// Helper function to check if the query is a category
+bool _isCategory(String query) {
+  // Assuming you have the categories already fetched from _getCategories
+  final categories = _getCategories();
+  return categories.contains(query);
+}
+
+
+// Get unique categories from the list of items
+List<String> _getCategories() {
+  final allCategories = items.map((item) => item.category).toSet();
+  //print(_getCategories());
+  
+   // Extract unique categories
+  return allCategories.toList(); // Convert Set back to List for easier manipulation
+}
+
+// Apply the selected category filter
+void applyCategoryFilter(String category) {
+  setState(() {
+    // Filter items based on the selected category from the full item list
+    items = allItems.where((item) => item.category == category).toList();
+    query = category; // Update the query to reflect the selected category
+  });
+}
+
+
+void searchItem(String query) {
+  List<Item> filteredItems;
+
+  if (query.isEmpty) {
+    // Reset items to the full list when search is cleared
+    filteredItems = allItems;
+  } else if (_isCategory(query)) {
+    // If query is a category, filter items by that category
+    filteredItems = allItems.where((item) => item.category == query).toList();
+  } else {
+    // Otherwise, filter items by name or other search criteria
+    filteredItems = allItems.where((item) =>
+        item.ingredientName.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+
+  setState(() {
+    items = filteredItems;
+    this.query = query; // Update query in state
+  });
+}
+
+
+
+
+
+
   // Search bar widget
   Widget buildSearch() => SearchWidget(
       text: query, hintText: 'Search by Name', onChanged: searchItem);
 
   // Search for an item by query
-  Future searchItem(String query) async => debounce(() async {
-        final items = await InventoryApi.getItems(query);
-
-        if (!mounted) return;
-
-        setState(() {
-          this.query = query;
-          this.items = items;
-        });
-      });
+ 
 
   // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
     onTap: () async {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ItemDetailPage(item: item),
-        ),
-      );
-      if (result == true) {
-        init();
-      }
-    },
+  // Navigate to the item details page
+  await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ItemDetailPage(item: item),
+    ),
+  );
+
+  // Re-apply the current query/filter after returning
+  setState(() {
+    // Check if the query is still valid and reapply filtering
+    if (query.isNotEmpty) {
+      searchItem(query);  // Re-apply the search/filter query
+    } else {
+      items = allItems;  // Reset to full list if no filter is applied
+    }
+  });
+},
+
     child: Card(
       color: const Color(0xFF6D3200),
       shape: RoundedRectangleBorder(

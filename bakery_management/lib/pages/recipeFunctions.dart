@@ -291,6 +291,7 @@ Widget build(BuildContext context) {
                               style: const TextStyle(
                                 fontSize: 18,
                                 color: Color(0xFF6D3200),
+                                fontFamily: "MyFont2"
                               ),
                             ),
                           );
@@ -319,6 +320,7 @@ Widget build(BuildContext context) {
                       style: const TextStyle(
                         fontSize: 18,
                         color: Color(0xFF6D3200),
+                        fontFamily: "MyFont2"
                       ),
                     ),
                     const SizedBox(height: 20), // Extra space before the bottom buttons

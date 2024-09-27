@@ -229,6 +229,7 @@ class _ProductsPageState extends State<ProductsPage> {
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
+        SizedBox(height: 25.0),
         buildSearch(),
         Expanded(
           child: ListView.builder(
