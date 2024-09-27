@@ -25,3 +25,6 @@ CREATE TABLE tblTasks (
     AssignedBy UNIQUEIDENTIFIER,
     FOREIGN KEY (AssignedBy) REFERENCES tblUsers(EmployeeID)  
 );
+
+
+select * from tblRecipes;
