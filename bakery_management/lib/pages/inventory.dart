@@ -407,7 +407,15 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         37: 'assets/milk_chocolate.jpg',
         38: 'assets/dark_chocolate.jpg',
         39: 'assets/apples.jpg',
-      // Add more mappings for other ingredients
+        75: 'assets/almonds.jpg', 
+        77: 'assets/chocolate.jpg', 
+        78: 'assets/confectionerssuagr.jpg',
+        80: 'assets/eggwhite.jpg',
+        79: 'assets/granulatedsuagr.jpg',
+        74: 'assets/piecrust.jpg', 
+        73: 'assets/pumpkinpuree.jpg', 
+        76: 'assets/raspberryfilling.jpg', 
+
       };
     return ingredientImages[ingredientID] ?? 'assets/bread2.png';
   }

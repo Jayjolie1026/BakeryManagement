@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import 'package:flutter/material.dart';
 
 const Map<int, String> productImages = {
   12: 'assets/sourdough.jpg',
@@ -26,16 +23,16 @@ const Map<int, String> productImages = {
 
 void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
   final TextEditingController nameController = TextEditingController();
-final TextEditingController stepsController = TextEditingController();
-final TextEditingController productIDController = TextEditingController();
-final TextEditingController ingredientIDController = TextEditingController();
-final TextEditingController ingredientQuantityController = TextEditingController();
-final TextEditingController ingredientMeasurementController = TextEditingController(); 
-final TextEditingController categoryController = TextEditingController(); 
-final TextEditingController yieldController = TextEditingController(); 
+  final TextEditingController stepsController = TextEditingController();
+  final TextEditingController productIDController = TextEditingController();
+  final TextEditingController ingredientIDController = TextEditingController();
+  final TextEditingController ingredientQuantityController = TextEditingController();
+  final TextEditingController ingredientMeasurementController = TextEditingController(); 
+  final TextEditingController categoryController = TextEditingController(); 
+  final TextEditingController yieldController = TextEditingController(); 
 
 
-  List<Map<String, dynamic>> ingredients = [];
+    List<Map<String, dynamic>> ingredients = [];
 
   showDialog(
     context: context,
@@ -49,7 +46,6 @@ final TextEditingController yieldController = TextEditingController();
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Recipe Name Input
               TextField(
                 controller: nameController,
                 style: const TextStyle(color: Color(0xFF6D3200)),

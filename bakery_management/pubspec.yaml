@@ -131,6 +131,14 @@ flutter:
     - assets/Final_logo.png
     - assets/Final_logo2.png
     - assets/cupcakes.jpg
+    - assets/almonds.jpg
+    - assets/chocolate.jpg
+    - assets/confectionerssuagr.jpg
+    - assets/eggwhite.jpg
+    - assets/granulatedsuagr.jpg
+    - assets/piecrust.jpg
+    - assets/pumpkinpuree.jpg
+    - assets/raspberryfilling.jpg
 
 
   # To add assets to your application, add an assets section, like this:

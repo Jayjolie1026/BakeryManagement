@@ -169,15 +169,26 @@ class ProductApi {
 }
 
 static Future<int?> fetchRecipeIDByProductID(int productID) async {
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${productID}'));
+  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/$productID'));
 
   if (response.statusCode == 200) {
-    final Map<String, dynamic> data = json.decode(response.body);
-    return data['recipeID']; // Adjust this based on your API response structure
+    // Log the response body to understand its structure
+    print('Response body: ${response.body}');
+
+    // Decode the response body
+    final List<dynamic> data = json.decode(response.body);
+
+    // Check if the list is not empty and return the recipeID from the first item
+    if (data.isNotEmpty && data[0] is Map<String, dynamic>) {
+      return data[0]['RecipeID']; // Return RecipeID from the first item in the list
+    } else {
+      return null; // No items found
+    }
   } else {
     throw Exception('Failed to load recipe ID');
   }
 }
+
 
 
 }

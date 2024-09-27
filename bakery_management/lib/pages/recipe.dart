@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
 import 'recipeFunctions.dart';
-import 'inventorySearchWidget.dart';
+
 
 
 
@@ -70,21 +70,20 @@ class _RecipePageState extends State<RecipePage> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DetailedRecipePage( recipeName: item.name,  // Ensure correct parameter name
-        recipeID: item.recipeID,),
+                    builder: (context) => DetailedRecipePage( 
+                      recipeName: item.name,  
+                      recipeID: item.recipeID,),
                   ),
                 );
-
-                // Re-apply the current query/filter after returning
                 if (query.isNotEmpty) {
-                  searchItem(query);  // Re-apply the search/filter query
+                  searchItem(query);  
                 } else {
                   setState(() {
-                    items = allItems;  // Reset to full list if no filter is applied
+                    items = allItems; 
                   });
                 }
               },
-              child: buildItem(item), // Your custom widget to display the item
+              child: buildItem(item), 
             );
             },
           ),
