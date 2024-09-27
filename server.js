@@ -35,6 +35,101 @@ app.get('/', (req, res) => {
 console.log('Server is starting.');
 
 
+//Tasks
+// Create a Task
+app.post('/tasks', async (req, res) => {
+    const { Description, CreateDate, DueDate, AssignedBy } = req.body;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('Description', sql.VarChar(100), Description)
+            .input('CreateDate', sql.Date, CreateDate)
+            .input('DueDate', sql.Date, DueDate)
+            .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
+            .query('INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)');
+
+        res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating task', error: error.message });
+    }
+});
+
+// Get All Tasks
+app.get('/tasks', async (req, res) => {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request().query('SELECT * FROM tblTasks');
+        
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching tasks', error: error.message });
+    }
+});
+
+// Get a Task by ID
+app.get('/tasks/:id', async (req, res) => {
+    const taskId = req.params.id;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('TaskID', sql.Int, taskId)
+            .query('SELECT * FROM tblTasks WHERE TaskID = @TaskID');
+        
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.status(200).json(result.recordset[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching task', error: error.message });
+    }
+});
+
+// Update a Task
+app.put('/tasks/:id', async (req, res) => {
+    const taskId = req.params.id;
+    const { Description, CreateDate, DueDate, AssignedBy } = req.body;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('TaskID', sql.Int, taskId)
+            .input('Description', sql.VarChar(100), Description)
+            .input('CreateDate', sql.Date, CreateDate)
+            .input('DueDate', sql.Date, DueDate)
+            .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
+            .query('UPDATE tblTasks SET Description = @Description, CreateDate = @CreateDate, DueDate = @DueDate, AssignedBy = @AssignedBy WHERE TaskID = @TaskID');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.status(200).json({ message: 'Task updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating task', error: error.message });
+    }
+});
+
+// Delete a Task
+app.delete('/tasks/:id', async (req, res) => {
+    const taskId = req.params.id;
+
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('TaskID', sql.Int, taskId)
+            .query('DELETE FROM tblTasks WHERE TaskID = @TaskID');
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.status(200).json({ message: 'Task deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting task', error: error.message });
+    }
+});
+
+
 
   // GET /vendors: Retrieve all vendors Populate list underneath search bar
   app.get('/vendors', async (req, res) => {
