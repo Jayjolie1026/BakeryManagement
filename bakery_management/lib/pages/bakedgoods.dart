@@ -3,8 +3,7 @@ import 'package:bakery_management/pages/recipeFunctions.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:bakery_management/pages/recipe.dart';
-import 'recipeAPI.dart';
+
 
 const Map<int, String> productImages = {
   12: 'assets/sourdough.jpg',
@@ -16,7 +15,7 @@ const Map<int, String> productImages = {
   18: 'assets/lemon.jpg',
   19: 'assets/eclair.jpg',
   20: 'assets/pie.jpg',
-  21: 'assets/vanilla.jpg',
+  21: 'assets/cupcakes.jpg',
   22: 'assets/pie.jpg',
   23: 'assets/almond.jpg',
   24: 'assets/raspberry.jpg',
@@ -35,6 +34,7 @@ class Product {
   final double minAmount;
   final int quantity;
   final double price;
+  final String category;
 
   // Constructor
   Product({
@@ -46,6 +46,7 @@ class Product {
     required this.minAmount,
     required this.quantity,
     required this.price,
+    required this.category,
   });
 
   // Factory constructor to create a Product from a JSON object
@@ -59,6 +60,7 @@ class Product {
       minAmount: json['MinAmount'].toDouble(),  // Extract MinAmount
       quantity: json['Quantity'].toInt(),    // Extract Quantity
       price: json['Price'].toDouble(),        // Extract Price
+      category: json['Category'] ?? '',
     );
   }
 
@@ -72,6 +74,7 @@ class Product {
         'MinAmount': minAmount,
         'Quantity': quantity,
         'Price': price,
+        'Category' : category,
       };
 }
 
@@ -107,7 +110,8 @@ class ProductApi {
     "remakeAmount": product.remakeAmount,
     "minAmount": product.minAmount,
     "quantity": product.quantity,
-    "price": product.price
+    "price": product.price,
+    "category": product.category,
   });
     print('Request body: $body');
 
@@ -164,6 +168,18 @@ class ProductApi {
   }
 }
 
+static Future<int?> fetchRecipeIDByProductID(int productID) async {
+  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${productID}'));
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return data['recipeID']; // Adjust this based on your API response structure
+  } else {
+    throw Exception('Failed to load recipe ID');
+  }
+}
+
+
 }
 
 
@@ -178,6 +194,7 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   List<Product> products = [];
+   List<Product> allItems = [];
   String query = '';
   Timer? debouncer;
 
@@ -211,12 +228,15 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   // Initialize and load products
-  Future<void> init() async {
+  Future init() async {
     try {
       final products = await ProductApi.getProducts(query);
-      if (mounted) { // Check if the widget is still mounted
-        setState(() => this.products = products);
-      }
+      // Check if the widget is still mounted
+        setState(() {
+      this.products = products;
+      this.allItems = products; // Store all items for future reference
+    });
+      
     } catch (e) {
       // Handle the error if needed
       print('Failed to load products: $e');
@@ -224,19 +244,38 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-   
+  Widget build(BuildContext context) => Scaffold(  
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
         SizedBox(height: 25.0),
-        buildSearch(),
+        buildSearchWithFilter(),
         Expanded(
           child: ListView.builder(
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
-              return buildProduct(product);
+              return GestureDetector(
+              onTap: () async {
+                // Navigate to the item details page
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailPage(product: product,),
+                  ),
+                );
+
+                // Re-apply the current query/filter after returning
+                if (query.isNotEmpty) {
+                  searchItem(query);  // Re-apply the search/filter query
+                } else {
+                  setState(() {
+                    products = allItems;  // Reset to full list if no filter is applied
+                  });
+                }
+              },
+              child: buildProduct(product), // Your custom widget to display the item
+            );
             },
           ),
         ),
@@ -246,9 +285,9 @@ class _ProductsPageState extends State<ProductsPage> {
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () => showAddProductDialog(context, () {
         // Refresh the product list after adding a new product
-        setState(() {
+        
           init(); // Call init to reload products
-        });
+        
       }),
       label: const Text(
         'Add Product',
@@ -267,24 +306,123 @@ class _ProductsPageState extends State<ProductsPage> {
   );
 
   // Search bar widget
-  Widget buildSearch() => SearchWidget(
-    text: query,
-    hintText: 'Search by Name',
-    onChanged: searchProduct,
+  Widget buildSearchWithFilter() => Row(
     
+      children: [
+        SizedBox(height: 5.0),
+        Expanded(
+          // The search widget takes up the remaining space
+          child: SearchWidget(
+            text: query,
+            hintText: 'Search by Name',
+            onChanged: searchItem,
+          ),
+        ),
+        IconButton(
+          icon: Icon(Icons.filter_list),
+          color: Colors.brown,  // Adjust color to match your theme
+          onPressed: () {
+            // Open filter dialog or perform any filter action here
+            _showFilterOptions();
+          },
+        ),
+      ],
+    );
+  
+  void _showFilterOptions() {
+  final categories = _getCategories(); // Get unique categories from items
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
+        title: Text(
+          'Filter by Category',
+          style: TextStyle(
+            color: const Color(0xFF6D3200), // Set the title text color
+          ),
+        ),
+        content: SingleChildScrollView( // Make content scrollable
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: categories.map((category) {
+              return ListTile(
+                title: Text(
+                  category,
+                  style: TextStyle(
+                    color: const Color(0xFF6D3200), // Set the ListTile text color
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context); // Close the dialog
+                  applyCategoryFilter(category); // Apply the category filter
+                },
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.close, color: const Color(0xFF422308)), // Set the close button icon color
+            onPressed: () {
+              Navigator.pop(context); // Close the dialog
+              setState(() {
+                products = allItems; // Reset to show all items
+                query = ''; // Clear the query as well
+              });
+            },
+          ),
+        ],
+      );
+    },
   );
+}
+// Helper function to check if the query is a category
+bool _isCategory(String query) {
+  // Assuming you have the categories already fetched from _getCategories
+  final categories = _getCategories();
+  return categories.contains(query);
+}
 
-  // Search for a product by query
-  Future searchProduct(String query) async => debounce(() async {
-    final products = await ProductApi.getProducts(query);
 
-    if (!mounted) return;
+// Get unique categories from the list of items
+List<String> _getCategories() {
+  final allCategories = products.map((product) => product.category).toSet();
+  //print(_getCategories());
+  
+   // Extract unique categories
+  return allCategories.toList(); // Convert Set back to List for easier manipulation
+}
 
-    setState(() {
-      this.query = query;
-      this.products = products;
-    });
+// Apply the selected category filter
+void applyCategoryFilter(String category) {
+  setState(() {
+    // Filter items based on the selected category from the full item list
+    products = allItems.where((product) => product.category == category).toList();
+    query = category; // Update the query to reflect the selected category
   });
+}
+
+  void searchItem(String query) {
+  List<Product> filteredItems;
+
+  if (query.isEmpty) {
+    // Reset items to the full list when search is cleared
+    filteredItems = allItems;
+  } else if (_isCategory(query)) {
+    // If query is a category, filter items by that category
+    filteredItems = allItems.where((item) => item.category == query).toList();
+  } else {
+    // Otherwise, filter items by name or other search criteria
+    filteredItems = allItems.where((item) =>
+        item.name.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+
+  setState(() {
+    products = filteredItems;
+    this.query = query; // Update query in state
+  });
+}
 
   // Build list tile for each product
   Widget buildProduct(Product product) => GestureDetector(
@@ -298,11 +436,17 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
         ),
       );
+      setState(() {
+    // Check if the query is still valid and reapply filtering
+    if (query.isNotEmpty) {
+      searchItem(query);  // Re-apply the search/filter query
+    } else {
+      products = allItems;  // Reset to full list if no filter is applied
+    }
+  });
 
       // If the result is true, refresh the product list
-      if (result == true) {
-        init(); // Refresh the product list
-      }
+      
     },
     child: Card(
       color: const Color(0xFF6D3200),
@@ -507,6 +651,31 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                   textAlign: TextAlign.left,
                 ),
+                Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Category:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.category}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          height: 1.2
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+               
                Text.rich(
                   TextSpan(
                     children: <TextSpan>[
@@ -671,23 +840,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                   const SizedBox(width: 20),
                   ElevatedButton(
-                    onPressed: () {
-                      // Navigate to recipe page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            // Print the recipe name and ID for debugging
-                            print('Recipe Name: ${_product.name}');
-                            print('Recipe ID: ${_product.productID}');
-
-                            return DetailedRecipePage(
-                              recipeName: _product.name,  // Assuming _product.name is non-null
-                              recipeID: _product.productID! + 8,  // Assert productID is non-null
-                            );
-                          },
-                        ),
-                      );
+                    onPressed: () async {
+                      int? recipeID = await ProductApi.fetchRecipeIDByProductID(_product.productID!);
+                      if (recipeID != null) {
+                          // Navigate to the DetailedRecipePage with the fetched recipeID
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailedRecipePage(
+                                recipeName: _product.name,  // Assuming _product.name is non-null
+                                recipeID: recipeID,          // Use the fetched recipeID
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Handle the case when the recipeID is null
+                          // For example, show a snackbar or dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Recipe not found for this product.')),
+                          );
+                        }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6D3200),
@@ -753,6 +925,7 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
   final minAmountController = TextEditingController(text: product.minAmount.toString());
   final priceController = TextEditingController(text: product.price.toString());
   final quantityController = TextEditingController(text: product.quantity.toString());
+  final categoryController = TextEditingController(text: product.name);
 
   showDialog(
     context: context,
@@ -786,6 +959,20 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Description',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: categoryController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Category',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF6D3200)),
@@ -895,6 +1082,7 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
                 minAmount: double.parse(minAmountController.text),
                 quantity: int.parse(quantityController.text),
                 price: double.parse(priceController.text),
+                category: categoryController.text,
               );
 
 
@@ -924,6 +1112,7 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
   final minAmountController = TextEditingController();
   final quantityController = TextEditingController();
   final priceController = TextEditingController();
+  final categoryController = TextEditingController();
 
   showDialog(
     context: context,
@@ -949,7 +1138,21 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
               ),
                ),
             ),
+            
              TextField(
+              controller: categoryController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Category', 
+               labelStyle: TextStyle(color: Color(0xFF6D3200)), 
+               focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+               ),
+            ),
+            TextField(
               controller: descriptionController,
               style: const TextStyle(color: Color(0xFF6D3200)),
               decoration: const InputDecoration(labelText: 'Description', 
@@ -1056,6 +1259,7 @@ void showAddProductDialog(BuildContext context,VoidCallback onProductAdded) {
               minAmount: double.tryParse(minAmountController.text) ?? 0,
               quantity: int.tryParse(quantityController.text) ?? 0,
               price: double.tryParse(priceController.text) ?? 0.0,
+              category: categoryController.text,
             );
 
             // Add the new product using the API

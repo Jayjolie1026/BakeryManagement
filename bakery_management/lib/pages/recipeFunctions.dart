@@ -16,7 +16,7 @@ const Map<int, String> productImages = {
   18: 'assets/lemon.jpg',
   19: 'assets/eclair.jpg',
   20: 'assets/pie.jpg',
-  21: 'assets/vanilla.jpg',
+  21: 'assets/cupcakes.jpg',
   22: 'assets/pie.jpg',
   23: 'assets/almond.jpg',
   24: 'assets/raspberry.jpg',
@@ -26,11 +26,14 @@ const Map<int, String> productImages = {
 
 void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController stepsController = TextEditingController();
-  final TextEditingController productIDController = TextEditingController();
-  final TextEditingController ingredientIDController = TextEditingController();
-  final TextEditingController ingredientQuantityController = TextEditingController();
-  final TextEditingController ingredientMeasurementController = TextEditingController(); // New measurement controller
+final TextEditingController stepsController = TextEditingController();
+final TextEditingController productIDController = TextEditingController();
+final TextEditingController ingredientIDController = TextEditingController();
+final TextEditingController ingredientQuantityController = TextEditingController();
+final TextEditingController ingredientMeasurementController = TextEditingController(); 
+final TextEditingController categoryController = TextEditingController(); 
+final TextEditingController yieldController = TextEditingController(); 
+
 
   List<Map<String, dynamic>> ingredients = [];
 
@@ -137,6 +140,37 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
                   ),
                 ),
               ),
+              TextField(
+                controller: categoryController, // New controller for category
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+
+              // TextField for Yield
+              TextField(
+                controller: yieldController, // New controller for yield
+                keyboardType: TextInputType.number, // Set keyboard type to number
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Yield',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
               ElevatedButton(
                 onPressed: () {
                   final ingredientID = int.tryParse(ingredientIDController.text);
@@ -186,11 +220,13 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
               final name = nameController.text;
               final steps = stepsController.text;
               final productID = int.tryParse(productIDController.text);
+              final category = categoryController.text; // Get the category from the controller
+              final yieldValue = int.tryParse(yieldController.text) ?? 0;
 
               if (name.isNotEmpty && steps.isNotEmpty && productID != null && ingredients.isNotEmpty) {
                 // Call the API to add the recipe
                 try {
-                  await addRecipe(name, steps, productID, ingredients);
+                  await addRecipe(name, steps, productID, category, yieldValue, ingredients);
                   onRecipeAdded(); // Callback to refresh or update the UI
                   Navigator.of(context).pop(); // Close the dialog
                 } catch (e) {
@@ -271,6 +307,40 @@ Widget build(BuildContext context) {
                       fit: BoxFit.cover,
                     ),
                     const SizedBox(height: 20),
+                     const Text(
+                  'Category:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                Text(
+                  item.category, // Display the category
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Display Yield
+                const Text(
+                  'Yield:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                Text(
+                  item.yield2.toString(), // Display the yield, convert to string if needed
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                const SizedBox(height: 20),
                     const Text(
                       'Ingredients:',
                       style: TextStyle(
@@ -407,6 +477,8 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
   TextEditingController nameController = TextEditingController(text: recipe.name);
   TextEditingController stepsController = TextEditingController(text: recipe.steps);
   TextEditingController ingredientsController = TextEditingController(text: ingredientsString);
+  TextEditingController categoryController = TextEditingController(text: recipe.category);
+  TextEditingController yieldController = TextEditingController(text: recipe.yield2.toString());
 
   await showDialog(
     context: context,
@@ -465,6 +537,35 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
                 maxLines: 5, // Allow multiline for recipe steps
               ),
+               TextField(
+              controller: categoryController, // New category controller
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+              ),
+            ),
+            TextField(
+              controller: yieldController, // New yield controller
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Yield',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+              ),
+              keyboardType: TextInputType.number, // Optional: limit input to numbers
+            ),
             ],
           ),
         ),
@@ -478,30 +579,32 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
             ),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              // Update the recipe with new values
-              final updatedRecipe = Item(
-                recipeID: recipe.recipeID, // Keep the same recipe ID
-                name: nameController.text,
-                steps: stepsController.text,
-                productID: recipe.productID,
-                ingredients: ingredientsController.text.split(',').map((ingredientString) {
-                  // Split each string by ':' to get ingredientID, name, quantity, and measurement
-                  final parts = ingredientString.split(':');
+         ElevatedButton(
+          onPressed: () async {
+            // Update the recipe with new values
+            final updatedRecipe = Item(
+              recipeID: recipe.recipeID, // Keep the same recipe ID
+              name: nameController.text,
+              steps: stepsController.text,
+              productID: recipe.productID,
+              ingredients: ingredientsController.text.split(',').map((ingredientString) {
+                final parts = ingredientString.split(':');
 
-                  if (parts.length == 4) { // Expecting 4 parts: ID, name, quantity, measurement
-                    return Ingredient(
-                      ingredientID: int.parse(parts[0].trim()), // Convert ingredientID to int
-                      name: parts[1].trim(),
-                      quantity: int.parse(parts[2].trim()), // Assuming quantity is an int
-                      measurement: parts[3].trim(), // Get measurement from the string
-                    );
-                  } else {
-                    throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
-                  }
-                }).toList(),  // Convert back to a list
-              );
+                if (parts.length == 4) {
+                  return Ingredient(
+                    ingredientID: int.parse(parts[0].trim()),
+                    name: parts[1].trim(),
+                    quantity: int.parse(parts[2].trim()),
+                    measurement: parts[3].trim(),
+                  );
+                } else {
+                  throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
+                }
+              }).toList(),
+              category: categoryController.text, // Add category
+              yield2: int.tryParse(yieldController.text) ?? 0, // Add yield, default to 0 if parsing fails
+            );
+
 
               // Prepare ingredients for the API call
               List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
@@ -515,12 +618,14 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
 
               // Call the API to update the recipe
               try {
-                await RecipeApi().updateRecipe(
+                 await RecipeApi().updateRecipe(
                   updatedRecipe.recipeID,
                   updatedRecipe.name,
                   updatedRecipe.steps,
                   ingredientsForApi,
                   recipe.productID, // Pass the product ID
+                  updatedRecipe.category, // Pass the category
+                  updatedRecipe.yield2, // Pass the yield
                 );
 
                 // Call the update callback

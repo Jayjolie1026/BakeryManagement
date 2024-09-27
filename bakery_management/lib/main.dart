@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/bakedgoods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
+
 
   void _logout(BuildContext context) async {
     // Your logout logic here
@@ -85,9 +85,15 @@ class _SignInPageState extends State<SignInPage> {
        await prefs.setString('username', _usernameController.text); 
       final responseBody = jsonDecode(response.body);
       print('Decoded response body: $responseBody');
+
       final employeeId = responseBody['employee_id'];
       await prefs.setString('employeeId', employeeId);
       print('Employee ID: $employeeId');
+      final firstName = responseBody['first_name']; // Get first name from response
+      final jobId = responseBody['job_id'];
+
+      await prefs.setString('firstName', firstName); // Save first name
+      await prefs.setInt('jobId', jobId); // Save job ID
 
     final sessionResponse = await http.post(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/sessions/start'),
@@ -199,13 +205,13 @@ Widget build(BuildContext context) {
           
           const SizedBox(height: 10),
           // Forgot Password Button
-          TextButton(
-            onPressed: _navigateToForgotPassword,
-            child: const Text(
-              'Forgot Password?',
-              style: TextStyle(color: Colors.blue),
-            ),
-          ),
+         // TextButton(
+           // onPressed: _navigateToForgotPassword,
+           // child: const Text(
+         //     'Forgot Password?',
+          //    style: TextStyle(color: Colors.blue),
+          //  ),
+        //  ),
           // Create Account Button
           ElevatedButton(
             onPressed: _navigateToCreateAccount,
@@ -232,6 +238,7 @@ class BakeryHomePage extends StatefulWidget {
 
 class _BakeryHomePageState extends State<BakeryHomePage> {
   int _selectedIndex = 0; // Track selected tab
+  String firstName = "User";
 
   // List of pages corresponding to each tab (Home, Vendors, Recipes, Inventory, Baked Goods, Options)
   final List<Widget> _pages = [
@@ -249,17 +256,37 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
       _selectedIndex = index;
     });
   }
+   @override
+  void initState() {
+    super.initState();
+    _loadFirstName(); // Load first name when the widget is initialized
+  }
+   Future<void> _loadFirstName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      firstName = prefs.getString('firstName') ?? "User"; // Default to "User" if not found
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+       appBar: AppBar(
         title: null, // Remove the title to use FlexibleSpaceBar
-        flexibleSpace: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
-          ),
+       flexibleSpace: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+          child: _selectedIndex == 0 // Check if the selected index is 0 (Home Page)
+              ? Text(
+                  'Hi $firstName!', // Display the greeting
+                  style: TextStyle(
+                    fontSize: 24,
+                    color: const Color.fromARGB(255, 243, 217, 162),
+                  ), // Customize the text style as needed
+                )
+              : Container(), // Show an empty container for other pages
         ),
+      ),
         centerTitle: true,
         backgroundColor: const Color(0xFF422308),
          leading: PopupMenuButton<String>(
@@ -335,34 +362,41 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        alignment: Alignment.topCenter, // Center alignment for both image and text
-        children: [
-          Container(
-          padding: EdgeInsets.only(top: 130), // Adjust the padding as needed
-          child: Text(
-            'Welcome to',
-            style: TextStyle(
-              fontSize: 24,
-              fontFamily: 'MyFont',
-              color: Colors.brown[900],
-            ),
-            textAlign: TextAlign.center,
+Widget build(BuildContext context) {
+  return Column(
+    children: [
+      // Directly stacking the image and text
+      Expanded(
+        child: Align(
+          alignment: Alignment.topCenter, // Aligns at the top center
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                'assets/Final_logo.png',
+                width: 300,
+                height: 300,
+              ),
+              Positioned(
+                top: 40, // Adjust this value to move text closer to the image
+                child: Text(
+                  'Welcome to',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontFamily: 'MyFont',
+                    color: Colors.brown[900],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ),
         ),
-          Image.asset(
-            'assets/Final_logo.png',
-            width: 500,
-            height: 500,
-          ),
-          // Positioned to adjust the text position over the image if needed
-         
-        ],
       ),
-    );
-  }
+    ],
+  );
+}
+
 }
 
 

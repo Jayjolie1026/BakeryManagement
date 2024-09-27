@@ -284,18 +284,6 @@ void searchItem(String query) {
   });
 }
 
-
-
-
-
-
-  // Search bar widget
-  Widget buildSearch() => SearchWidget(
-      text: query, hintText: 'Search by Name', onChanged: searchItem);
-
-  // Search for an item by query
- 
-
   // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
     onTap: () async {
