@@ -1457,53 +1457,31 @@ app.get('/recipes', async (req, res) => {
 });
 
 
-app.get('/recipes/:productID', async (req, res) => {
-    try {
-        const productID = req.params.productID;
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request()
-            .input('ProductID', sql.Int, productID)
-            .query(`
-                SELECT 
-                    r.RecipeID, r.Name, r.Steps, r.ProductID, 
-                    r.Category, r.Yield,  -- Added Category and Yield
-                    ri.IngredientID, i.Name AS IngredientName, 
-                    ri.Quantity AS IngredientQuantity
-                FROM tblRecipes r
-                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
-                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
-                WHERE r.ProductID = @ProductID
-            `);
-
-        const recipes = result.recordset.reduce((acc, row) => {
-            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
-            if (!recipe) {
-                recipe = {
-                    RecipeID: row.RecipeID,
-                    Name: row.Name,
-                    Steps: row.Steps,
-                    ProductID: row.ProductID,
-                    Category: row.Category,  // Include Category
-                    Yield: row.Yield,        // Include Yield
-                    Ingredients: []
-                };
-                acc.push(recipe);
-            }
-            if (row.IngredientID) {
-                recipe.Ingredients.push({
-                    IngredientID: row.IngredientID,
-                    Name: row.IngredientName,
-                    Quantity: row.IngredientQuantity
-                });
-            }
-            return acc;
-        }, []);
-
-        res.json(recipes);
-    } catch (error) {
-        res.status(500).send('Error retrieving recipes: ' + error.message);
+app.get('/recipes/:productId', (req, res) => {
+    const productId = req.params.productId;
+  
+    if (!productId) {
+      return res.status(400).json({ error: 'Product ID is required' });
     }
-});
+  
+    // SQL query to find the recipe ID by product ID
+    const query = 'SELECT recipeID FROM tblRecipes WHERE productID = ?'; // Adjust the table name and field names as necessary
+  
+    db.query(query, [productId], (err, results) => {
+      if (err) {
+        console.error('Error executing query: ', err.stack);
+        return res.status(500).json({ error: 'Database query failed' });
+      }
+  
+      if (results.length > 0) {
+        // Return the recipe ID if found
+        return res.json({ recipeID: results[0].recipeID });
+      } else {
+        // No recipe found for the given product ID
+        return res.status(404).json({ error: 'Recipe not found for this product ID' });
+      }
+    });
+  });
 
 
 
@@ -1593,7 +1571,7 @@ app.post('/recipes', async (req, res) => {
             .input('steps', sql.Text, steps)
             .input('product_id', sql.Int, product_id)
             .input('category', sql.VarChar, category) // New input for Category
-            .input('yield', sql.VarChar, yield)       // New input for Yield
+            .input('yield', sql.Int, yield)       // New input for Yield
             .query(`
                 INSERT INTO tblRecipes (Name, Steps, ProductID, Category, Yield) 
                 OUTPUT inserted.RecipeID
@@ -1624,14 +1602,22 @@ app.post('/recipes', async (req, res) => {
 
 app.put('/recipes/:recipeId', async (req, res) => {
     const { recipeId } = req.params;
-    const { name, steps, product_id, category, yield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+    const { name, steps, product_id, category, yield: recipeYield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+    
+    // Log request parameters and body for debugging
+    console.log(`Updating RecipeID: ${recipeId}`);
+    console.log('Request Body:', req.body);
 
-    if (!name || !steps || !product_id || !category || !yield || !Array.isArray(ingredients)) {
+    if (!name || !steps || !product_id || !category || !recipeYield || !Array.isArray(ingredients)) {
+        console.log('Invalid request data');
         return res.status(400).send('Name, steps, product ID, category, yield, and ingredients are required');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
+        
+        // Log SQL connection success
+        console.log('Connected to database');
 
         // Check if the RecipeID exists
         const recipeCheckResult = await pool.request()
@@ -1639,8 +1625,12 @@ app.put('/recipes/:recipeId', async (req, res) => {
             .query('SELECT COUNT(*) AS Count FROM tblRecipes WHERE RecipeID = @recipe_id');
 
         if (recipeCheckResult.recordset[0].Count === 0) {
+            console.log(`RecipeID ${recipeId} not found`);
             return res.status(404).send('Recipe not found');
         }
+
+        // Log recipe found
+        console.log(`RecipeID ${recipeId} found`);
 
         // Update the recipe details including Category and Yield
         await pool.request()
@@ -1649,20 +1639,27 @@ app.put('/recipes/:recipeId', async (req, res) => {
             .input('steps', sql.Text, steps)
             .input('product_id', sql.Int, product_id)
             .input('category', sql.VarChar, category) // New input for Category
-            .input('yield', sql.VarChar, yield)       // New input for Yield
+            .input('yield', sql.Int, recipeYield)       // New input for Yield
             .query(`
                 UPDATE tblRecipes 
                 SET Name = @name, Steps = @steps, ProductID = @product_id, Category = @category, Yield = @yield
                 WHERE RecipeID = @recipe_id
             `);
 
+        // Log after recipe update
+        console.log(`RecipeID ${recipeId} updated successfully`);
+
         // Update ingredients: First, delete existing ingredients
         await pool.request()
             .input('recipe_id', sql.Int, recipeId)
             .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
 
+        // Log ingredient deletion
+        console.log(`Deleted old ingredients for RecipeID ${recipeId}`);
+
         // Insert the updated ingredients
         for (const ingredient of ingredients) {
+            console.log(`Inserting IngredientID: ${ingredient.IngredientID} for RecipeID: ${recipeId}`);
             await pool.request()
                 .input('recipe_id', sql.Int, recipeId)
                 .input('ingredient_id', sql.Int, ingredient.IngredientID)
@@ -1674,11 +1671,17 @@ app.put('/recipes/:recipeId', async (req, res) => {
                 `);
         }
 
+        // Log after ingredients insertion
+        console.log(`Ingredients updated for RecipeID ${recipeId}`);
+
         res.status(200).send('Recipe updated successfully');
     } catch (error) {
+        // Log any errors
+        console.error('Error updating recipe:', error.message);
         res.status(500).send('Error updating recipe: ' + error.message);
     }
 });
+
 
 
 
