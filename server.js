@@ -980,24 +980,31 @@ app.post('/login', async (req, res) => {
         }
 
         const request = new sql.Request();
-        // Adjust the query to select the password and EmployeeID
+        // Query to select Password, EmployeeID, FirstName, and JobID
         const result = await request
             .input('username', sql.VarChar, username)
-            .query('SELECT Password, EmployeeID FROM tblUsers WHERE Username = @username'); // Adjusted query to include EmployeeID
+            .query('SELECT Password, EmployeeID, FirstName, JobID FROM tblUsers WHERE Username = @username');
 
         console.log('Testing');
         if (result.recordset.length > 0) {
-            const dbPassword = result.recordset[0].Password; // Access PasswordHash
-            const employeeID = result.recordset[0].EmployeeID; // Access EmployeeID
+            const dbPassword = result.recordset[0].Password;
+            const employeeID = result.recordset[0].EmployeeID;
+            const firstName = result.recordset[0].FirstName; // Get FirstName
+            const jobID = result.recordset[0].JobID;         // Get JobID
 
-            console.log(`Password hash from DB: ${dbPassword}`); // Log password hash for verification
+            console.log(`Password hash from DB: ${dbPassword}`);
 
             // Compare provided password with hashed password from the database
             const match = await bcrypt.compare(password, dbPassword);
 
             if (match) {
-                // Respond with EmployeeID if the password matches
-                res.json({ message: 'Authentication successful', employee_id: employeeID });
+                // Respond with EmployeeID, FirstName, and JobID if the password matches
+                res.json({ 
+                    message: 'Authentication successful', 
+                    employee_id: employeeID,
+                    first_name: firstName,
+                    job_id: jobID
+                });
             } else {
                 res.status(401).send('Invalid credentials');
             }
@@ -1008,7 +1015,7 @@ app.post('/login', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
- 
+
 
 /* const transporter = nodemailer.createTransport({
     service: 'gmail', // Or use another email service
@@ -1409,7 +1416,7 @@ app.get('/recipes', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
             SELECT 
-                r.RecipeID, r.Name, r.Steps, r.ProductID,
+                r.RecipeID, r.Name, r.Steps, r.ProductID, r.Category, r.Yield,  -- Added Category and Yield
                 ri.IngredientID, i.Name AS IngredientName, 
                 ri.Quantity AS IngredientQuantity, 
                 ri.Measurement AS IngredientMeasurement
@@ -1426,6 +1433,8 @@ app.get('/recipes', async (req, res) => {
                     Name: row.Name,
                     Steps: row.Steps,
                     ProductID: row.ProductID,
+                    Category: row.Category,  // Include Category
+                    Yield: row.Yield,        // Include Yield
                     Ingredients: []
                 };
                 acc.push(recipe);
@@ -1435,7 +1444,7 @@ app.get('/recipes', async (req, res) => {
                     IngredientID: row.IngredientID,
                     Name: row.IngredientName,
                     Quantity: row.IngredientQuantity,
-                    Measurement: row.IngredientMeasurement // Include measurement here
+                    Measurement: row.IngredientMeasurement
                 });
             }
             return acc;
@@ -1447,6 +1456,7 @@ app.get('/recipes', async (req, res) => {
     }
 });
 
+
 app.get('/recipes/:productID', async (req, res) => {
     try {
         const productID = req.params.productID;
@@ -1455,8 +1465,10 @@ app.get('/recipes/:productID', async (req, res) => {
             .input('ProductID', sql.Int, productID)
             .query(`
                 SELECT 
-                    r.RecipeID, r.Name, r.Steps, r.ProductID,
-                    ri.IngredientID, i.Name AS IngredientName, ri.Quantity AS IngredientQuantity
+                    r.RecipeID, r.Name, r.Steps, r.ProductID, 
+                    r.Category, r.Yield,  -- Added Category and Yield
+                    ri.IngredientID, i.Name AS IngredientName, 
+                    ri.Quantity AS IngredientQuantity
                 FROM tblRecipes r
                 LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
                 LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
@@ -1471,6 +1483,8 @@ app.get('/recipes/:productID', async (req, res) => {
                     Name: row.Name,
                     Steps: row.Steps,
                     ProductID: row.ProductID,
+                    Category: row.Category,  // Include Category
+                    Yield: row.Yield,        // Include Yield
                     Ingredients: []
                 };
                 acc.push(recipe);
@@ -1490,6 +1504,7 @@ app.get('/recipes/:productID', async (req, res) => {
         res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+
 
 
 
@@ -1554,10 +1569,10 @@ app.get('/recipes/search/:name', async (req, res) => {
 
 // POST /recipes: Create a new recipe
 app.post('/recipes', async (req, res) => {
-    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+    const { name, steps, product_id, category, yield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
-    if (!name || !steps || !product_id || !Array.isArray(ingredients)) {
-        return res.status(400).send('Name, steps, product ID, and ingredients are required');
+    if (!name || !steps || !product_id || !category || !yield || !Array.isArray(ingredients)) {
+        return res.status(400).send('Name, steps, product ID, category, yield, and ingredients are required');
     }
 
     try {
@@ -1577,10 +1592,12 @@ app.post('/recipes', async (req, res) => {
             .input('name', sql.VarChar, name)
             .input('steps', sql.Text, steps)
             .input('product_id', sql.Int, product_id)
+            .input('category', sql.VarChar, category) // New input for Category
+            .input('yield', sql.VarChar, yield)       // New input for Yield
             .query(`
-                INSERT INTO tblRecipes (Name, Steps, ProductID) 
+                INSERT INTO tblRecipes (Name, Steps, ProductID, Category, Yield) 
                 OUTPUT inserted.RecipeID
-                VALUES (@name, @steps, @product_id)
+                VALUES (@name, @steps, @product_id, @category, @yield)
             `);
 
         const newRecipeID = recipeResult.recordset[0].RecipeID;
@@ -1607,10 +1624,10 @@ app.post('/recipes', async (req, res) => {
 
 app.put('/recipes/:recipeId', async (req, res) => {
     const { recipeId } = req.params;
-    const { name, steps, product_id, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+    const { name, steps, product_id, category, yield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
-    if (!name || !steps || !product_id || !Array.isArray(ingredients)) {
-        return res.status(400).send('Name, steps, product ID, and ingredients are required');
+    if (!name || !steps || !product_id || !category || !yield || !Array.isArray(ingredients)) {
+        return res.status(400).send('Name, steps, product ID, category, yield, and ingredients are required');
     }
 
     try {
@@ -1625,15 +1642,17 @@ app.put('/recipes/:recipeId', async (req, res) => {
             return res.status(404).send('Recipe not found');
         }
 
-        // Update the recipe details
+        // Update the recipe details including Category and Yield
         await pool.request()
             .input('recipe_id', sql.Int, recipeId)
             .input('name', sql.VarChar, name)
             .input('steps', sql.Text, steps)
             .input('product_id', sql.Int, product_id)
+            .input('category', sql.VarChar, category) // New input for Category
+            .input('yield', sql.VarChar, yield)       // New input for Yield
             .query(`
                 UPDATE tblRecipes 
-                SET Name = @name, Steps = @steps, ProductID = @product_id 
+                SET Name = @name, Steps = @steps, ProductID = @product_id, Category = @category, Yield = @yield
                 WHERE RecipeID = @recipe_id
             `);
 
@@ -2143,21 +2162,26 @@ app.get('/finalproducts/:id', async (req, res) => {
 
 // POST /finalproducts: Create a new final product
 app.post('/finalproducts', async (req, res) => {
-    const { name, description, maxAmount, remakeAmount, minAmount, quantity, price } = req.body;
+    const { name, description, maxAmount, remakeAmount, minAmount, quantity, price, category } = req.body;
+
+    if (!name || !quantity || !price || !category) {
+        return res.status(400).send('Name, quantity, price, and category are required');
+    }
 
     try {
         const pool = await sql.connect(dbConfig);
         await pool.request()
             .input('name', sql.VarChar, name)
             .input('description', sql.Text, description || null)
-            .input('maxAmount', sql.Decimal(10,2), maxAmount || null)
-            .input('remakeAmount', sql.Decimal(10,2), remakeAmount || null)
-            .input('minAmount', sql.Decimal(10,2), minAmount || null)
+            .input('maxAmount', sql.Decimal(10, 2), maxAmount || null)
+            .input('remakeAmount', sql.Decimal(10, 2), remakeAmount || null)
+            .input('minAmount', sql.Decimal(10, 2), minAmount || null)
             .input('quantity', sql.Int, quantity)
             .input('price', sql.Decimal(10, 2), price)
+            .input('category', sql.VarChar, category) // New input for Category
             .query(`
-                INSERT INTO tblFinalProducts (Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price) 
-                VALUES (@name, @description, @maxAmount, @remakeAmount, @minAmount, @quantity, @price)
+                INSERT INTO tblFinalProducts (Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price, Category) 
+                VALUES (@name, @description, @maxAmount, @remakeAmount, @minAmount, @quantity, @price, @category)
             `);
 
         res.status(201).send('Final product created');
@@ -2167,11 +2191,12 @@ app.post('/finalproducts', async (req, res) => {
     }
 });
 
+
 // PUT /finalproducts/:id: Update a specific final product by ProductID
 app.put('/finalproducts/:id', async (req, res) => {
     const { id } = req.params;
     console.log(req.body);
-    const { Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price } = req.body;
+    const { Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price, Category } = req.body; // Include Category
 
     try {
         const pool = await sql.connect(dbConfig);
@@ -2184,6 +2209,7 @@ app.put('/finalproducts/:id', async (req, res) => {
             .input('minAmount', sql.Decimal(10, 2), MinAmount || null)
             .input('quantity', sql.Int, Quantity || null)
             .input('price', sql.Decimal(10, 2), Price || null)
+            .input('category', sql.VarChar, Category || null) // New input for Category
             .query(`
                 UPDATE tblFinalProducts 
                 SET 
@@ -2193,7 +2219,8 @@ app.put('/finalproducts/:id', async (req, res) => {
                     RemakeAmount = ISNULL(@remakeAmount, RemakeAmount), 
                     MinAmount = ISNULL(@minAmount, MinAmount), 
                     Quantity = ISNULL(@quantity, Quantity), 
-                    Price = ISNULL(@price, Price)
+                    Price = ISNULL(@price, Price),
+                    Category = ISNULL(@category, Category) -- Update for Category
                 WHERE ProductID = @id
             `);
 
