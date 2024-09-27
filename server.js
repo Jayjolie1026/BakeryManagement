@@ -918,8 +918,8 @@ app.post('/login', async (req, res) => {
 /* const transporter = nodemailer.createTransport({
     service: 'gmail', // Or use another email service
     auth: {
-      user: 'your-email@gmail.com',
-      pass: 'your-email-password',
+      user: 'flourandfantasy@gmail.com',
+      pass: 'rjsj jayf wzhr rhbv',
     },
   });
   
@@ -947,13 +947,14 @@ app.post('/login', async (req, res) => {
   
       // Generate a reset token (this could also be stored in the database if needed)
       const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetLink = `https://yourfrontend.com/reset-password?token=${resetToken}`; // Link to your frontend
+      const resetLink = `https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/reset-password?token=${resetToken}`;
+
   
       // TODO: Save the reset token to the database (with expiration time)
   
       // Send the reset email
       const mailOptions = {
-        from: 'your-email@gmail.com',
+        from: 'flourandfantasy@gmail.com',
         to: email,
         subject: 'Password Reset Request',
         text: `You have requested to reset your password. Please click on the link below to reset your password: ${resetLink}`,
