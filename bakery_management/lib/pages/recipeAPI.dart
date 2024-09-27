@@ -33,7 +33,7 @@ class RecipeApi {
     List<Map<String, dynamic>> ingredients,
     int productID,
     String? category, 
-    int? yield2 
+    int yield2 
 ) async {
   final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/$recipeID');
 
@@ -43,15 +43,10 @@ class RecipeApi {
     'steps': steps,
     'product_id': productID,
     'ingredients': ingredients,
+    'category' : category,
+    'yield': yield2,
   };
 
-  // Include category and yield if they are not null
-  if (category != null) {
-    body['category'] = category;
-  }
-  if (yield2 != null) {
-    body['yield'] = yield2;
-  }
 
   final response = await http.put(
     url,

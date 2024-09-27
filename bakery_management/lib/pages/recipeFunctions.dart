@@ -549,6 +549,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
             ),
             TextField(
               controller: yieldController, // New yield controller
+              keyboardType: TextInputType.number,
               style: const TextStyle(color: Color(0xFF6D3200)),
               decoration: const InputDecoration(
                 labelText: 'Yield',
@@ -560,7 +561,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                   borderSide: BorderSide(color: Color(0xFF6D3200)),
                 ),
               ),
-              keyboardType: TextInputType.number, // Optional: limit input to numbers
+               // Optional: limit input to numbers
             ),
             ],
           ),
@@ -578,6 +579,15 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
          ElevatedButton(
           onPressed: () async {
             // Update the recipe with new values
+            int? yieldValue = int.tryParse(yieldController.text);
+             if (yieldValue == null) {
+              print('Invalid yield value: ${yieldController.text}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('Please enter a valid yield value.')),
+      );
+      return; // Exit early if yield is invalid
+    }
+     print('Parsed yield value: $yieldValue');
             final updatedRecipe = Item(
               recipeID: recipe.recipeID, // Keep the same recipe ID
               name: nameController.text,
@@ -598,9 +608,10 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 }
               }).toList(),
               category: categoryController.text, // Add category
-              yield2: int.tryParse(yieldController.text) ?? 0, // Add yield, default to 0 if parsing fails
+              yield2: yieldValue, // Add yield, default to 0 if parsing fails
             );
 
+             print('Updated recipe: $updatedRecipe');
 
               // Prepare ingredients for the API call
               List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
