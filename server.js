@@ -1818,6 +1818,36 @@ app.get('/inventory', async (req, res) => {
     }
 });
 
+// GET /inventory/:id: Retrieve a specific inventory entry by EntryID
+app.get('/inventory/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('id', sql.Int, id)
+            .query(`
+               SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
+                      inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName, ing.Category, ing.Description,
+                      inv.Quantity AS IngredientQuantity,
+                      ing.MinAmount, ing.MaxAmount, ing.ReorderAmount, ing.VendorID
+                FROM dbo.tblInventory inv
+                JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                WHERE inv.EntryID = @id
+            `);
+        
+        if (result.recordset.length > 0) {
+            res.json(result.recordset[0]);
+        } else {
+            res.status(404).send('Inventory item not found');
+        }
+    } catch (error) {
+        console.error('Error retrieving inventory item:', error); // Log any errors
+        res.status(500).send('Error retrieving inventory item: ' + error.message);
+    }
+});
+
+
 
 
 // GET /inventory/name/:name: Retrieve inventory items by partial name match
