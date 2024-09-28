@@ -1653,71 +1653,51 @@ app.post('/recipes', async (req, res) => {
 });
 
 
-// PUT /inventory/:item_id: Update an inventory item by ID
-app.put('/inventory/:item_id', async (req, res) => {
-    const { item_id } = req.params;
-    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, measurement, product_id } = req.body;
+// PUT /recipes/:recipe_id: Update a recipe by ID
+app.put('/recipes/:recipe_id', async (req, res) => {
+    const { recipe_id } = req.params;
+    const { name, steps, productID, category, yield2, ingredients } = req.body;
 
     // Validate input
-    if (
-        quantity === undefined &&
-        cost === undefined &&
-        !create_datetime &&
-        !expire_datetime &&
-        ingredient_id === undefined &&
-        measurement === undefined &&
-        product_id === undefined
-    ) {
-        return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, measurement, or product_id) is required for update');
+    if (!name && !steps && !productID && !category && yield2 === undefined && !ingredients) {
+        return res.status(400).send('At least one field (name, steps, productID, category, yield, or ingredients) is required for update');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
 
         // Prepare update query
-        let updateQuery = 'UPDATE tblInventory SET ';
+        let updateQuery = 'UPDATE tblRecipes SET ';
         const updateParams = [];
 
-        if (ingredient_id !== undefined) {
-            updateQuery += 'IngredientID = @ingredient_id, ';
-            updateParams.push({ name: 'ingredient_id', value: ingredient_id, type: sql.Int });
+        if (name !== undefined) {
+            updateQuery += 'Name = @name, ';
+            updateParams.push({ name: 'name', value: name, type: sql.VarChar });
         }
-        if (quantity !== undefined) {
-            updateQuery += 'Quantity = @quantity, ';
-            updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
+        if (steps !== undefined) {
+            updateQuery += 'Steps = @steps, ';
+            updateParams.push({ name: 'steps', value: steps, type: sql.VarChar });
         }
-        if (notes !== undefined) {
-            updateQuery += 'Notes = @notes, ';
-            updateParams.push({ name: 'notes', value: notes, type: sql.VarChar });
+        if (productID !== undefined) {
+            updateQuery += 'ProductID = @productID, ';
+            updateParams.push({ name: 'productID', value: productID, type: sql.Int });
         }
-        if (cost !== undefined) {
-            updateQuery += 'Cost = @cost, ';
-            updateParams.push({ name: 'cost', value: cost, type: sql.Decimal });
+        if (category !== undefined) {
+            updateQuery += 'Category = @category, ';
+            updateParams.push({ name: 'category', value: category, type: sql.VarChar });
         }
-        if (create_datetime !== undefined) {
-            updateQuery += 'CreateDateTime = @create_datetime, ';
-            updateParams.push({ name: 'create_datetime', value: new Date(create_datetime), type: sql.DateTime });
-        }
-        if (expire_datetime !== undefined) {
-            updateQuery += 'ExpireDateTime = @expire_datetime, ';
-            updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
-        }
-        if (measurement !== undefined) {
-            updateQuery += 'Measurement = @measurement, ';
-            updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
-        }
-        if (product_id !== undefined) {  // Add product_id to the update
-            updateQuery += 'ProductID = @product_id, ';
-            updateParams.push({ name: 'product_id', value: product_id, type: sql.Int });
+        if (yield2 !== undefined) {
+            updateQuery += 'Yield = @yield2, ';
+            updateParams.push({ name: 'yield2', value: yield2, type: sql.Int });
         }
 
         // Remove trailing comma and space
         updateQuery = updateQuery.slice(0, -2);
-        updateQuery += ' WHERE EntryID = @item_id';
+        updateQuery += ' WHERE RecipeID = @recipe_id';
 
         // Execute update query
         const request = pool.request();
-        request.input('item_id', sql.Int, item_id);
+        request.input('recipe_id', sql.Int, recipe_id);
 
         updateParams.forEach(param => {
             request.input(param.name, param.type, param.value);
@@ -1726,23 +1706,29 @@ app.put('/inventory/:item_id', async (req, res) => {
         const result = await request.query(updateQuery);
 
         if (result.rowsAffected[0] > 0) {
-            // Fetch the updated item and return it with the EntryID
-            const updatedItemResult = await pool.request()
-                .input('item_id', sql.Int, item_id)
-                .query(`SELECT EntryID, IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, Measurement FROM dbo.tblInventory WHERE EntryID = @item_id`);
+            // Fetch the updated recipe and return it
+            const updatedRecipeResult = await pool.request()
+                .input('recipe_id', sql.Int, recipe_id)
+                .query('SELECT * FROM tblRecipes WHERE RecipeID = @recipe_id');
 
-            if (updatedItemResult.recordset.length > 0) {
-                res.json(updatedItemResult.recordset[0]);  // Return the updated item without recipeID
+            if (updatedRecipeResult.recordset.length > 0) {
+                // Format the ingredients properly before returning
+                const updatedRecipe = {
+                    ...updatedRecipeResult.recordset[0],
+                    ingredients: ingredients || []  // Return existing or new ingredients
+                };
+                res.json(updatedRecipe);  // Return the updated recipe
             } else {
-                res.status(404).send('Inventory item not found after update');
+                res.status(404).send('Recipe not found after update');
             }
         } else {
-            res.status(404).send('Inventory item not found');
+            res.status(404).send('Recipe not found');
         }
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
+
 
 
 
