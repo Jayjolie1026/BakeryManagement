@@ -1989,7 +1989,16 @@ app.put('/inventory/:item_id', async (req, res) => {
         const result = await request.query(updateQuery);
 
         if (result.rowsAffected[0] > 0) {
-            res.send('Inventory item updated');
+            // Fetch the updated item and return it with the EntryID
+            const updatedItemResult = await pool.request()
+                .input('item_id', sql.Int, item_id)
+                .query(`SELECT * FROM dbo.tblInventory WHERE EntryID = @item_id`);
+
+            if (updatedItemResult.recordset.length > 0) {
+                res.json(updatedItemResult.recordset[0]);  // Return the updated item including EntryID
+            } else {
+                res.status(404).send('Inventory item not found after update');
+            }
         } else {
             res.status(404).send('Inventory item not found');
         }

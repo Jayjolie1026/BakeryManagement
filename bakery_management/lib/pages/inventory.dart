@@ -97,8 +97,8 @@ class _InventoryPageState extends State<InventoryPage> {
     itemBuilder: (context, index) {
       final item = items[index];
       return GestureDetector(
-        onTap: () async {
-          await navigateToDetailPage(item); // Call the navigateToDetailPage function
+        onTap: ()  {
+           navigateToDetailPage(item); // Call the navigateToDetailPage function
         },
         child: buildItem(item), // Your custom widget to display the item
       );
@@ -388,33 +388,31 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   }
 
  void _updateItem(Item updatedItem) async {
+  // Preserve the entryID before updating
+  final int preservedEntryID = _item.entryID!;
+
   setState(() {
-    _item = updatedItem; // This should retain the entryID
+    _item = updatedItem;
+    _item.entryID = preservedEntryID;  // Ensure entryID is not lost
   });
-  print('Current item entryID: ${_item.entryID}');
 
+  // Optionally re-fetch the product from the database
   try {
-    final fetchedItem = await InventoryApi.fetchItemById(_item.entryID!);
-    if (fetchedItem.entryID != null) {
-      setState(() {
-        _item = fetchedItem; // Retain the fetched item with entryID
-        print('Current item entryID: ${_item.entryID}');
-
-      });
-    } else {
-      print('Fetched item does not have a valid entryID');
-    }
-  print('Current item entryID: ${_item.entryID}');
-
-    if (widget.onItemUpdated != null) {
-      widget.onItemUpdated!(fetchedItem); // Notify parent
-    }
+    final fetchedItem = await InventoryApi.fetchItemById(preservedEntryID);
+    setState(() {
+      _item = fetchedItem;  // Update state with the fetched product
+    });
   } catch (error) {
     print('Error fetching item: $error');
   }
 
+  if (widget.onItemUpdated != null) {
+    widget.onItemUpdated!(_item);  // Notify parent widget with the updated item
+  }
+
   Navigator.pop(context, true);
 }
+
 
 
 
