@@ -410,7 +410,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     widget.onItemUpdated!(_item);  // Notify parent widget with the updated item
   }
 
-  Navigator.pop(context, true);
+  
 }
 
 
