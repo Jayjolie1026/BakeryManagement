@@ -42,7 +42,7 @@ class Item {
   // Factory constructor to create an Item from a JSON object
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      entryID: json['EntryID'],
+      entryID: json['EntryID'].toInt(),
       quantity: json['Quantity'].toInt(),
       cost: json['Cost'] != null ? json['Cost'].toDouble() : 0.0,
       notes: json['Notes'] ?? '', // Default to empty string if null

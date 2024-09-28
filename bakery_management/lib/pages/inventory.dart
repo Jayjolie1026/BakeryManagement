@@ -34,6 +34,36 @@ class _InventoryPageState extends State<InventoryPage> {
     debouncer?.cancel();
     super.dispose();
   }
+  Future<void> navigateToDetailPage(Item item) async {
+  // Push to the detail page and wait for the result
+  final updatedItem = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ItemDetailPage(item: item), // Replace with your actual detail page
+    ),
+  );
+
+  // If updatedItem is returned (i.e., the item was updated), refresh the item in the list
+  if (updatedItem != null) {
+    setState(() {
+      // Find the index of the item and update it in the list
+      int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+      if (index != -1) {
+        items[index] = updatedItem; // Update the specific item
+      }
+    });
+
+    // Re-apply the current query/filter after returning
+    if (query.isNotEmpty) {
+      searchItem(query);  // Re-apply the search/filter query
+    } else {
+      setState(() {
+        items = allItems;  // Reset to full list if no filter is applied
+      });
+    }
+  }
+}
+
 
   // Debounce for search bar
   void debounce(VoidCallback callback,
@@ -62,44 +92,20 @@ class _InventoryPageState extends State<InventoryPage> {
       // Search bar with filter
       buildSearchWithFilter(),
       Expanded(
-        child: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            return GestureDetector(
-              onTap: () async {
-                init();
-               final updatedItem = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ItemDetailPage(
-                      item: item,
-                    ),
-                  ),
-                );
-                 if (updatedItem != null) {
-                  setState(() {
-                    int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
-                    if (index != -1) {
-                      items[index] = updatedItem; // Update the specific item
-                    }
-                  });
-                }
+  child: ListView.builder(
+    itemCount: items.length,
+    itemBuilder: (context, index) {
+      final item = items[index];
+      return GestureDetector(
+        onTap: () async {
+          await navigateToDetailPage(item); // Call the navigateToDetailPage function
+        },
+        child: buildItem(item), // Your custom widget to display the item
+      );
+    },
+  ),
+),
 
-                // Re-apply the current query/filter after returning
-                if (query.isNotEmpty) {
-                  searchItem(query);  // Re-apply the search/filter query
-                } else {
-                  setState(() {
-                    items = allItems;  // Reset to full list if no filter is applied
-                  });
-                }
-              },
-              child: buildItem(item), // Your custom widget to display the item
-            );
-          },
-        ),
-      ),
       const SizedBox(height: 50),  // Add some space at the bottom
     ],
   ),
@@ -381,22 +387,36 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     _item = widget.item;
   }
 
-  void _updateItem(Item updatedItem) async {
-    
-    setState(() {
-      _item = updatedItem;
-    });
-    
-  // Optionally re-fetch the product from the database
-  final fetchedItem= await InventoryApi.fetchItemById(_item.entryID!);
+ void _updateItem(Item updatedItem) async {
   setState(() {
-    _item = fetchedItem; // Update state with the freshly fetched product
+    _item = updatedItem; // This should retain the entryID
   });
-  if (widget.onItemUpdated != null) {
-    widget.onItemUpdated!(fetchedItem); // Notify the parent about the updated product
+  print('Current item entryID: ${_item.entryID}');
+
+  try {
+    final fetchedItem = await InventoryApi.fetchItemById(_item.entryID!);
+    if (fetchedItem.entryID != null) {
+      setState(() {
+        _item = fetchedItem; // Retain the fetched item with entryID
+        print('Current item entryID: ${_item.entryID}');
+
+      });
+    } else {
+      print('Fetched item does not have a valid entryID');
+    }
+  print('Current item entryID: ${_item.entryID}');
+
+    if (widget.onItemUpdated != null) {
+      widget.onItemUpdated!(fetchedItem); // Notify parent
+    }
+  } catch (error) {
+    print('Error fetching item: $error');
   }
-    
-  }
+
+  Navigator.pop(context, true);
+}
+
+
 
   String formatDate(DateTime dateTime) {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');

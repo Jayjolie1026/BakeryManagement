@@ -650,8 +650,10 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
           ElevatedButton(
             onPressed: () async {
               try {
+                print(item.entryID);
                 // Make both API calls in parallel
                 final responses = await Future.wait([
+                  
                   // Inventory update API call
                   http.put(
                     Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${item.entryID}'),

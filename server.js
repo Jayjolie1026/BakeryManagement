@@ -1837,6 +1837,8 @@ app.get('/inventory/:id', async (req, res) => {
             `);
         
         if (result.recordset.length > 0) {
+            console.log('Fetched EntryID:', result.recordset[0].EntryID);
+
             res.json(result.recordset[0]);
         } else {
             res.status(404).send('Inventory item not found');
