@@ -620,7 +620,7 @@ void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item
         // Update the recipe with new values
         int yieldValue = int.tryParse(yieldController.text) ?? 0; // Default to 0 if parsing fails
         print('Parsed yield value: $yieldValue');
-
+        print(recipe.productID);
         // Create the updated recipe
         final updatedRecipe = Item(
           recipeID: recipe.recipeID,

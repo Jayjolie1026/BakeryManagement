@@ -1653,78 +1653,96 @@ app.post('/recipes', async (req, res) => {
 });
 
 
-app.put('/recipes/:recipeId', async (req, res) => {
-    const { recipeId } = req.params;
-    const { name, steps, productID, category, yield: recipeYield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+// PUT /inventory/:item_id: Update an inventory item by ID
+app.put('/inventory/:item_id', async (req, res) => {
+    const { item_id } = req.params;
+    const { ingredient_id, quantity, notes, cost, create_datetime, expire_datetime, measurement, product_id } = req.body;
 
-    // Log request parameters and body for debugging
-    console.log(`Updating RecipeID: ${recipeId}`);
-    console.log('Request Body:', req.body);
-
-    
+    // Validate input
+    if (
+        quantity === undefined &&
+        cost === undefined &&
+        !create_datetime &&
+        !expire_datetime &&
+        ingredient_id === undefined &&
+        measurement === undefined &&
+        product_id === undefined
+    ) {
+        return res.status(400).send('At least one field (ingredient_id, quantity, cost, create_datetime, expire_datetime, measurement, or product_id) is required for update');
+    }
 
     try {
         const pool = await sql.connect(dbConfig);
-        console.log('Connected to database');
 
-        // Check if the RecipeID exists
-        const recipeCheckResult = await pool.request()
-            .input('recipe_id', sql.Int, recipeId)
-            .query('SELECT COUNT(*) AS Count FROM tblRecipes WHERE RecipeID = @recipe_id');
+        // Prepare update query
+        let updateQuery = 'UPDATE tblInventory SET ';
+        const updateParams = [];
 
-        if (recipeCheckResult.recordset[0].Count === 0) {
-            console.log(`RecipeID ${recipeId} not found`);
-            return res.status(404).send('Recipe not found');
+        if (ingredient_id !== undefined) {
+            updateQuery += 'IngredientID = @ingredient_id, ';
+            updateParams.push({ name: 'ingredient_id', value: ingredient_id, type: sql.Int });
+        }
+        if (quantity !== undefined) {
+            updateQuery += 'Quantity = @quantity, ';
+            updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
+        }
+        if (notes !== undefined) {
+            updateQuery += 'Notes = @notes, ';
+            updateParams.push({ name: 'notes', value: notes, type: sql.VarChar });
+        }
+        if (cost !== undefined) {
+            updateQuery += 'Cost = @cost, ';
+            updateParams.push({ name: 'cost', value: cost, type: sql.Decimal });
+        }
+        if (create_datetime !== undefined) {
+            updateQuery += 'CreateDateTime = @create_datetime, ';
+            updateParams.push({ name: 'create_datetime', value: new Date(create_datetime), type: sql.DateTime });
+        }
+        if (expire_datetime !== undefined) {
+            updateQuery += 'ExpireDateTime = @expire_datetime, ';
+            updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
+        }
+        if (measurement !== undefined) {
+            updateQuery += 'Measurement = @measurement, ';
+            updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
+        }
+        if (product_id !== undefined) {  // Add product_id to the update
+            updateQuery += 'ProductID = @product_id, ';
+            updateParams.push({ name: 'product_id', value: product_id, type: sql.Int });
         }
 
-        console.log(`RecipeID ${recipeId} found`);
+        // Remove trailing comma and space
+        updateQuery = updateQuery.slice(0, -2);
+        updateQuery += ' WHERE EntryID = @item_id';
 
-        // Update the recipe details
-        await pool.request()
-            .input('recipe_id', sql.Int, recipeId)
-            .input('name', sql.VarChar, name)
-            .input('steps', sql.Text, steps)
-            .input('product_id', sql.Int, productID) // Use the same name as in the request body
-            .input('category', sql.VarChar, category) // New input for Category
-            .input('yield', sql.Int, recipeYield)       // New input for Yield
-            .query(`
-                UPDATE tblRecipes 
-                SET Name = @name, Steps = @steps, ProductID = @product_id, Category = @category, Yield = @yield
-                WHERE RecipeID = @recipe_id
-            `);
+        // Execute update query
+        const request = pool.request();
+        request.input('item_id', sql.Int, item_id);
 
-        console.log(`RecipeID ${recipeId} updated successfully`);
+        updateParams.forEach(param => {
+            request.input(param.name, param.type, param.value);
+        });
 
-        // Update ingredients: First, delete existing ingredients
-        await pool.request()
-            .input('recipe_id', sql.Int, recipeId)
-            .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+        const result = await request.query(updateQuery);
 
-        console.log(`Deleted old ingredients for RecipeID ${recipeId}`);
+        if (result.rowsAffected[0] > 0) {
+            // Fetch the updated item and return it with the EntryID
+            const updatedItemResult = await pool.request()
+                .input('item_id', sql.Int, item_id)
+                .query(`SELECT EntryID, IngredientID, Quantity, Notes, Cost, CreateDateTime, ExpireDateTime, Measurement FROM dbo.tblInventory WHERE EntryID = @item_id`);
 
-        // Insert the updated ingredients
-        for (const ingredient of ingredients) {
-            console.log(`Inserting IngredientID: ${ingredient.IngredientID} for RecipeID: ${recipeId}`);
-            await pool.request()
-                .input('recipe_id', sql.Int, recipeId)
-                .input('ingredient_id', sql.Int, ingredient.IngredientID)
-                .input('quantity', sql.Decimal, ingredient.Quantity)
-                .input('measurement', sql.VarChar, ingredient.Measurement) // Include measurement
-                .query(`
-                    INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
-                    VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
-                `);
+            if (updatedItemResult.recordset.length > 0) {
+                res.json(updatedItemResult.recordset[0]);  // Return the updated item without recipeID
+            } else {
+                res.status(404).send('Inventory item not found after update');
+            }
+        } else {
+            res.status(404).send('Inventory item not found');
         }
-
-        console.log(`Ingredients updated for RecipeID ${recipeId}`);
-        res.status(200).send('Recipe updated successfully');
     } catch (error) {
-        console.error('Error updating recipe:', error.message);
-        res.status(500).send('Error updating recipe: ' + error.message);
+        res.status(500).send(error.message);
     }
 });
-
-
 
 
 
