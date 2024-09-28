@@ -650,7 +650,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
           ElevatedButton(
             onPressed: () async {
               try {
-                print(item.entryID);
+                
                 // Make both API calls in parallel
                 final responses = await Future.wait([
                   

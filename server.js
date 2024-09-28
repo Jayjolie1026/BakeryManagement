@@ -1455,6 +1455,59 @@ app.get('/recipes', async (req, res) => {
         res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+app.get('/recipes/:recipe_id', async (req, res) => {
+    const { recipe_id } = req.params; // Get the recipe ID from the request parameters
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('recipe_id', sql.Int, recipe_id) // Use parameterized queries to prevent SQL injection
+            .query(`
+                SELECT 
+                    r.RecipeID, r.Name, r.Steps, r.ProductID, r.Category, r.Yield,
+                    ri.IngredientID, i.Name AS IngredientName, 
+                    ri.Quantity AS IngredientQuantity, 
+                    ri.Measurement AS IngredientMeasurement
+                FROM tblRecipes r
+                LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
+                LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                WHERE r.RecipeID = @recipe_id
+            `);
+
+        if (result.recordset.length === 0) {
+            return res.status(404).send('Recipe not found');
+        }
+
+        // Structure the response
+        const recipeData = result.recordset[0]; // First row contains recipe data
+        const recipe = {
+            RecipeID: recipeData.RecipeID,
+            Name: recipeData.Name,
+            Steps: recipeData.Steps,
+            ProductID: recipeData.ProductID,
+            Category: recipeData.Category,
+            Yield: recipeData.Yield,
+            Ingredients: []
+        };
+
+        // Loop through the results to get ingredients
+        result.recordset.forEach(row => {
+            if (row.IngredientID) {
+                recipe.Ingredients.push({
+                    IngredientID: row.IngredientID,
+                    Name: row.IngredientName,
+                    Quantity: row.IngredientQuantity,
+                    Measurement: row.IngredientMeasurement
+                });
+            }
+        });
+
+        res.json(recipe); // Return the structured recipe data
+    } catch (error) {
+        res.status(500).send('Error retrieving recipe: ' + error.message);
+    }
+});
+
 
 
 app.get('/recipes/:productId', (req, res) => {
@@ -1602,21 +1655,20 @@ app.post('/recipes', async (req, res) => {
 
 app.put('/recipes/:recipeId', async (req, res) => {
     const { recipeId } = req.params;
-    const { name, steps, product_id, category, yield: recipeYield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
-    
+    const { name, steps, productID, category, yield: recipeYield, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+
     // Log request parameters and body for debugging
     console.log(`Updating RecipeID: ${recipeId}`);
     console.log('Request Body:', req.body);
 
-    if (!name || !steps || !product_id || !category || !recipeYield || !Array.isArray(ingredients)) {
+    // Validate required fields
+    if (!name || !steps || !productID || !category || !recipeYield || !Array.isArray(ingredients)) {
         console.log('Invalid request data');
         return res.status(400).send('Name, steps, product ID, category, yield, and ingredients are required');
     }
 
     try {
         const pool = await sql.connect(dbConfig);
-        
-        // Log SQL connection success
         console.log('Connected to database');
 
         // Check if the RecipeID exists
@@ -1629,15 +1681,14 @@ app.put('/recipes/:recipeId', async (req, res) => {
             return res.status(404).send('Recipe not found');
         }
 
-        // Log recipe found
         console.log(`RecipeID ${recipeId} found`);
 
-        // Update the recipe details including Category and Yield
+        // Update the recipe details
         await pool.request()
             .input('recipe_id', sql.Int, recipeId)
             .input('name', sql.VarChar, name)
             .input('steps', sql.Text, steps)
-            .input('product_id', sql.Int, product_id)
+            .input('product_id', sql.Int, productID) // Use the same name as in the request body
             .input('category', sql.VarChar, category) // New input for Category
             .input('yield', sql.Int, recipeYield)       // New input for Yield
             .query(`
@@ -1646,7 +1697,6 @@ app.put('/recipes/:recipeId', async (req, res) => {
                 WHERE RecipeID = @recipe_id
             `);
 
-        // Log after recipe update
         console.log(`RecipeID ${recipeId} updated successfully`);
 
         // Update ingredients: First, delete existing ingredients
@@ -1654,7 +1704,6 @@ app.put('/recipes/:recipeId', async (req, res) => {
             .input('recipe_id', sql.Int, recipeId)
             .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
 
-        // Log ingredient deletion
         console.log(`Deleted old ingredients for RecipeID ${recipeId}`);
 
         // Insert the updated ingredients
@@ -1671,16 +1720,14 @@ app.put('/recipes/:recipeId', async (req, res) => {
                 `);
         }
 
-        // Log after ingredients insertion
         console.log(`Ingredients updated for RecipeID ${recipeId}`);
-
         res.status(200).send('Recipe updated successfully');
     } catch (error) {
-        // Log any errors
         console.error('Error updating recipe:', error.message);
         res.status(500).send('Error updating recipe: ' + error.message);
     }
 });
+
 
 
 

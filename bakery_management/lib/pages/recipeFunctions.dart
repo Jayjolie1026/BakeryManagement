@@ -248,16 +248,54 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
 class DetailedRecipePage extends StatefulWidget {
   final String recipeName;
   final int recipeID;
+  final Function(Item)? onRecipeUpdated;
+  
 
-  const DetailedRecipePage({required this.recipeName, required this.recipeID, super.key});
+  const DetailedRecipePage({
+    required this.recipeName,
+    required this.recipeID,
+    super.key,
+    this.onRecipeUpdated,
+  });
 
   @override
   _DetailedRecipePageState createState() => _DetailedRecipePageState();
 }
 
 class _DetailedRecipePageState extends State<DetailedRecipePage> {
+  late Item _recipe; // Assuming Item is the model for your recipes
   String searchQuery = "";
+  @override
+  void initState() {
+    super.initState();
+    
+  }
 
+  
+
+  void _updateRecipe(Item updatedRecipe) async {
+    // Preserve the recipeID before updating
+    final int preservedRecipeID = _recipe.recipeID; 
+
+    setState(() {
+      _recipe = updatedRecipe;
+      _recipe.recipeID = preservedRecipeID; // Ensure recipeID is not lost
+    });
+
+    // Optionally re-fetch the recipe from the database if needed
+    try {
+      final fetchedRecipe = await RecipeApi.fetchRecipeById(preservedRecipeID);
+      setState(() {
+        _recipe = fetchedRecipe; // Update state with the fetched recipe
+      });
+    } catch (error) {
+      print('Error fetching recipe: $error');
+    }
+
+    if (widget.onRecipeUpdated != null) {
+      widget.onRecipeUpdated!(_recipe); // Notify parent widget with the updated recipe
+    }
+  }
   @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -399,13 +437,13 @@ Widget build(BuildContext context) {
                           ElevatedButton(
                             onPressed: () async {
                               // Open the recipe update dialog
-                              await showRecipeUpdateDialog(
+                              showRecipeUpdateDialog(
                                 context,
                                 item, // Pass the current recipe item
                                 (updatedRecipe) {
-                                  setState(() {
-                                    // Handle updated recipe
-                                  });
+                                  
+                                    _updateRecipe(updatedRecipe);
+                                  
                                 },
                               );
                             },
@@ -464,7 +502,7 @@ Widget build(BuildContext context) {
 
 
 
-Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {
+void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {
   // Create a string representation of ingredients including measurement
   String ingredientsString = recipe.ingredients.map((ingredient) {
     return '${ingredient.ingredientID}:${ingredient.name}:${ingredient.quantity}:${ingredient.measurement}'; // Include measurement
@@ -476,7 +514,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
   TextEditingController categoryController = TextEditingController(text: recipe.category);
   TextEditingController yieldController = TextEditingController(text: recipe.yield2.toString());
 
-  await showDialog(
+  showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
@@ -645,7 +683,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
               }
 
               // Close the dialog
-              Navigator.of(context).pop();
+              Navigator.pop(context,updatedRecipe );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6D3200),

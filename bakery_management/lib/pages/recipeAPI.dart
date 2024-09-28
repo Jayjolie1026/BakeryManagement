@@ -61,7 +61,17 @@ class RecipeApi {
   }
 }
 
+static Future<Item> fetchRecipeById(int recipeID) async {
+  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/$recipeID'));
 
+  if (response.statusCode == 200) {
+    final item = Item.fromJson(json.decode(response.body));
+    return item;
+   } else {
+    throw Exception('Failed to load item');
+  }
+    
+}
 
   // API for adding a recipe
  

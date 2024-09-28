@@ -24,7 +24,7 @@ class Ingredient {
 
 }
 class Item {
-  final int recipeID;
+   int recipeID;
   final String name;
   final String steps;
   final int productID;
