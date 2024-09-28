@@ -41,7 +41,7 @@ app.post('/tasks', async (req, res) => {
     const { Description, CreateDate, DueDate, AssignedBy } = req.body;
 
     try {
-        const pool = await sql.connect(config);
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('Description', sql.VarChar(100), Description)
             .input('CreateDate', sql.Date, CreateDate)
@@ -58,7 +58,7 @@ app.post('/tasks', async (req, res) => {
 // Get All Tasks
 app.get('/tasks', async (req, res) => {
     try {
-        const pool = await sql.connect(config);
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request().query('SELECT * FROM tblTasks');
         
         res.status(200).json(result.recordset);
@@ -72,7 +72,7 @@ app.get('/tasks/:id', async (req, res) => {
     const taskId = req.params.id;
 
     try {
-        const pool = await sql.connect(config);
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('TaskID', sql.Int, taskId)
             .query('SELECT * FROM tblTasks WHERE TaskID = @TaskID');
@@ -92,7 +92,7 @@ app.put('/tasks/:id', async (req, res) => {
     const { Description, CreateDate, DueDate, AssignedBy } = req.body;
 
     try {
-        const pool = await sql.connect(config);
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('TaskID', sql.Int, taskId)
             .input('Description', sql.VarChar(100), Description)
@@ -115,7 +115,7 @@ app.delete('/tasks/:id', async (req, res) => {
     const taskId = req.params.id;
 
     try {
-        const pool = await sql.connect(config);
+        const pool = await sql.connect(dbConfig);
         const result = await pool.request()
             .input('TaskID', sql.Int, taskId)
             .query('DELETE FROM tblTasks WHERE TaskID = @TaskID');
