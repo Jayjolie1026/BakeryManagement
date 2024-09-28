@@ -697,11 +697,32 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                   throw Exception('Failed to update ingredient: ${ingredientResponse.body}');
                 }
 
+                final updatedItem = Item(
+                  ingredientID: item.ingredientID,
+                  ingredientName: nameController.text,
+                  description: descriptionController.text,
+                  category: categoryController.text,
+                  maxAmount: double.tryParse(maxAmountController.text) ?? 0.0,
+                  reorderAmount: double.tryParse(reorderAmountController.text) ?? 0.0,
+                  minAmount: double.tryParse(minAmountController.text) ?? 0.0,
+                  vendorID: int.tryParse(vendorIDController.text) ?? 0,
+                  quantity: int.tryParse(quantityController.text) ?? 0,
+                  cost: double.tryParse(costController.text) ?? 0,
+                  notes: notesController.text,
+                  createDateTime: createDateTime,
+                  invMeasurement: invMeasurementController.text,
+                  expireDateTime: expireDateTime,
+                  // Add any other necessary fields from the response
+                );
+                
+                // Call the callback to update the item
+                onItemUpdated(updatedItem);
+
                 // Success messages for both
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item updated successfully')));
 
                 // Close dialog after success
-                Navigator.of(context).pop();
+                Navigator.pop(context,updatedItem );
               } catch (e) {
                 // Show error message
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));

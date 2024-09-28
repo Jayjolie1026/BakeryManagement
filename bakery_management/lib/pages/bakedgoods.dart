@@ -82,6 +82,19 @@ class Product {
 
 // API class for final products
 class ProductApi {
+  static const String baseUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts';
+
+  static Future<Product> fetchProductById(int productId) async {
+    final response = await http.get(Uri.parse('$baseUrl/$productId'));
+
+    if (response.statusCode == 200) {
+      // If the server returns a 200 OK response, parse the JSON
+      return Product.fromJson(json.decode(response.body));
+    } else {
+      // If the server did not return a 200 OK response, throw an exception
+      throw Exception('Failed to load product');
+    }
+  }
   static Future<List<Product>> getProducts(String query) async {
     final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
     final response = await http.get(apiUrl);
@@ -229,14 +242,7 @@ class _ProductsPageState extends State<ProductsPage> {
     debouncer = Timer(duration, callback);
   }
 
-  void _updateProduct(Product updatedProduct) {
-    setState(() {
-      final index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-      if (index != -1) {
-        products[index] = updatedProduct;
-      }
-    });
-  }
+  
 
   // Initialize and load products
   Future init() async {
@@ -254,27 +260,37 @@ class _ProductsPageState extends State<ProductsPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) => Scaffold(  
-    backgroundColor: const Color(0xFFF0D1A0),
-    body: Column(
-      children: <Widget>[
-        SizedBox(height: 25.0),
-        buildSearchWithFilter(),
-        Expanded(
-          child: ListView.builder(
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return GestureDetector(
+ @override
+Widget build(BuildContext context) => Scaffold(
+  backgroundColor: const Color(0xFFF0D1A0),
+  body: Column(
+    children: <Widget>[
+      SizedBox(height: 25.0),
+      buildSearchWithFilter(),
+      Expanded(
+        child: ListView.builder(
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return GestureDetector(
               onTap: () async {
+                init();
                 // Navigate to the item details page
-                await Navigator.push(
+               final updatedProduct = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProductDetailPage(product: product,),
+                    builder: (context) => ProductDetailPage(product: product),
                   ),
                 );
+
+                if (updatedProduct != null) {
+                  setState(() {
+                    int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+                    if (index != -1) {
+                      products[index] = updatedProduct; // Update the specific product
+                    }
+                  });
+                }
 
                 // Re-apply the current query/filter after returning
                 if (query.isNotEmpty) {
@@ -287,34 +303,33 @@ class _ProductsPageState extends State<ProductsPage> {
               },
               child: buildProduct(product), // Your custom widget to display the item
             );
-            },
-          ),
-        ),
-        const SizedBox(height: 80)
-      ],
-    ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: () => showAddProductDialog(context, () {
-        // Refresh the product list after adding a new product
-        
-          init(); // Call init to reload products
-        
-      }),
-      label: const Text(
-        'Add Product',
-        style: TextStyle(
-          color: Color(0xFFEEC07B),  // Light brown text color
-          fontSize: 17,
+          },
         ),
       ),
-      icon: const Icon(
-        Icons.add,
-        color: Color(0xFFEEC07B),  // Light brown icon color
+      const SizedBox(height: 80)
+    ],
+  ),
+  floatingActionButton: FloatingActionButton.extended(
+    onPressed: () => showAddProductDialog(context, () {
+      // Refresh the product list after adding a new product
+      init(); // Call init to reload products
+    }),
+    label: const Text(
+      'Add Product',
+      style: TextStyle(
+        color: Color(0xFFEEC07B),  // Light brown text color
+        fontSize: 17,
       ),
-      backgroundColor: const Color(0xFF422308),  // Dark brown background
     ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-  );
+    icon: const Icon(
+      Icons.add,
+      color: Color(0xFFEEC07B),  // Light brown icon color
+    ),
+    backgroundColor: const Color(0xFF422308),  // Dark brown background
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+);
+
 
   // Search bar widget
   Widget buildSearchWithFilter() => Row(
@@ -439,14 +454,32 @@ void applyCategoryFilter(String category) {
   Widget buildProduct(Product product) => GestureDetector(
     onTap: () async {
       // Navigate to product detail page on tap and wait for result
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailPage(
-            product: product,
-          ),
-        ),
-      );
+       final updatedProduct = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailPage(
+          product: product,
+      onProductUpdated: (updatedProduct) {
+        int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+        if (index != -1) {
+          setState(() {
+            products[index] = updatedProduct; // Update the product list
+          });
+        }
+      },
+    ),
+  ),
+    );
+    if (updatedProduct != null) {
+      setState(() {
+        // Find the index of the product to update
+        int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+        if (index != -1) {
+            products[index] = updatedProduct; // Update the existing product
+            allItems[index] = updatedProduct;
+        }
+      });
+    }
       setState(() {
     // Check if the query is still valid and reapply filtering
     if (query.isNotEmpty) {
@@ -555,8 +588,8 @@ class _SearchWidgetState extends State<SearchWidget> {
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
-
-  const ProductDetailPage({super.key, required this.product});
+    final Function(Product)? onProductUpdated; // Add this line
+  const ProductDetailPage({super.key, required this.product,this.onProductUpdated});
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
@@ -578,12 +611,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     _product = widget.product;
   }
 
-  void _updateProduct(Product updatedProduct) {
-    setState(() {
-      _product = updatedProduct;
-      
-    });
+
+  void _updateProduct(Product updatedProduct) async {
+  setState(() {
+    _product = updatedProduct;
+  });
+
+  // Optionally re-fetch the product from the database
+  final fetchedProduct = await ProductApi.fetchProductById(_product.productID!);
+  setState(() {
+    _product = fetchedProduct; // Update state with the freshly fetched product
+  });
+  if (widget.onProductUpdated != null) {
+    widget.onProductUpdated!(fetchedProduct); // Notify the parent about the updated product
   }
+}
 
   Widget _buildQuantityWarning(Product product) {
     if (product.quantity < product.minAmount) {
@@ -824,15 +866,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      // Navigate to the update page and wait for result
-                        // Call the showProductUpdateDialog directly to show the update dialog
                         showProductUpdateDialog(
                           context,
                           _product, // Pass the product you want to update
                           (updatedProduct) {
-                             _updateProduct(updatedProduct);
+                            _updateProduct(updatedProduct);
+                            // Optionally, re-fetch the product from the database if necessary
                           },
                         );
+
                     
 
                     },
@@ -1099,8 +1141,10 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
 
               await ProductApi.updateProduct(updatedProduct);
               onProductUpdated(updatedProduct);
+              
 
-              Navigator.of(context).pop();
+              Navigator.pop(context, updatedProduct);
+              
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6D3200),

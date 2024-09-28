@@ -68,13 +68,23 @@ class _InventoryPageState extends State<InventoryPage> {
             final item = items[index];
             return GestureDetector(
               onTap: () async {
-                // Navigate to the item details page
-                await Navigator.push(
+                init();
+               final updatedItem = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailPage(item: item),
+                    builder: (context) => ItemDetailPage(
+                      item: item,
+                    ),
                   ),
                 );
+                 if (updatedItem != null) {
+                  setState(() {
+                    int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+                    if (index != -1) {
+                      items[index] = updatedItem; // Update the specific item
+                    }
+                  });
+                }
 
                 // Re-apply the current query/filter after returning
                 if (query.isNotEmpty) {
@@ -287,13 +297,33 @@ void searchItem(String query) {
   // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
     onTap: () async {
-  // Navigate to the item details page
-  await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ItemDetailPage(item: item),
-    ),
+      
+  final updatedItem = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemDetailPage(
+          item: item,
+          onItemUpdated: (updatedItem) {
+            int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+            if (index != -1) {
+              setState(() {
+                items[index] = updatedItem; // Update the item list
+              });
+            }
+          },
+        ),
+      ),
   );
+  if (updatedItem != null) {
+      setState(() {
+        // Find the index of the item to update
+        int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+        if (index != -1) {
+          items[index] = updatedItem; // Update the existing item
+          allItems[index] = updatedItem; // Ensure allItems is also updated
+        }
+      });
+    }
 
   // Re-apply the current query/filter after returning
   setState(() {
@@ -335,8 +365,8 @@ void searchItem(String query) {
 // Item Detail Page
 class ItemDetailPage extends StatefulWidget {
   final Item item;
-
-  const ItemDetailPage({super.key, required this.item});
+  final Function(Item)? onItemUpdated;
+  const ItemDetailPage({super.key, required this.item,this.onItemUpdated});
 
   @override
   _ItemDetailPageState createState() => _ItemDetailPageState();
@@ -351,10 +381,21 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     _item = widget.item;
   }
 
-  void _updateItem(Item updatedItem) {
+  void _updateItem(Item updatedItem) async {
+    
     setState(() {
       _item = updatedItem;
     });
+    
+  // Optionally re-fetch the product from the database
+  final fetchedItem= await InventoryApi.fetchItemById(_item.entryID!);
+  setState(() {
+    _item = fetchedItem; // Update state with the freshly fetched product
+  });
+  if (widget.onItemUpdated != null) {
+    widget.onItemUpdated!(fetchedItem); // Notify the parent about the updated product
+  }
+    
   }
 
   String formatDate(DateTime dateTime) {
@@ -475,6 +516,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     _item,
                     (updatedItem) {
                       _updateItem(updatedItem);
+                      
                     },
                   );
                 },

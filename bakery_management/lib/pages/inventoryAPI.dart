@@ -21,4 +21,18 @@ class InventoryApi {
       throw Exception('Failed to load inventory items');
     }
   }
+
+  static const String baseUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts';
+
+  static Future<Item> fetchItemById(int ItemId) async {
+    final response = await http.get(Uri.parse('$baseUrl/$ItemId'));
+
+    if (response.statusCode == 200) {
+      // If the server returns a 200 OK response, parse the JSON
+      return Item.fromJson(json.decode(response.body));
+    } else {
+      // If the server did not return a 200 OK response, throw an exception
+      throw Exception('Failed to load product');
+    }
+  }
 }
