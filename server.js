@@ -1661,11 +1661,7 @@ app.put('/recipes/:recipeId', async (req, res) => {
     console.log(`Updating RecipeID: ${recipeId}`);
     console.log('Request Body:', req.body);
 
-    // Validate required fields
-    if (!name || !steps || !productID || !category || !recipeYield || !Array.isArray(ingredients)) {
-        console.log('Invalid request data');
-        return res.status(400).send('Name, steps, product ID, category, yield, and ingredients are required');
-    }
+    
 
     try {
         const pool = await sql.connect(dbConfig);

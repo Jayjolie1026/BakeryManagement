@@ -11,6 +11,10 @@ class Ingredient {
     required this.quantity,
     required this.measurement, // Include measurement in constructor
   });
+   @override
+  String toString() {
+    return 'Ingredient{id: $ingredientID, name: $name, quantity: $quantity, measurement: $measurement}';
+  }
 
   // Factory constructor to parse JSON into Ingredient object
    factory Ingredient.fromJson(Map<String, dynamic> json) {
@@ -42,6 +46,10 @@ class Item {
     required this.category, // Include category in constructor
     required this.yield2,
   });
+  @override
+  String toString() {
+    return 'Item{recipeID: $recipeID, name: $name, steps: $steps, productID: $productID, ingredients: $ingredients, category: $category, yield: $yield2}';
+  }
 
   // Factory constructor to parse JSON into Item object
   factory Item.fromJson(Map<String, dynamic> json) {
