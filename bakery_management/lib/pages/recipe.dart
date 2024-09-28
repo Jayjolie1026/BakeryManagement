@@ -263,7 +263,7 @@ void applyCategoryFilter(String category) {
             if (index != -1) {
               setState(() {
                 items[index] = updatedRecipe; // Update the recipe list
-                allItems[index] = updatedRecipe; // Ensure allItems is also updated
+                
               });
             }
           },

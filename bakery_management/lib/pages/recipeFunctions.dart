@@ -268,7 +268,20 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
   @override
   void initState() {
     super.initState();
+    _fetchRecipe();
     
+  }
+   Future<void> _fetchRecipe() async {
+    try {
+      // Fetch the recipe using the recipeID passed to the widget
+      final fetchedRecipe = await RecipeApi.fetchRecipeById(widget.recipeID);
+      setState(() {
+        _recipe = fetchedRecipe;
+      });
+    } catch (error) {
+      print('Error fetching recipe: $error');
+      // Handle the error appropriately (e.g., show an alert)
+    }
   }
 
   
@@ -286,62 +299,62 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
     try {
       final fetchedRecipe = await RecipeApi.fetchRecipeById(preservedRecipeID);
       setState(() {
-        _recipe = fetchedRecipe; // Update state with the fetched recipe
+        _recipe = updatedRecipe; // Update state with the fetched recipe
       });
     } catch (error) {
       print('Error fetching recipe: $error');
     }
 
     if (widget.onRecipeUpdated != null) {
-      widget.onRecipeUpdated!(_recipe); // Notify parent widget with the updated recipe
+      widget.onRecipeUpdated!(updatedRecipe); // Notify parent widget with the updated recipe
     }
   }
   @override
+@override
 Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.recipeName, // Recipe name as a header
-            style: const TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF6D3200), // Same dark brown color
-            ),
-            textAlign: TextAlign.left,
-          ),
-          const SizedBox(height: 10),
-          FutureBuilder<List<Item>>(
-            future: RecipeApi.getItems(searchQuery),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (snapshot.hasData) {
-                final items = snapshot.data!;
-                final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
-                if (recipe.isEmpty) {
-                  return const Center(child: Text('Recipe not found'));
-                }
+      child: FutureBuilder<List<Item>>(
+        future: RecipeApi.getItems(searchQuery),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            final items = snapshot.data!;
+            final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+            if (recipe.isEmpty) {
+              return const Center(child: Text('Recipe not found'));
+            }
 
-                final item = recipe.first; // The selected recipe
+            final item = recipe.first; // The selected recipe
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.asset(
-                      productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID, default is bagel
-                      width: double.infinity,
-                      height: 250, // Image height
-                      fit: BoxFit.cover,
-                    ),
-                    const SizedBox(height: 20),
-                     const Text(
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Display the recipe name from the fetched item
+                Text(
+                  item.name, // Use item.name instead of widget.recipeName
+                  style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D3200), // Same dark brown color
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                const SizedBox(height: 10),
+                
+                Image.asset(
+                  productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID
+                  width: double.infinity,
+                  height: 250, // Image height
+                  fit: BoxFit.cover,
+                ),
+                const SizedBox(height: 20),
+                const Text(
                   'Category:',
                   style: TextStyle(
                     fontSize: 20,
@@ -357,8 +370,6 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // Display Yield
                 const Text(
                   'Yield:',
                   style: TextStyle(
@@ -368,133 +379,131 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 Text(
-                  item.yield2.toString(), // Display the yield, convert to string if needed
+                  item.yield2.toString(), // Display the yield
                   style: const TextStyle(
                     fontSize: 18,
                     color: Color(0xFF6D3200),
                   ),
                 ),
                 const SizedBox(height: 20),
-                    const Text(
-                      'Ingredients:',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6D3200),
-                      ),
+                const Text(
+                  'Ingredients:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (item.ingredients.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: item.ingredients.map<Widget>((ingredient) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(
+                          '- ${ingredient.quantity} ${ingredient.measurement} of ${ingredient.name}', // Display ingredient details
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color(0xFF6D3200),
+                            fontFamily: "MyFont2"
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  )
+                else
+                  const Text(
+                    'No ingredients available',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF6D3200),
                     ),
-                    const SizedBox(height: 10),
-                    if (item.ingredients.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: item.ingredients.map<Widget>((ingredient) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text(
-                              '- ${ingredient.quantity} ${ingredient.measurement} of ${ingredient.name}', // Display the ingredient name and quantity
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Color(0xFF6D3200),
-                                fontFamily: "MyFont2"
-                              ),
-                            ),
+                  ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Directions:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6D3200),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  item.steps.replaceAll('\\n', '\n'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF6D3200),
+                    fontFamily: "MyFont2"
+                  ),
+                ),
+                const SizedBox(height: 20), // Extra space before the bottom buttons
+                
+                // Use Align to center the buttons at the bottom
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          // Open the recipe update dialog
+                          showRecipeUpdateDialog(
+                            context,
+                            item, // Pass the current recipe item
+                            (updatedRecipe) {
+                              _updateRecipe(updatedRecipe);
+                              
+                            },
                           );
-                        }).toList(),
-                      )
-                    else
-                      const Text(
-                        'No ingredients available',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Color(0xFF6D3200),
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D3200),
+                          foregroundColor: const Color(0xFFF0D1A0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.add),
+                            SizedBox(width: 8),
+                            Text('Update'),
+                          ],
                         ),
                       ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Directions:',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6D3200),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      item.steps.replaceAll('\\n', '\n'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Color(0xFF6D3200),
-                        fontFamily: "MyFont2"
-                      ),
-                    ),
-                    const SizedBox(height: 20), // Extra space before the bottom buttons
-                    
-                    // Use Align to center the buttons at the bottom
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Column(
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              // Open the recipe update dialog
-                              showRecipeUpdateDialog(
-                                context,
-                                item, // Pass the current recipe item
-                                (updatedRecipe) {
-                                  
-                                    _updateRecipe(updatedRecipe);
-                                  
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6D3200),
-                              foregroundColor: const Color(0xFFF0D1A0),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(Icons.add),
-                                SizedBox(width: 8),
-                                Text('Update'),
-                              ],
-                            ),
+                      const SizedBox(height: 20), // Spacing between the buttons
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context, true); // Close the page
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D3200),
+                          foregroundColor: const Color(0xFFEEC07B),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
                           ),
-                          const SizedBox(height: 20), // Spacing between the buttons
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context, true); // Close the page
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6D3200),
-                              foregroundColor: const Color(0xFFEEC07B),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                            ),
-                            child: const Text(
-                              'Close',
-                              style: TextStyle(
-                                fontSize: 17,
-                                color: Color(0xFFEEC07B),
-                              ),
-                            ),
+                        ),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: Color(0xFFEEC07B),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              } else {
-                return const Center(child: Text('No data found'));
-              }
-            },
-          ),
-        ],
+                    ],
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return const Center(child: Text('No data found'));
+          }
+        },
       ),
     ),
   );
 }
+
 }
 
 
@@ -502,7 +511,7 @@ Widget build(BuildContext context) {
 
 
 
-void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {
+void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated)  {
   // Create a string representation of ingredients including measurement
   String ingredientsString = recipe.ingredients.map((ingredient) {
     return '${ingredient.ingredientID}:${ingredient.name}:${ingredient.quantity}:${ingredient.measurement}'; // Include measurement
@@ -681,9 +690,9 @@ void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item
         );
 
         // Call the update callback
-        if (onRecipeUpdated != null) {
+        
           onRecipeUpdated(updatedRecipe);
-        }
+        
 
         // Close the dialog
         Navigator.pop(context, updatedRecipe);
