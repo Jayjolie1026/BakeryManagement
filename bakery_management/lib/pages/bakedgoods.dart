@@ -183,7 +183,7 @@ class ProductApi {
 
 static Future<int?> fetchRecipeIDByProductID(int productID) async {
   final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/$productID'));
-
+  print(productID);
   if (response.statusCode == 200) {
     // Log the response body to understand its structure
     print('Response body: ${response.body}');
@@ -894,7 +894,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   const SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () async {
+                      print(_product.productID);
                       int? recipeID = await ProductApi.fetchRecipeIDByProductID(_product.productID!);
+                      print(recipeID);
                       if (recipeID != null) {
                           // Navigate to the DetailedRecipePage with the fetched recipeID
                           await Navigator.push(

@@ -1516,6 +1516,8 @@ app.get('/recipes/:productId', (req, res) => {
     if (!productId) {
       return res.status(400).json({ error: 'Product ID is required' });
     }
+    console.log("here");
+    console.log(productId);
   
     // SQL query to find the recipe ID by product ID
     const query = 'SELECT recipeID FROM tblRecipes WHERE productID = ?'; // Adjust the table name and field names as necessary
@@ -1528,6 +1530,7 @@ app.get('/recipes/:productId', (req, res) => {
   
       if (results.length > 0) {
         // Return the recipe ID if found
+        console.log(recipeID);
         return res.json({ recipeID: results[0].recipeID });
       } else {
         // No recipe found for the given product ID
