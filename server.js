@@ -1509,20 +1509,33 @@ app.get('/recipes/:recipe_id', async (req, res) => {
 });
 
 
-
 app.get('/recipes/:productID', async (req, res) => {
     try {
         const productID = req.params.productID;
+        console.log('Received productID:', productID); // Log the received productID
+
         const pool = await sql.connect(dbConfig);
         const query = 'SELECT * FROM dbo.tblRecipes WHERE ProductID = @ProductID';
-        const result = await pool.request()
-            .input('ProductID', sql.Int, productID)
-            .query(query);
+        
+        const request = pool.request();
+        request.input('ProductID', sql.Int, productID);
+        
+        console.log('Executing SQL with parameters:', request); // Log the SQL request
+
+        const result = await request.query(query);
+        
+        // Check if any recipes were found
+        if (result.recordset.length === 0) {
+            return res.status(404).send('Recipe not found'); // Send 404 if no results
+        }
+
         res.json(result.recordset);
     } catch (error) {
-        res.status(500).send(error.message);
+        console.error('SQL Error:', error); // Log SQL error
+        res.status(500).send(error.message); // Send error message as response
     }
 });
+
 
   
 
