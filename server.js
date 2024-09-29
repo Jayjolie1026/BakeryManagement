@@ -1509,13 +1509,13 @@ app.get('/recipes/:recipe_id', async (req, res) => {
 });
 
 
-app.get('/recipes/:productID', async (req, res) => {
+app.get('/recipes/product/:productID', async (req, res) => {
     try {
         const productID = req.params.productID;
         console.log('Received productID:', productID); // Log the received productID
 
         const pool = await sql.connect(dbConfig);
-        const query = 'SELECT * FROM dbo.tblRecipes WHERE ProductID = @ProductID';
+        const query = 'SELECT RecipeID, Name FROM dbo.tblRecipes WHERE ProductID = @ProductID';
         
         const request = pool.request();
         request.input('ProductID', sql.Int, productID);
@@ -1529,12 +1529,19 @@ app.get('/recipes/:productID', async (req, res) => {
             return res.status(404).send('Recipe not found'); // Send 404 if no results
         }
 
-        res.json(result.recordset);
+        // Structure the response to send RecipeID and Name
+        const recipes = result.recordset.map(recipe => ({
+            RecipeID: recipe.RecipeID,
+            Name: recipe.Name
+        }));
+
+        res.json(recipes); // Return the structured recipe data
     } catch (error) {
         console.error('SQL Error:', error); // Log SQL error
-        res.status(500).send(error.message); // Send error message as response
+        res.status(500).send('Error retrieving recipes: ' + error.message); // Send error message as response
     }
 });
+
 
 
   

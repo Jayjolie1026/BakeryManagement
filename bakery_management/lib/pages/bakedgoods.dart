@@ -181,30 +181,34 @@ class ProductApi {
   }
 }
 
-static Future<Map<String, dynamic>?> fetchRecipeByProductID(int productID) async {
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${productID}'));
-  print(productID);
+static Future<List<Map<String, dynamic>>?> fetchRecipeByProductID(int productID) async {
+  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/product/${productID}'));
+  print('Product ID: $productID');
 
   if (response.statusCode == 200) {
     // Log the response body to understand its structure
     print('Response body: ${response.body}');
 
-    // Decode the response body
-    final Map<String, dynamic> data = json.decode(response.body);
+    // Decode the response body as a List
+    final List<dynamic> data = json.decode(response.body);
 
-    // Check if the response contains both RecipeID and Name (matching the API response)
-    if (data.containsKey('RecipeID') && data.containsKey('Name')) {
-      return {
-        'recipeID': data['RecipeID'], // Use correct key casing from API
-        'name': data['Name'] // Use correct key casing from API
-      }; // Return a map containing RecipeID and Name
+    // Check if the response contains data
+    if (data.isNotEmpty) {
+      // Map the data to a list of maps containing RecipeID and Name
+      return data.map((recipe) {
+        return {
+          'recipeID': recipe['RecipeID'], // Use correct key casing from API
+          'name': recipe['Name'] // Use correct key casing from API
+        };
+      }).toList();
     } else {
-      return null; // Data does not contain expected fields
+      return null; // No recipes found
     }
   } else {
-    throw Exception('Failed to load recipe');
+    throw Exception('Failed to load recipes: ${response.statusCode}');
   }
 }
+
 
 
 
@@ -901,11 +905,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ElevatedButton(
                     onPressed: () async {
                       
-                        Map<String, dynamic>? recipeData = await ProductApi.fetchRecipeByProductID(_product.productID!);
+                        List<Map<String, dynamic>>? recipeData = await ProductApi.fetchRecipeByProductID(_product.productID!);
                       
-                      if (recipeData != null) {
-                         int recipeID = recipeData['recipeID'];
-                         String recipeName = recipeData['name'];
+                      if (recipeData != null && recipeData.isNotEmpty) {
+                        for (var recipe in recipeData) {
+                          int recipeID = recipe['recipeID'];
+                          String recipeName = recipe['name'];
                           // Navigate to the DetailedRecipePage with the fetched recipeID
                           await Navigator.push(
                             context,
@@ -916,6 +921,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               ),
                             ),
                           );
+                        }
                         } else {
                           // Handle the case when the recipeID is null
                           // For example, show a snackbar or dialog
