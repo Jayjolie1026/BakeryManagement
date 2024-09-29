@@ -1520,7 +1520,7 @@ app.get('/recipes/:productId', (req, res) => {
     console.log(productId);
   
     // SQL query to find the recipe ID by product ID
-    const query = 'SELECT recipeID FROM tblRecipes WHERE productID = ?'; // Adjust the table name and field names as necessary
+    const query = 'SELECT RecipeID FROM tblRecipes WHERE ProductID = ?'; // Adjust the table name and field names as necessary
   
     db.query(query, [productId], (err, results) => {
       if (err) {
