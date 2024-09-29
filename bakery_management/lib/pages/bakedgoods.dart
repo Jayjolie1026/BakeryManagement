@@ -184,7 +184,7 @@ class ProductApi {
 static Future<Map<String, dynamic>?> fetchRecipeByProductID(int productID) async {
   final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${productID}'));
   print(productID);
-  
+
   if (response.statusCode == 200) {
     // Log the response body to understand its structure
     print('Response body: ${response.body}');
@@ -192,12 +192,12 @@ static Future<Map<String, dynamic>?> fetchRecipeByProductID(int productID) async
     // Decode the response body
     final Map<String, dynamic> data = json.decode(response.body);
 
-    // Check if the response contains both recipeID and name
-    if (data.containsKey('recipeID') && data.containsKey('name')) {
+    // Check if the response contains both RecipeID and Name (matching the API response)
+    if (data.containsKey('RecipeID') && data.containsKey('Name')) {
       return {
-        'recipeID': data['recipeID'],
-        'name': data['name']
-      }; // Return a map containing recipeID and name
+        'recipeID': data['RecipeID'], // Use correct key casing from API
+        'name': data['Name'] // Use correct key casing from API
+      }; // Return a map containing RecipeID and Name
     } else {
       return null; // Data does not contain expected fields
     }
@@ -205,6 +205,7 @@ static Future<Map<String, dynamic>?> fetchRecipeByProductID(int productID) async
     throw Exception('Failed to load recipe');
   }
 }
+
 
 
 
