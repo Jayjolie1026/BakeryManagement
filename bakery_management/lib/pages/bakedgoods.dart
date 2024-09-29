@@ -181,26 +181,31 @@ class ProductApi {
   }
 }
 
-static Future<int?> fetchRecipeIDByProductID(int productID) async {
+static Future<Map<String, dynamic>?> fetchRecipeByProductID(int productID) async {
   final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${productID}'));
   print(productID);
+  
   if (response.statusCode == 200) {
     // Log the response body to understand its structure
     print('Response body: ${response.body}');
 
     // Decode the response body
-    final List<dynamic> data = json.decode(response.body);
+    final Map<String, dynamic> data = json.decode(response.body);
 
-    // Check if the list is not empty and return the recipeID from the first item
-    if (data.isNotEmpty && data[0] is Map<String, dynamic>) {
-      return data[0]['RecipeID']; // Return RecipeID from the first item in the list
+    // Check if the response contains both recipeID and name
+    if (data.containsKey('recipeID') && data.containsKey('name')) {
+      return {
+        'recipeID': data['recipeID'],
+        'name': data['name']
+      }; // Return a map containing recipeID and name
     } else {
-      return null; // No items found
+      return null; // Data does not contain expected fields
     }
   } else {
-    throw Exception('Failed to load recipe ID');
+    throw Exception('Failed to load recipe');
   }
 }
+
 
 
 
@@ -894,16 +899,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   const SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () async {
-                      print(_product.productID);
-                      int? recipeID = await ProductApi.fetchRecipeIDByProductID(_product.productID!);
-                      print(recipeID);
-                      if (recipeID != null) {
+                      
+                        Map<String, dynamic>? recipeData = await ProductApi.fetchRecipeByProductID(_product.productID!);
+                      
+                      if (recipeData != null) {
+                         int recipeID = recipeData['recipeID'];
+                         String recipeName = recipeData['name'];
                           // Navigate to the DetailedRecipePage with the fetched recipeID
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => DetailedRecipePage(
-                                recipeName: _product.name,  // Assuming _product.name is non-null
+                                recipeName: recipeName,  // Assuming _product.name is non-null
                                 recipeID: recipeID,          // Use the fetched recipeID
                               ),
                             ),

@@ -1510,34 +1510,37 @@ app.get('/recipes/:recipe_id', async (req, res) => {
 
 
 
-app.get('/recipes/:productId', (req, res) => {
-    const productId = req.params.productId;
+app.get('/recipes/:productID', async (req, res) => {
+    console.log("Request received");
+    const productID = req.params.productID;
   
-    if (!productId) {
+    if (!productID) {
       return res.status(400).json({ error: 'Product ID is required' });
     }
-    console.log("here");
-    console.log(productId);
   
-    // SQL query to find the recipe ID by product ID
-    const query = 'SELECT RecipeID FROM tblRecipes WHERE ProductID = ?'; // Adjust the table name and field names as necessary
+    console.log("Product ID:", productID);
   
-    db.query(query, [productId], (err, results) => {
-      if (err) {
-        console.error('Error executing query: ', err.stack);
-        return res.status(500).json({ error: 'Database query failed' });
-      }
+    try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+        .input('ProductID', sql.Int, productID) // Use a parameterized query for safety
+        .query('SELECT RecipeID, Name FROM tblRecipes WHERE ProductID = @ProductID');
   
-      if (results.length > 0) {
-        // Return the recipe ID if found
-        console.log(recipeID);
-        return res.json({ recipeID: results[0].recipeID });
+      // Check if the result contains any records
+      if (result.recordset.length > 0) {
+        const recipe = result.recordset[0]; // Get the first record
+        console.log('Recipe ID:', recipe.RecipeID, 'Name:', recipe.Name);
+        // Return both RecipeID and Name in the response
+        return res.json({ recipeID: recipe.RecipeID, name: recipe.Name });
       } else {
-        // No recipe found for the given product ID
         return res.status(404).json({ error: 'Recipe not found for this product ID' });
       }
-    });
+    } catch (err) {
+      console.error('Database query failed: ', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
   });
+  
 
 
 
