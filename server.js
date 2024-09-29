@@ -1528,10 +1528,14 @@ app.get('/recipes/:productID', async (req, res) => {
   
       // Check if the result contains any records
       if (result.recordset.length > 0) {
-        const recipe = result.recordset[0]; // Get the first record
+        const recipeData = result.recordset[0]; // First row contains recipe data
+        const recipe = {
+            RecipeID: recipeData.RecipeID,
+            Name: recipeData.Name,
+        };
         console.log('Recipe ID:', recipe.RecipeID, 'Name:', recipe.Name);
         // Return both RecipeID and Name in the response
-        return res.json({ recipeID: recipe.RecipeID, name: recipe.Name });
+          return res.json(recipe); 
       } else {
         return res.status(404).json({ error: 'Recipe not found for this product ID' });
       }
