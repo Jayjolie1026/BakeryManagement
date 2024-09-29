@@ -1524,7 +1524,7 @@ app.get('/recipes/:productID', async (req, res) => {
       const pool = await sql.connect(dbConfig);
       const result = await pool.request()
         .input('ProductID', sql.Int, productID) // Use a parameterized query for safety
-        .query('SELECT RecipeID, Name FROM tblRecipes WHERE ProductID = @ProductID');
+        .query('SELECT RecipeID, Name FROM tblRecipes WHERE ProductID = @productID');
   
       // Check if the result contains any records
       if (result.recordset.length > 0) {
