@@ -1511,40 +1511,44 @@ app.get('/recipes/:recipe_id', async (req, res) => {
 
 
 app.get('/recipes/:productID', async (req, res) => {
-    console.log("Request received");
+    console.log("Request received for ProductID:", req.params.productID);
     const productID = req.params.productID;
-  
+
     if (!productID) {
-      return res.status(400).json({ error: 'Product ID is required' });
+        return res.status(400).json({ error: 'Product ID is required' });
     }
-  
-    console.log("Product ID:", productID);
-  
+
     try {
-      const pool = await sql.connect(dbConfig);
-      const result = await pool.request()
-        .input('ProductID', sql.Int, productID) // Use a parameterized query for safety
-        .query('SELECT RecipeID, Name FROM tblRecipes WHERE ProductID = @productID');
-  
-      // Check if the result contains any records
-      if (result.recordset.length > 0) {
-        const recipeData = result.recordset[0]; // First row contains recipe data
-        const recipe = {
-            RecipeID: recipeData.RecipeID,
-            Name: recipeData.Name,
-        };
-        console.log('Recipe ID:', recipe.RecipeID, 'Name:', recipe.Name);
-        // Return both RecipeID and Name in the response
-          return res.json(recipe); 
-      } else {
-        return res.status(404).json({ error: 'Recipe not found for this product ID' });
-      }
+        const pool = await sql.connect(dbConfig);  // Ensure dbConfig is correctly pointing to your DB
+        console.log("Connected to database");
+
+        // Ensure table name is correctly prefixed with schema (dbo. if applicable)
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productID)
+            .query('SELECT RecipeID, Name FROM dbo.tblRecipes WHERE ProductID = @ProductID');
+        
+        // Logging the result for debugging
+        console.log("Query executed, result:", result.recordset);
+
+        // Check if the result contains any records
+        if (result.recordset.length > 0) {
+            const recipeData = result.recordset[0];  // First row contains recipe data
+            const recipe = {
+                RecipeID: recipeData.RecipeID,
+                Name: recipeData.Name,
+            };
+            console.log('Recipe found:', recipe);
+            return res.json(recipe);
+        } else {
+            console.log("No recipe found for Product ID:", productID);
+            return res.status(404).json({ error: 'Recipe not found for this product ID' });
+        }
     } catch (err) {
-      console.error('Database query failed: ', err);
-      return res.status(500).json({ error: 'Database query failed' });
+        console.error('Database query failed: ', err);
+        return res.status(500).json({ error: 'Database query failed' });
     }
-  });
-  
+});
+
 
 
 
