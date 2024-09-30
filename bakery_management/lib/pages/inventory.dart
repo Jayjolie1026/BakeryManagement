@@ -171,27 +171,29 @@ class _InventoryPageState extends State<InventoryPage> {
   
 // Search bar and filter button
 Widget buildSearchWithFilter() => Row(
-    
-      children: [
-        SizedBox(height: 5.0),
-        Expanded(
-          // The search widget takes up the remaining space
-          child: SearchWidget(
-            text: query,
-            hintText: 'Search by Name',
-            onChanged: searchItem,
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.filter_list),
-          color: Colors.brown,  // Adjust color to match your theme
-          onPressed: () {
-            // Open filter dialog or perform any filter action here
-            _showFilterOptions();
-          },
-        ),
-      ],
-    );
+  children: [
+    Expanded(
+      // The search widget takes up the remaining space
+      child: SearchWidget(
+        text: query,
+        hintText: 'Search by Name',
+        onChanged: searchItem,
+      ),
+    ),
+    Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+      alignment: Alignment.center, // Center the icon vertically
+      child: IconButton(
+        icon: Icon(Icons.filter_list),
+        color: Colors.brown,  // Adjust color to match your theme
+        onPressed: () {
+          // Open filter dialog or perform any filter action here
+          _showFilterOptions();
+        },
+      ),
+    ),
+  ],
+);
 
     
 
