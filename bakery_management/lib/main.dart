@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/bakedgoods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
+import 'package:bakery_management/pages/tasksAPI.dart';
 
 
   void _logout(BuildContext context) async {
@@ -357,47 +359,139 @@ bottomNavigationBar: BottomNavigationBar(
   }
 }
 
-// Home Page widget
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-Widget build(BuildContext context) {
-  return Column(
-    children: [
-      // Directly stacking the image and text
-      Expanded(
-        child: Align(
-          alignment: Alignment.topCenter, // Aligns at the top center
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Image.asset(
-                'assets/Final_logo.png',
-                width: 300,
-                height: 300,
-              ),
-              Positioned(
-                top: 40, // Adjust this value to move text closer to the image
-                child: Text(
-                  'Welcome to',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: 'MyFont',
-                    color: Colors.brown[900],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  );
+  _HomePageState createState() => _HomePageState();
 }
 
+class _HomePageState extends State<HomePage> {
+  late Future<List<Task>> tasks;
+
+  @override
+  void initState() {
+    super.initState();
+    tasks = getTasks(); // Fetch tasks on initialization
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // Image and welcome text
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    'assets/Final_logo.png',
+                    width: 300,
+                    height: 300,
+                  ),
+                  Positioned(
+                    top: 40,
+                    child: Text(
+                      'Welcome to',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontFamily: 'MyFont',
+                        color: Colors.brown[900],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Task List
+          Expanded(
+            flex: 2,
+            child: FutureBuilder<List<Task>>(
+              future: tasks,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No tasks available.'));
+                }
+
+                final taskList = snapshot.data!;
+                return ListView.builder(
+                  itemCount: taskList.length,
+                  itemBuilder: (context, index) {
+                    final task = taskList[index];
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.brown[300],
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  task.description,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.brown[900],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Due: ${task.dueDate.toLocal().toString().split(' ')[0]}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.brown[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Edit and Delete buttons
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.white),
+                                onPressed: () {
+                                  // Handle edit action
+                                  // You can implement the logic to edit the task
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.clear, color: Colors.white),
+                                onPressed: () {
+                                  // Handle delete action
+                                  // You can implement the logic to delete the task
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
 
 
 // Options Page for handling User Options and Logout
