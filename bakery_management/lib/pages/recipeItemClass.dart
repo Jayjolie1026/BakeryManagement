@@ -11,6 +11,10 @@ class Ingredient {
     required this.quantity,
     required this.measurement, // Include measurement in constructor
   });
+   @override
+  String toString() {
+    return 'Ingredient{id: $ingredientID, name: $name, quantity: $quantity, measurement: $measurement}';
+  }
 
   // Factory constructor to parse JSON into Ingredient object
    factory Ingredient.fromJson(Map<String, dynamic> json) {
@@ -24,11 +28,14 @@ class Ingredient {
 
 }
 class Item {
-  final int recipeID;
+   int recipeID;
   final String name;
   final String steps;
   final int productID;
   final List<Ingredient> ingredients; // List to hold Ingredient objects
+  final String category; // New field for category
+  final int yield2; // New field for yield
+  
 
   Item({
     required this.recipeID,
@@ -36,7 +43,13 @@ class Item {
     required this.steps,
     required this.productID,
     required this.ingredients,
+    required this.category, // Include category in constructor
+    required this.yield2,
   });
+  @override
+  String toString() {
+    return 'Item{recipeID: $recipeID, name: $name, steps: $steps, productID: $productID, ingredients: $ingredients, category: $category, yield: $yield2}';
+  }
 
   // Factory constructor to parse JSON into Item object
   factory Item.fromJson(Map<String, dynamic> json) {
@@ -49,6 +62,8 @@ class Item {
       ingredients: (json['Ingredients'] as List<dynamic>?)?.map((ingredient) {
         return Ingredient.fromJson(ingredient);
       }).toList() ?? [], // Default to an empty list if null
+      category: json['Category'] ?? '', // Default to empty string if null
+      yield2: json['Yield'] ?? 0,
     );
   }
 }

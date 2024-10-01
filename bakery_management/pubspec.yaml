@@ -66,6 +66,12 @@ flutter:
     - family: MyFont
       fonts:
         - asset: assets/fonts/SofadiOne-Regular.ttf
+    - family: MyFont2
+      fonts:
+        - asset: assets/fonts/PlaywriteDEGrund-Regular.ttf
+    - family: MyFont3
+      fonts:
+        - asset: assets/fonts/Fredoka_Condensed-Light.ttf
   assets:
     - assets/logo1.png
     - assets/bread2.png
@@ -124,6 +130,15 @@ flutter:
     - assets/almond_flour.jpg    
     - assets/Final_logo.png
     - assets/Final_logo2.png
+    - assets/cupcakes.jpg
+    - assets/almonds.jpg
+    - assets/chocolate.jpg
+    - assets/confectionerssuagr.jpg
+    - assets/eggwhite.jpg
+    - assets/granulatedsuagr.jpg
+    - assets/piecrust.jpg
+    - assets/pumpkinpuree.jpg
+    - assets/raspberryfilling.jpg
 
 
   # To add assets to your application, add an assets section, like this:

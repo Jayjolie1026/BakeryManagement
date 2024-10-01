@@ -21,4 +21,19 @@ class InventoryApi {
       throw Exception('Failed to load inventory items');
     }
   }
+
+  static const String baseUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory';
+
+  static Future<Item> fetchItemById(int itemId) async {
+  final response = await http.get(Uri.parse('$baseUrl/$itemId'));
+
+  if (response.statusCode == 200) {
+    final item = Item.fromJson(json.decode(response.body));
+    print('Fetched item entryID: ${item.entryID}'); // Check if entryID is correctly parsed
+    return item;
+  } else {
+    throw Exception('Failed to load item');
+  }
+}
+
 }
