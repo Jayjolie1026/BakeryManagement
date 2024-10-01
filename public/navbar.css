@@ -91,24 +91,3 @@
     color: #6E0D25;
 }
 
-.nav-button{
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    padding: 15px 15px;
-    background-color: #774E24;
-    width: 100px;
-    border-radius: 5px;
-    border: 2px solid #fff;
-    cursor: pointer;
-}
-.nav-button a{
-    color:#ffffff;
-    text-decoration: none;
-    font-size: 1.1rem;
-}
-
-.nav-button:hover, .nav-button a:hover{
-    background-color: bisque;
-    color: #6E0D25;
-}

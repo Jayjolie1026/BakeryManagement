@@ -34,6 +34,9 @@ function displayRecipes(recipesToDisplay) {
         const recipeButton = document.createElement('button'); // Create a new button element
         recipeButton.classList.add('recipe-button'); // Add a class to the button for styling
         recipeButton.textContent = recipe.Name; // Set the button text to the recipe name
+        recipeButton.onclick = function(){
+            window.location.href=`instructions.html?ID=${recipe.ProductID}`;
+        }
         recipeContainer.appendChild(recipeButton); // Append the button to the recipe container
     });
 }

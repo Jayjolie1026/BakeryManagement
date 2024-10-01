@@ -27,13 +27,11 @@
 
         .recipe-container{
             background: #dcab6b;
-            /* flex-direction:column; */
             align-items:center;
             border-style: solid;
 
         }
         .recipe-button {
-            /* width: 100%; */
             min-width: 200px;
             min-height: 300px;
             margin: 10px 0;
@@ -45,7 +43,6 @@
             border-radius: 5px;
             border-style:solid;
             cursor: pointer;
-            /* position: relative; */
         }
         .recipe-header{
             background-color: #ffffb3;
@@ -76,9 +73,7 @@
                 <a href="index.html" class="button">Log out</a>
             </li>
         </ul>
-        <button class="nav-button"> <a href="index.html">Log out</a> </button>
     </nav>
-    <h1 class="recipe-header">Big Baller Recipes</h1>
 
     <div class="main-body-container">
     <!--Recipe Container-->
@@ -86,40 +81,6 @@
     <div id="recipe-container" class="recipe-container"></div>
     </div>
 
-
     <script src="recipe.js"></script>
-    <!-- Link to JS will add to JS file after webpage is complete-->
-    <!-- <script>
-        //function creating button for each recipe
-        async function loadRecipes(){
-            try{
-                //use api to get data and convert into json
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                const recipeContainer = document.getElementById('recipe-container');
-
-                //placer to indicate which button is expanded currently
-                let expandedButton= null;
-                
-                data.forEach(recipe => {
-                    const recipeButton = document.createElement('button');
-                    recipeButton.classList.add('recipe-button');
-                    recipeButton.textContent=recipe.Name;
-
-                    recipeContainer.appendChild(recipeButton);
-                });
-
-            }
-            catch(error){
-                console.error("error loading recipes api")
-            }
-
-        }
-        //calls load recipe function when webpage loads
-        window.onload = loadRecipes;
-    </script> -->
 </body>
 </html>
