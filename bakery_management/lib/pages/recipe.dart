@@ -57,49 +57,48 @@ class _RecipePageState extends State<RecipePage> {
         SizedBox(height: 25.0),
         buildSearchWithFilter(),
         Expanded(
-  child: ListView.builder(
-    itemCount: items.length,
-    itemBuilder: (context, index) {
-      final item = items[index];
-      return GestureDetector(
-        onTap: () async {
-          // Navigate to the detailed recipe page
-          final updatedRecipe = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailedRecipePage(
-                recipeName: item.name,
-                recipeID: item.recipeID,
-              ),
-            ),
-          );
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return GestureDetector(
+                onTap: () async {
+                  // Navigate to the detailed recipe page
+                  final updatedRecipe = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailedRecipePage(
+                        recipeName: item.name,
+                        recipeID: item.recipeID,
+                      ),
+                    ),
+                  );
 
-          // If an updatedRecipe is returned, refresh the item in the list
-          if (updatedRecipe != null) {
-            setState(() {
-              // Find the index of the item and update it in the list
-              int index = items.indexWhere((i) => i.recipeID == updatedRecipe.recipeID);
-              if (index != -1) {
-                items[index] = updatedRecipe; // Update the specific item
-              }
-            });
+                  // If an updatedRecipe is returned, refresh the item in the list
+                  if (updatedRecipe != null) {
+                    setState(() {
+                      // Find the index of the item and update it in the list
+                      int index = items.indexWhere((i) => i.recipeID == updatedRecipe.recipeID);
+                      if (index != -1) {
+                        items[index] = updatedRecipe; // Update the specific item
+                      }
+                    });
 
-            // Re-apply the current query/filter after returning
-            if (query.isNotEmpty) {
-              searchItem(query);  // Re-apply the search/filter query
-            } else {
-              setState(() {
-                items = allItems;  // Reset to full list if no filter is applied
-              });
-            }
-          }
-        },
-        child: buildItem(item), // Your custom widget to display the item
-      );
-    },
-  ),
-),
-
+                    // Re-apply the current query/filter after returning
+                    if (query.isNotEmpty) {
+                      searchItem(query);  // Re-apply the search/filter query
+                    } else {
+                      setState(() {
+                        items = allItems;  // Reset to full list if no filter is applied
+                      });
+                    }
+                  }
+                },
+                child: buildItem(item), // Your custom widget to display the item
+              );
+            },
+          ),
+        ),
         const SizedBox(height: 80)
       ],
     ),
