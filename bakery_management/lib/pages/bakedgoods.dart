@@ -343,18 +343,19 @@ Widget build(BuildContext context) => Scaffold(
 
   // Search bar widget
   Widget buildSearchWithFilter() => Row(
-    
-      children: [
-        SizedBox(height: 5.0),
-        Expanded(
-          // The search widget takes up the remaining space
-          child: SearchWidget(
-            text: query,
-            hintText: 'Search by Name',
-            onChanged: searchItem,
-          ),
+    children: [
+      Expanded(
+        // The search widget takes up the remaining space
+        child: SearchWidget(
+          text: query,
+          hintText: 'Search by Name',
+          onChanged: searchItem,
         ),
-        IconButton(
+      ),
+      Container(
+        padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+        alignment: Alignment.center, // Center the icon vertically
+        child: IconButton(
           icon: Icon(Icons.filter_list),
           color: Colors.brown,  // Adjust color to match your theme
           onPressed: () {
@@ -362,8 +363,9 @@ Widget build(BuildContext context) => Scaffold(
             _showFilterOptions();
           },
         ),
-      ],
-    );
+      ),
+    ],
+  );
   
   void _showFilterOptions() {
   final categories = _getCategories(); // Get unique categories from items
@@ -562,7 +564,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
     return Container(
       height: 50,
-      margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
+      margin: const EdgeInsets.fromLTRB(30, 0, 0, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
         color: const Color(0xFFD8C4AA),

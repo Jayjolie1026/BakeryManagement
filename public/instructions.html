@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgb(228, 213, 194);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        #recipeContainer {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        #idInput {
+            margin-bottom: 10px;
+        }
+        img{
+            width: 500px;
+            height: 500px;
+        }
+        .steps-list{
+            list-style-type:none;
+        }
+    </style>
+</head>
+<body>
+    <div id="recipeContainer"></div>
+
+    <script>
+        async function fetchRecipe(ProductID) {
+            const apiUrl = `https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${ProductID}`;
+            
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    const recipe = data[0];
+                    document.title = recipe.Name; //add title to the html page
+                    let html = `
+                        <h1>${recipe.Name}</h1>
+                        <img src="bread1.png"> 
+                        <h3>Ingredients:</h3>
+                        <ul>
+                    `; //update img to change based on recipe
+                    
+                    recipe.Ingredients.forEach(ingredient => {
+                        html += `<li>${ingredient.Name}: ${ingredient.Quantity} ${ingredient.Measurement}</li>`;
+                    });
+                    
+                    const steps = recipe.Steps.split('\\n').filter(step => step.trim() !== ''); //split the step based on \\n
+
+                    html += `
+                        </ul>
+                        <h3>Steps:</h3>
+                         <ul class="steps-list">`;
+                    steps.forEach(step => {
+                        html += `<li>${step.trim()}</li>`;
+                    });
+                    html += '</ul>';
+                    
+                    document.getElementById('recipeContainer').innerHTML = html;
+                } else {
+                    document.getElementById('recipeContainer').innerHTML = '<p>No recipe found with that ID.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching recipe:', error);
+                document.getElementById('recipeContainer').innerHTML = '<p>Error fetching recipe. Please try again.</p>';
+            }
+        }
+    // Extract the query parameters from the URL
+    const params = new URLSearchParams(window.location.search);
+
+    // Get the RecipeID from the query parameters
+    const ID = params.get('ID');
+
+    window.onload=fetchRecipe(ID);
+    </script>
+</body>
+</html>

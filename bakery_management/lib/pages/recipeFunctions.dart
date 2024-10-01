@@ -32,7 +32,7 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
   final TextEditingController yieldController = TextEditingController(); 
 
 
-    List<Map<String, dynamic>> ingredients = [];
+  List<Map<String, dynamic>> ingredients = [];
 
   showDialog(
     context: context,
@@ -264,27 +264,33 @@ class DetailedRecipePage extends StatefulWidget {
 
 class _DetailedRecipePageState extends State<DetailedRecipePage> {
   late Item _recipe; // Assuming Item is the model for your recipes
+  late int currYield = 1; // Initialize with default value to avoid LateInitializationError
   String searchQuery = "";
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     _fetchRecipe();
-    
   }
-   Future<void> _fetchRecipe() async {
+
+  Future<void> _fetchRecipe() async {
     try {
       // Fetch the recipe using the recipeID passed to the widget
       final fetchedRecipe = await RecipeApi.fetchRecipeById(widget.recipeID);
       setState(() {
         _recipe = fetchedRecipe;
+        currYield = _recipe.yield2; // Initialize currYield properly
+        _isLoading = false; // Set loading to false after fetching
       });
     } catch (error) {
       print('Error fetching recipe: $error');
+      setState(() {
+        _isLoading = false; // Set loading to false even if there's an error
+      });
       // Handle the error appropriately (e.g., show an alert)
     }
   }
-
-  
 
   void _updateRecipe(Item updatedRecipe) async {
     // Preserve the recipeID before updating
@@ -309,201 +315,261 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
       widget.onRecipeUpdated!(updatedRecipe); // Notify parent widget with the updated recipe
     }
   }
+
+  // Increment yield
+  void _incrementYield() {
+    if (currYield < 50) {
+      setState(() {
+        currYield++;
+      });
+    }
+  }
+
+  // Decrement yield, not going below 1
+  void _decrementYield() {
+    if (currYield > _recipe.yield2) {
+      setState(() {
+        currYield--;
+      });
+    }
+  }
+
   @override
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: FutureBuilder<List<Item>>(
-        future: RecipeApi.getItems(searchQuery),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final items = snapshot.data!;
-            final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
-            if (recipe.isEmpty) {
-              return const Center(child: Text('Recipe not found'));
-            }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: _isLoading ? const Center(child: CircularProgressIndicator()) : FutureBuilder<List<Item>>(
+          future: RecipeApi.getItems(searchQuery),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasData) {
+              final items = snapshot.data!;
+              final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+              if (recipe.isEmpty) {
+                return const Center(child: Text('Recipe not found'));
+              }
 
-            final item = recipe.first; // The selected recipe
+              final item = recipe.first; // The selected recipe
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Display the recipe name from the fetched item
-                Text(
-                  item.name, // Use item.name instead of widget.recipeName
-                  style: const TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6D3200), // Same dark brown color
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Display the recipe name from the fetched item
+                  Text(
+                    item.name, // Use item.name instead of widget.recipeName
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200), // Same dark brown color
+                    ),
+                    textAlign: TextAlign.left,
                   ),
-                  textAlign: TextAlign.left,
-                ),
-                const SizedBox(height: 10),
-                
-                Image.asset(
-                  productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID
-                  width: double.infinity,
-                  height: 250, // Image height
-                  fit: BoxFit.cover,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Category:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6D3200),
+                  const SizedBox(height: 10),
+
+                  Image.asset(
+                    productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID
+                    width: double.infinity,
+                    height: 250, // Image height
+                    fit: BoxFit.cover,
                   ),
-                ),
-                Text(
-                  item.category, // Display the category
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6D3200),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Yield:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6D3200),
-                  ),
-                ),
-                Text(
-                  item.yield2.toString(), // Display the yield
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6D3200),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Ingredients:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6D3200),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                if (item.ingredients.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: item.ingredients.map<Widget>((ingredient) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          '- ${ingredient.quantity} ${ingredient.measurement} of ${ingredient.name}', // Display ingredient details
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF6D3200),
-                            fontFamily: "MyFont2"
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  )
-                else
+                  const SizedBox(height: 20),
                   const Text(
-                    'No ingredients available',
+                    'Category:',
                     style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  Text(
+                    item.category, // Display the category
+                    style: const TextStyle(
                       fontSize: 18,
                       color: Color(0xFF6D3200),
                     ),
                   ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Directions:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6D3200),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Yield:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  item.steps.replaceAll('\\n', '\n'),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6D3200),
-                    fontFamily: "MyFont2"
-                  ),
-                ),
-                const SizedBox(height: 20), // Extra space before the bottom buttons
-                
-                // Use Align to center the buttons at the bottom
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Column(
+                  Row(
                     children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          // Open the recipe update dialog
-                          showRecipeUpdateDialog(
-                            context,
-                            item, // Pass the current recipe item
-                            (updatedRecipe) {
-                              _updateRecipe(updatedRecipe);
-                              
-                            },
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D3200),
-                          foregroundColor: const Color(0xFFF0D1A0),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.add),
-                            SizedBox(width: 8),
-                            Text('Update'),
-                          ],
+                      SizedBox(
+                        width: 50, // Set the width of the button
+                        height: 50, // Set the height of the button
+                        child: IconButton(
+                          iconSize: 40, // Increase the icon size
+                          color: const Color(0xFF6D3200),
+                          icon: const Icon(Icons.arrow_left_rounded),
+                          onPressed: _decrementYield,
                         ),
                       ),
-                      const SizedBox(height: 20), // Spacing between the buttons
+
+                      Text(
+                        currYield.toString(), // Display current yield
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Color(0xFF6D3200),
+                        ),
+                      ),
+
+                      SizedBox(
+                        width: 50, // Set the width of the button
+                        height: 50, // Set the height of the button
+                        child: IconButton(
+                          iconSize: 40, // Increase the icon size
+                          color: const Color(0xFF6D3200),
+                          icon: const Icon(Icons.arrow_right_rounded),
+                          onPressed: _incrementYield,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10), // Add some space between the arrows and the button
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(context, true); // Close the page
+                          // You can place your future API call logic here
+                          // For example:
+                          print('Baking at $currYield yield...');
+                          // Future API call to bake or process the recipe can be placed here
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D3200),
-                          foregroundColor: const Color(0xFFEEC07B),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
+                          backgroundColor: const Color(0xFF6D3200), // Button background
+                          foregroundColor: const Color(0xFFF0D1A0), // Button text color
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Padding for the button
                         ),
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(
-                            fontSize: 17,
-                            color: Color(0xFFEEC07B),
-                          ),
-                        ),
+                        child: const Text('Bake It', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ),
-                ),
-              ],
-            );
-          } else {
-            return const Center(child: Text('No data found'));
-          }
-        },
-      ),
-    ),
-  );
-}
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Ingredients:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (item.ingredients.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: item.ingredients.map<Widget>((ingredient) {
+                        final yieldQuantity = ((ingredient.quantity * currYield) / _recipe.yield2).toStringAsFixed(1); // Adjust quantity based on currYield, 1 decimal place
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            '- $yieldQuantity ${ingredient.measurement} of ${ingredient.name}', // Display ingredient details
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF6D3200),
+                              fontFamily: "MyFont2"
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  else
+                    const Text(
+                      'No ingredients available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF6D3200),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Directions:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    item.steps.replaceAll('\\n', '\n'),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF6D3200),
+                      fontFamily: "MyFont2"
+                    ),
+                  ),
+                  const SizedBox(height: 20), // Extra space before the bottom buttons
 
+                  // Use Align to center the buttons at the bottom
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Open the recipe update dialog
+                            showRecipeUpdateDialog(
+                              context,
+                              item, // Pass the current recipe item
+                              (updatedRecipe) {
+                                _updateRecipe(updatedRecipe);
+
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6D3200),
+                            foregroundColor: const Color(0xFFF0D1A0),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add),
+                              SizedBox(width: 8),
+                              Text('Update'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20), // Spacing between the buttons
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, true); // Close the page
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6D3200),
+                            foregroundColor: const Color(0xFFEEC07B),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0),
+                            ),
+                          ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Color(0xFFEEC07B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return const Center(child: Text('No data found'));
+            }
+          },
+        ),
+      ),
+    );
+  }
 }
 
 

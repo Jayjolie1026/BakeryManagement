@@ -57,49 +57,48 @@ class _RecipePageState extends State<RecipePage> {
         SizedBox(height: 25.0),
         buildSearchWithFilter(),
         Expanded(
-  child: ListView.builder(
-    itemCount: items.length,
-    itemBuilder: (context, index) {
-      final item = items[index];
-      return GestureDetector(
-        onTap: () async {
-          // Navigate to the detailed recipe page
-          final updatedRecipe = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailedRecipePage(
-                recipeName: item.name,
-                recipeID: item.recipeID,
-              ),
-            ),
-          );
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return GestureDetector(
+                onTap: () async {
+                  // Navigate to the detailed recipe page
+                  final updatedRecipe = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailedRecipePage(
+                        recipeName: item.name,
+                        recipeID: item.recipeID,
+                      ),
+                    ),
+                  );
 
-          // If an updatedRecipe is returned, refresh the item in the list
-          if (updatedRecipe != null) {
-            setState(() {
-              // Find the index of the item and update it in the list
-              int index = items.indexWhere((i) => i.recipeID == updatedRecipe.recipeID);
-              if (index != -1) {
-                items[index] = updatedRecipe; // Update the specific item
-              }
-            });
+                  // If an updatedRecipe is returned, refresh the item in the list
+                  if (updatedRecipe != null) {
+                    setState(() {
+                      // Find the index of the item and update it in the list
+                      int index = items.indexWhere((i) => i.recipeID == updatedRecipe.recipeID);
+                      if (index != -1) {
+                        items[index] = updatedRecipe; // Update the specific item
+                      }
+                    });
 
-            // Re-apply the current query/filter after returning
-            if (query.isNotEmpty) {
-              searchItem(query);  // Re-apply the search/filter query
-            } else {
-              setState(() {
-                items = allItems;  // Reset to full list if no filter is applied
-              });
-            }
-          }
-        },
-        child: buildItem(item), // Your custom widget to display the item
-      );
-    },
-  ),
-),
-
+                    // Re-apply the current query/filter after returning
+                    if (query.isNotEmpty) {
+                      searchItem(query);  // Re-apply the search/filter query
+                    } else {
+                      setState(() {
+                        items = allItems;  // Reset to full list if no filter is applied
+                      });
+                    }
+                  }
+                },
+                child: buildItem(item), // Your custom widget to display the item
+              );
+            },
+          ),
+        ),
         const SizedBox(height: 80)
       ],
     ),
@@ -128,18 +127,19 @@ class _RecipePageState extends State<RecipePage> {
 
   // Search bar widget
   Widget buildSearchWithFilter() => Row(
-    
-      children: [
-        SizedBox(height: 5.0),
-        Expanded(
-          // The search widget takes up the remaining space
-          child: SearchWidget(
-            text: query,
-            hintText: 'Search by Name',
-            onChanged: searchItem,
-          ),
+    children: [
+      Expanded(
+        // The search widget takes up the remaining space
+        child: SearchWidget(
+          text: query,
+          hintText: 'Search by Name',
+          onChanged: searchItem,
         ),
-        IconButton(
+      ),
+      Container(
+        padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+        alignment: Alignment.center, // Center the icon vertically
+        child: IconButton(
           icon: Icon(Icons.filter_list),
           color: Colors.brown,  // Adjust color to match your theme
           onPressed: () {
@@ -147,8 +147,10 @@ class _RecipePageState extends State<RecipePage> {
             _showFilterOptions();
           },
         ),
-      ],
-    );
+      ),
+    ],
+  );
+
     void _showFilterOptions() {
   final categories = _getCategories(); // Get unique categories from items
   showDialog(
@@ -356,7 +358,7 @@ class _SearchWidgetState extends State<SearchWidget> {
 
     return Container(
       height: 50,
-      margin: const EdgeInsets.fromLTRB(30, 0, 30, 16),
+      margin: const EdgeInsets.fromLTRB(30, 0, 0, 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
         color: const Color(0xFFD8C4AA),

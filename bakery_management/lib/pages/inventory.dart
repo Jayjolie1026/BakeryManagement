@@ -85,47 +85,46 @@ class _InventoryPageState extends State<InventoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-  backgroundColor: const Color(0xFFF0D1A0),
-  body: Column(
-    children: <Widget>[
-       SizedBox(height: 25.0),
-      // Search bar with filter
-      buildSearchWithFilter(),
-      Expanded(
-  child: ListView.builder(
-    itemCount: items.length,
-    itemBuilder: (context, index) {
-      final item = items[index];
-      return GestureDetector(
-        onTap: ()  {
-           navigateToDetailPage(item); // Call the navigateToDetailPage function
-        },
-        child: buildItem(item), // Your custom widget to display the item
-      );
-    },
-  ),
-),
-
-      const SizedBox(height: 50),  // Add some space at the bottom
-    ],
-  ),
-  floatingActionButton: FloatingActionButton.extended(
-    onPressed: () => showAddIngredientAndInventoryDialog(context, () {
-      // Refresh the inventory list after adding a new item
-      init(); // Re-fetch the full list after a new item is added
-    }),
-    label: const Text(
-      'Add Ingredient',
-      style: TextStyle(
-        color: Color(0xFFEEC07B),
-        fontSize: 17,
-      ),
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: Column(
+      children: <Widget>[
+        SizedBox(height: 25.0),
+        // Search bar with filter
+        buildSearchWithFilter(),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return GestureDetector(
+                onTap: ()  {
+                   navigateToDetailPage(item); // Call the navigateToDetailPage function
+                },
+                child: buildItem(item), // Your custom widget to display the item
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 80),  // Add some space at the bottom
+      ],
     ),
-    icon: const Icon(Icons.add),
-    backgroundColor: const Color(0xFF422308),  // Dark brown background
-    foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-  ),
-  floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () => showAddIngredientAndInventoryDialog(context, () {
+        // Refresh the inventory list after adding a new item
+        init(); // Re-fetch the full list after a new item is added
+      }),
+      label: const Text(
+        'Add Ingredient',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),
+          fontSize: 17,
+        ),
+      ),
+      icon: const Icon(Icons.add),
+      backgroundColor: const Color(0xFF422308),  // Dark brown background
+      foregroundColor: const Color.fromARGB(255, 243, 217, 162),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
 
  // Center at the bottom
@@ -171,27 +170,29 @@ class _InventoryPageState extends State<InventoryPage> {
   
 // Search bar and filter button
 Widget buildSearchWithFilter() => Row(
-    
-      children: [
-        SizedBox(height: 5.0),
-        Expanded(
-          // The search widget takes up the remaining space
-          child: SearchWidget(
-            text: query,
-            hintText: 'Search by Name',
-            onChanged: searchItem,
-          ),
-        ),
-        IconButton(
-          icon: Icon(Icons.filter_list),
-          color: Colors.brown,  // Adjust color to match your theme
-          onPressed: () {
-            // Open filter dialog or perform any filter action here
-            _showFilterOptions();
-          },
-        ),
-      ],
-    );
+  children: [
+    Expanded(
+      // The search widget takes up the remaining space
+      child: SearchWidget(
+        text: query,
+        hintText: 'Search by Name',
+        onChanged: searchItem,
+      ),
+    ),
+    Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+      alignment: Alignment.center, // Center the icon vertically
+      child: IconButton(
+        icon: Icon(Icons.filter_list),
+        color: Colors.brown,  // Adjust color to match your theme
+        onPressed: () {
+          // Open filter dialog or perform any filter action here
+          _showFilterOptions();
+        },
+      ),
+    ),
+  ],
+);
 
     
 
@@ -204,7 +205,7 @@ void _showFilterOptions() {
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
-        title: Text(
+        title: const Text(
           'Filter by Category',
           style: TextStyle(
             color: const Color(0xFF6D3200), // Set the title text color
@@ -217,7 +218,7 @@ void _showFilterOptions() {
               return ListTile(
                 title: Text(
                   category,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: const Color(0xFF6D3200), // Set the ListTile text color
                   ),
                 ),
