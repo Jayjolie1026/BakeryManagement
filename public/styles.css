@@ -185,16 +185,6 @@ body.fade-out {
     margin-bottom: 10px;
 }
 
-.navbar__btn .button:hover {
-    background: bisque;
-    transition: all 0.3 ease;
-}
-
-/* Menu bar transition color */
-.navbar__links:hover {
-    color: bisque; 
-    transition: all 0.5 ease;
-}
 
 /* Animation for sign-in form */
 @keyframes fadeInRight {
