@@ -33,6 +33,7 @@ document.getElementById('addUserForm').addEventListener('submit', async function
             alert('User added successfully!');
             // Optionally reset the form or redirect the user
             document.getElementById('addUserForm').reset();
+            window.location.href = "index.html"
         } else {
             const errorText = await response.text();
             throw new Error(errorText);
