@@ -404,11 +404,17 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        color: const Color(0xFF6D3200),
-                        icon: const Icon(Icons.arrow_left_rounded),
-                        onPressed: _decrementYield,
+                      SizedBox(
+                        width: 50, // Set the width of the button
+                        height: 50, // Set the height of the button
+                        child: IconButton(
+                          iconSize: 40, // Increase the icon size
+                          color: const Color(0xFF6D3200),
+                          icon: const Icon(Icons.arrow_left_rounded),
+                          onPressed: _decrementYield,
+                        ),
                       ),
+
                       Text(
                         currYield.toString(), // Display current yield
                         style: const TextStyle(
@@ -416,10 +422,32 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                           color: Color(0xFF6D3200),
                         ),
                       ),
-                      IconButton(
-                        color: const Color(0xFF6D3200),
-                        icon: const Icon(Icons.arrow_right_rounded),
-                        onPressed: _incrementYield,
+
+                      SizedBox(
+                        width: 50, // Set the width of the button
+                        height: 50, // Set the height of the button
+                        child: IconButton(
+                          iconSize: 40, // Increase the icon size
+                          color: const Color(0xFF6D3200),
+                          icon: const Icon(Icons.arrow_right_rounded),
+                          onPressed: _incrementYield,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10), // Add some space between the arrows and the button
+                      ElevatedButton(
+                        onPressed: () {
+                          // You can place your future API call logic here
+                          // For example:
+                          print('Baking at $currYield yield...');
+                          // Future API call to bake or process the recipe can be placed here
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6D3200), // Button background
+                          foregroundColor: const Color(0xFFF0D1A0), // Button text color
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Padding for the button
+                        ),
+                        child: const Text('Bake It', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ),
