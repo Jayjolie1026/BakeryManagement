@@ -1,10 +1,11 @@
-/*  Author: (Ploy) Siyapa Chanhorm (front page/ login page)
-    Date: 
-    File: styles.css
-    Purpose: create the structure and content of web pages
+/* Author: (Ploy) Siyapa Chanhorm (front page/ login page)
+   Date: 
+   File: styles.css
+   Purpose: create the structure and content of web pages
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Playwrite+BR:wght@100..400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+CO:wght@100..400&display=swap');
 
 * {
     box-sizing: border-box;
@@ -15,63 +16,21 @@
 }
 
 body {
-    background-color: rgb(228, 213, 194);
+    background-image: url('login_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: #333;
     line-height: 1.6;
-
+    font-family:'Courier New', Courier, monospace;
+    transition: opacity 1s ease-in-out;
 }
 
-.navbar {
-    background: #baa384;
-    height: 140px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    position: sticky;
-    top: 2;
-    z-index: 1000;
-    padding: 0 60px;
+body.fade-out {
+    opacity: 0;
 }
 
-.navbar__container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 120%;
-    max-width: 1100px;
-    margin: 0 auto;
-    position: relative;                
-}
-
-/*menu bar*/
-.navbar__menu {
-    display: flex;
-    align-items: center;
-    list-style: none;
-    text-align: center;
-}
-
-/*menu / front page*/
-.navbar__links {
-    text-decoration: none;
-    font-weight: 400;
-    color: #000000;
-    padding: 10px 15px;
-    transition: color 0.3s ease;
-    font-size: 1.1rem;
-}
-
-/* sign in button */
-.navbar__btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 2rem;
-    width: 30%;
-}
-
-/*sign in */
+/* Sign in button */
 .button {
     display: flex;
     align-items: center;
@@ -83,34 +42,32 @@ body {
     outline: rgb(0, 0, 0);
     border-radius: 5px;
     background: transparent;
-    color:#6E0D25; 
+    color: #6E0D25; 
 }
 
-.navbar__btn .button:hover {
-    background: bisque;
-    transition: all 0.3 ease;
-}
-
-/* transition color on menu bar*/
-.navbar__links:hover {
-    color: bisque; 
-    transition: all 0.5 ease;
-}
-
-/* header section */
+/* Header section */
 .main {
     text-align: center;
-    padding: 100px 20px;
-    background-color: rgb(223, 202, 176);
+    padding: 120px 30px;
+    background-color: rgb(223, 186, 139);
+    margin-top: -50px;
+}
+
+.container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0.25rem;
+    padding-right: 0.5rem;
 }
 
 .main__container {
     max-width: 1500px;
     margin: 0 auto;
     display: flex;
-    flex-direction: row; /* Align content side by side (text left, image right) */
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: row; /* Align content side by side */
+    justify-content: space-between; /* Space between elements */
+    align-items: flex-start; /* Align items to the top */
     width: 100%;
 }
 
@@ -119,84 +76,101 @@ body {
     padding-right: 10px; /* Add space between text and image */
 }
 
-/*header 1*/
-.main__content h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    font-weight: bold;
-    color: #492310;
-    margin-bottom: 1px;
-    margin-left: 19px;
+/* Animation for header */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
-/* bread image */
+
+.main__content h1 {
+    font-family: "Playwrite CO", cursive;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #ffffff; /* Changed to white for better contrast */
+    margin-bottom: 10px;
+    margin-left: 19px;
+    animation: fadeInUp 1.5s ease-in-out;
+}
+
 .main__img {
     flex: 2; /* Image section will take up available space */
     display: flex;
-    justify-content:end; /* Align image to the right */
+    justify-content: start; /* Align image to the left */
 }
 
 .main__img img {
     max-width: 450px; /* Keep it responsive */
     border-radius: 50%; /* Circular style */
-    margin-left: -200px;
+    margin-right: 20px; /* Space between image and text */
     margin-bottom: -80px;
-    margin-right: 540px; /*move to the right*/
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .main__content h2 {
-    font-size: 2.15rem;
-    color: #753623;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: #746858; /* Softer color for header 2 */
+    margin-bottom: 40px;
+    margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
+    animation: fadeInUp 2s ease-in-out; /* Delayed fade-in */
 }
 
-/* Sign-in Form Section (Right Side) */
+/* Sign-in Form Section */
 .signin__container {
-    flex: 1; /* Form will occupy the available space on the right */
-    max-width: 410px;
-    background-color: #f5f5f5;
-    padding: 30px;
-    position: sticky;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-left: 1050px; /* Adjust spacing from the text section */
-    margin-bottom: 100px;
-    margin-top: -378px;
+    background-color: #fff; 
+    border-radius: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 35px;
+    animation: fadeInRight 1.5s ease-in-out; /* Smooth slide-in effect */
+    max-width: 398px; /* Standard max width for form */
+    width: 100%; /* Allow the container to be responsive */
+    margin-left: 20px; /* Space from image */
+    
+    position: absolute;
+    top: 250px;
+    right: 90px;
 }
 
+/* Form styles */
 .signin__container h1 {
-    color: #6E0D25;
+    color: #774E24; /* White text for better contrast */
     font-size: 2rem;
-    margin-bottom: 10px;
+    margin-bottom: -15px;
 }
 
 .signin-form label {
     display: block;
     margin-bottom: 10px;
     text-align: left;
-    color: #333;
+    color: #fff; /* White text for better contrast */
 }
 
 .signin-form input {
     width: 90%;
     padding: 15px;
     margin-right: 10px;
+    margin-top: -50px;
     border-radius: 10px;
     border: 2px solid #ccc;
 }
 
 .button {
-    width: 20%;
+    width: 22%; /* Full width */
     padding: 12px;
     background-color: #774E24;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-bottom: 10px;
     margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .button:hover {
@@ -211,3 +185,65 @@ body {
     margin-bottom: 10px;
 }
 
+.navbar__btn .button:hover {
+    background: bisque;
+    transition: all 0.3 ease;
+}
+
+/* Menu bar transition color */
+.navbar__links:hover {
+    color: bisque; 
+    transition: all 0.5 ease;
+}
+
+/* Animation for sign-in form */
+@keyframes fadeInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Media Queries for Responsiveness */
+
+/* Large screens */
+@media only screen and (min-width: 1800px) {
+    .signin__container {
+        margin-left: 20px; /* Adjust positioning for large screens */
+    }
+
+    .main__img img {
+        margin-right: 300px; /* Adjust bread image positioning */
+    }
+}
+
+/* Medium screens */
+@media only screen and (min-width: 1024px) and (max-width: 1799px) {
+    .signin__container {
+        margin-left: 20px; /* Adjust spacing for medium screens */
+    }
+
+    .main__img img {
+        margin-right: 100px; /* Adjust bread image positioning */
+    }
+}
+
+/* Small screens */
+@media only screen and (max-width: 1023px) {
+    .main__container {
+        flex-direction: column; /* Stack the content on top of each other */
+    }
+
+    .signin__container {
+        margin: 0 auto;
+        max-width: 100%; /* Full width for small screens */
+    }
+
+    .main__img img {
+        max-width: 100%; /* Ensure image scales properly */
+    }
+}

@@ -56,7 +56,7 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
             
 
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Name',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -66,14 +66,14 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   vendorName = value;
                 },
               ),
 
              TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Area Code',
                 labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                 focusedBorder: UnderlineInputBorder(
@@ -84,13 +84,13 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 ),
               ),
               keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
-              style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+              style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
               onChanged: (value) {
                 vendorAreaCode = value;
               },
             ),
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Phone Number',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -101,14 +101,14 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                   ),
                 ),
                 keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   vendorPhoneNum = value;
                 },
               ),
 
              TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Email',
                 labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                 focusedBorder: UnderlineInputBorder(
@@ -119,14 +119,14 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 ),
               ),
               keyboardType: TextInputType.emailAddress, // Ensures the correct keyboard is displayed for email addresses
-              style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+              style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
               onChanged: (value) {
                 vendorEmail = value;
               },
             ),
 
              TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Street Address',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -136,13 +136,13 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   streetAddress = value;
                 },
               ),
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'City',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -152,14 +152,14 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   city = value;
                 },
               ),
 
              TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'State',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -169,13 +169,13 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   state = value;
                 },
               ),
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Postal Code',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -185,14 +185,14 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   postalCode = value;
                 },
               ),
 
               TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Country',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                   focusedBorder: UnderlineInputBorder(
@@ -202,7 +202,7 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                     borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
                   ),
                 ),
-                style: TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
                 onChanged: (value) {
                   country = value;
                 },
@@ -219,10 +219,9 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
             },
           ),
           ElevatedButton(
-            child: const Text('Add'),
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-              foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+              backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+              foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
             ),
             onPressed: () async {
               try {
@@ -247,6 +246,7 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 );
               }
             },
+            child: const Text('Add'),
           ),
         ],
       );
@@ -413,11 +413,11 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Confirm'),
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-                          foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                          backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                         ),
+                        child: const Text('Confirm'),
                       ),
                     ],
                   );
@@ -451,11 +451,11 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
                       actions: <Widget>[
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('OK'),
                           style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-                          foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                          backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                          foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                         ),
+                          child: const Text('OK'),
                         ),
                       ],
                     );
@@ -465,11 +465,11 @@ Future<bool> handleEditVendor(BuildContext context, Vendor vendor) async {
                 Navigator.of(context).pop(true); // Indicate success
               }
             },
-            child: const Text('Save Changes'),
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-              foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+              backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+              foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
             ),
+            child: const Text('Save Changes'),
           ),
         ],
       );
@@ -496,11 +496,11 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Delete'),
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-            foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+            backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+            foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
           ),
+          child: const Text('Delete'),
         ),
       ],
     ),
@@ -527,11 +527,11 @@ Future<bool> handleRemoveVendor(BuildContext context, int id) async {
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the success dialog
                 },
-                child: const Text('OK'),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Color(0xFF6D3200)), // Dark brown background
-                  foregroundColor: MaterialStateProperty.all(Color(0xFFEEC07B)), // Light brown text
+                  backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                  foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
                 ),
+                child: const Text('OK'),
               ),
             ],
           ),

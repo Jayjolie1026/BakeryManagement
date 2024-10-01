@@ -10,7 +10,7 @@ class SearchWidget extends StatefulWidget {
     super.key,
     required this.text,
     required this.onChanged,
-    required this.hintText,
+    required this.hintText, required backgroundColor,
   });
 
   @override
@@ -21,9 +21,15 @@ class _SearchWidgetState extends State<SearchWidget> {
   final controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    controller.text = widget.text;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const styleActive = TextStyle(color: Colors.black);
-    const styleHint = TextStyle(color: Colors.black54);
+    const styleActive = TextStyle(color:Color(0xFF6D3200));
+    const styleHint = TextStyle(color:Color(0xFF6D3200));
     final style = widget.text.isEmpty ? styleHint : styleActive;
 
     return Container(
@@ -38,19 +44,17 @@ class _SearchWidgetState extends State<SearchWidget> {
         controller: controller,
         decoration: InputDecoration(
           icon: Icon(Icons.search, color: style.color),
-          suffixIcon: widget.text.isNotEmpty
-              ? GestureDetector(
+          suffixIcon: widget.text.isNotEmpty ? GestureDetector(
             child: Icon(Icons.close, color: style.color),
             onTap: () {
               controller.clear();
               widget.onChanged('');
               FocusScope.of(context).requestFocus(FocusNode());
             },
-          )
-              : null,
-          hintText: widget.hintText,
-          hintStyle: style,
-          border: InputBorder.none,
+          ) : null,
+        hintText: widget.hintText,
+        hintStyle: style,
+        border: InputBorder.none,
         ),
         style: style,
         onChanged: widget.onChanged,

@@ -1,356 +1,574 @@
 import 'package:flutter/material.dart';
 import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
-import 'package:flutter/material.dart';
 
-class AddRecipePage extends StatefulWidget {
-  @override
-  _AddRecipePageState createState() => _AddRecipePageState();
-}
+const Map<int, String> productImages = {
+  12: 'assets/sourdough.jpg',
+  13: 'assets/choclatechip.jpg',
+  14: 'assets/buttercroissant.jpg',
+  15: 'assets/blueberrymuffins.jpg',
+  16: 'assets/cinnaon.jpg',
+  17: 'assets/frecnh.jpg',
+  18: 'assets/lemon.jpg',
+  19: 'assets/eclair.jpg',
+  20: 'assets/pie.jpg',
+  21: 'assets/cupcakes.jpg',
+  22: 'assets/pie.jpg',
+  23: 'assets/almond.jpg',
+  24: 'assets/raspberry.jpg',
+  25: 'assets/brownies.jpg',
+  26: 'assets/macarons.jpg',
+};
 
-class _AddRecipePageState extends State<AddRecipePage> {
-  int recipeID = 0;
-  String name = '';
-  String steps = '';
-  int productID = 0;
-  List<Ingredient> ingredients = [];
-
-  // Controllers for ingredient input fields
-  final TextEditingController ingredientNameController = TextEditingController();
+void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController stepsController = TextEditingController();
+  final TextEditingController productIDController = TextEditingController();
+  final TextEditingController ingredientIDController = TextEditingController();
   final TextEditingController ingredientQuantityController = TextEditingController();
-
-  void addIngredient() {
-    setState(() {
-      final ingredientName = ingredientNameController.text;
-      final ingredientQuantity = int.tryParse(ingredientQuantityController.text) ?? 0;
-
-      // Add new ingredient to the list
-      ingredients.add(
-        Ingredient(
-          ingredientID: ingredients.length + 1, // Temporary ID, adjust as needed
-          name: ingredientName,
-          quantity: ingredientQuantity,
-        ),
-      );
-
-      // Clear input fields
-      ingredientNameController.clear();
-      ingredientQuantityController.clear();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Recipe Item'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Recipe ID Input
-              TextField(
-                decoration: const InputDecoration(labelText: 'Recipe ID'),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    recipeID = int.tryParse(value) ?? 0;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              // Name Input
-              TextField(
-                decoration: const InputDecoration(labelText: 'Item Name'),
-                onChanged: (value) {
-                  setState(() {
-                    name = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              // Steps Input
-              TextField(
-                decoration: const InputDecoration(labelText: 'Steps'),
-                onChanged: (value) {
-                  setState(() {
-                    steps = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 10),
-              // Product ID Input
-              TextField(
-                decoration: const InputDecoration(labelText: 'Product ID'),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    productID = int.tryParse(value) ?? 0;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              // Section for adding ingredients
-              const Text(
-                'Add Ingredients',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: ingredientNameController,
-                decoration: const InputDecoration(labelText: 'Ingredient Name'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: ingredientQuantityController,
-                decoration: const InputDecoration(labelText: 'Ingredient Quantity'),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: addIngredient,
-                child: const Text('Add Ingredient'),
-              ),
-              const SizedBox(height: 20),
-              // Display added ingredients
-              const Text(
-                'Ingredients List',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: ingredients.length,
-                itemBuilder: (context, index) {
-                  final ingredient = ingredients[index];
-                  return ListTile(
-                    title: Text('${ingredient.name} - ${ingredient.quantity}'),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              // Buttons: Cancel and Add
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    child: const Text('Cancel'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  ElevatedButton(
-                    child: const Text('Add Recipe'),
-                    onPressed: () async {
-                      try {
-                        addRecipe(recipeID, name, steps, productID, ingredients); // Call the addRecipe API function
-                        await addRecipe(
-                          recipeID,
-                          name,
-                          steps,
-                          productID,
-                          ingredients, // Pass the ingredients list
-                        );
-                        Navigator.of(context).pop(); // Go back after adding the recipe
-                      } catch (e) {
-                        print('Error adding recipe: $e');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Example function to handle recipe addition
-  Future<void> addRecipe(
-    int recipeID,
-    String name,
-    String steps,
-    int productID,
-    List<Ingredient> ingredients,
-  ) async {
-    final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes');
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'RecipeID': recipeID,
-        'Name': name,
-        'Steps': steps,
-        'ProductID': productID,
-        'Ingredients': ingredients.map((ingredient) {
-          return {
-            'IngredientID': ingredient.ingredientID,
-            'Name': ingredient.name,
-            'Quantity': ingredient.quantity,
-          };
-        }).toList(),
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      print('Recipe added successfully');
-    } else {
-      throw Exception('Failed to add recipe: ${response.body}');
-    }
-  }
-}
-
-class DetailedRecipePage extends StatelessWidget {
-  final String recipeName;
-  final String searchQuery = "";
-  final int recipeID; 
-
-  DetailedRecipePage({required this.recipeName, required this.recipeID, Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 100,
-        title: Image.asset(
-          'assets/recipe2.png',
-          height: 100,
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xEEC07B),
-      ),
-      body: FutureBuilder<List<Item>>(
-        future: RecipeApi.getItems(searchQuery),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (snapshot.hasData) {
-            final items = snapshot.data!;
-            final recipe = items.where((item) => item.recipeID == recipeID).toList();
-
-            if (recipe.isEmpty) {
-              return const Center(child: Text('Recipe not found'));
-            }
-
-            final item = recipe.first;
-
-            return Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Recipe title
-                      Text(
-                        "$recipeName Recipe",
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      
-                      // Recipe image
-                      Image.asset(
-                        'assets/bagel3.jpg', // Replace with your image path
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // Ingredients section
-                      const Text(
-                        'Ingredients',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      
-                      if (item.ingredients.isNotEmpty)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: item.ingredients.map<Widget>((ingredient) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Text(
-                                '- ${ingredient.quantity} of ${ingredient.name}',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                            );
-                          }).toList(),
-                        )
-                      else
-                        const Text(
-                          'No ingredients available',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Directions section
-                      const Text(
-                        'Directions',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        item.steps.replaceAll('\\n', '\n'),
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 80), // Add space to prevent text overlap with FAB
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 20, // Position the button above the text
-                  right: 20,
-                  child: FloatingActionButton.extended(
-                    onPressed: () async {
-                      // Open the recipe update dialog
-                      await showRecipeUpdateDialog(
-                        context,
-                        item, // Pass the current recipe item
-                        (updatedRecipe) {
-                          // Handle the updated recipe
-                          // Since we're in a StatelessWidget, this should be updated in state management
-                        },
-                      );
-                    },
-                    label: const Text('Update Recipe'),
-                    backgroundColor: const Color(0xFFF5E0C3),
-                  ),
-                ),
-              ],
-            );
-          } else {
-            return const Center(child: Text('No data found'));
-          }
-        },
-      ),
-    );
-  }
-}
+  final TextEditingController ingredientMeasurementController = TextEditingController(); 
+  final TextEditingController categoryController = TextEditingController(); 
+  final TextEditingController yieldController = TextEditingController(); 
 
 
-Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) async {
-  TextEditingController _nameController = TextEditingController(text: recipe.name);
-  TextEditingController _stepsController = TextEditingController(text: recipe.steps);
-  TextEditingController _ingredientsController = TextEditingController(text: recipe.ingredients.join(", "));
+  List<Map<String, dynamic>> ingredients = [];
 
-  await showDialog(
+  showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        title: const Text('Add New Recipe'),
+        backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
+        titleTextStyle: const TextStyle(color: Color(0xFF6D3200), fontFamily: 'MyFont', fontSize: 24), 
+
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Recipe Name',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              // Steps Input
+              TextField(
+                controller: stepsController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Steps',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              // Product ID Input
+              TextField(
+                controller: productIDController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Product ID',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Ingredient ID Input
+              TextField(
+                controller: ingredientIDController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Ingredient ID',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              // Ingredient Quantity Input
+              TextField(
+                controller: ingredientQuantityController,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Ingredient Quantity',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              // Ingredient Measurement Input
+              TextField(
+                controller: ingredientMeasurementController, // New measurement controller
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Ingredient Measurement',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: categoryController, // New controller for category
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+
+              // TextField for Yield
+              TextField(
+                controller: yieldController, // New controller for yield
+                keyboardType: TextInputType.number, // Set keyboard type to number
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Yield',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final ingredientID = int.tryParse(ingredientIDController.text);
+                  final ingredientQuantity = double.tryParse(ingredientQuantityController.text);
+                  final ingredientMeasurement = ingredientMeasurementController.text;
+
+                  if (ingredientID != null && ingredientQuantity != null && ingredientMeasurement.isNotEmpty) {
+                    // Add ingredient to the list with measurement
+                    ingredients.add({
+                      'IngredientID': ingredientID,
+                      'Quantity': ingredientQuantity,
+                      'Measurement': ingredientMeasurement,
+                    });
+
+                    // Clear the input fields
+                    ingredientIDController.clear();
+                    ingredientQuantityController.clear();
+                    ingredientMeasurementController.clear(); // Clear the measurement field
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D3200),
+                  foregroundColor: const Color(0xFFF0d1a0),
+                ),
+                child: const Text('Add Ingredient'),
+              ),
+              // Display added ingredients
+              ...ingredients.map((ingredient) {
+                return Text('${ingredient['IngredientID']} - ${ingredient['Quantity']} ${ingredient['Measurement']}');
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF6D3200), // Text color
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Prepare the recipe data to send to the API
+              final name = nameController.text;
+              final steps = stepsController.text;
+              final productID = int.tryParse(productIDController.text);
+              final category = categoryController.text; // Get the category from the controller
+              final yieldValue = int.tryParse(yieldController.text) ?? 0;
+
+              if (name.isNotEmpty && steps.isNotEmpty && productID != null && ingredients.isNotEmpty) {
+                // Call the API to add the recipe
+                try {
+                  await addRecipe(name, steps, productID, category, yieldValue, ingredients);
+                  onRecipeAdded(); // Callback to refresh or update the UI
+                  Navigator.of(context).pop(); // Close the dialog
+                } catch (e) {
+                  // Handle error (optional)
+                  print('Error adding recipe: $e');
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200),
+              foregroundColor: const Color(0xFFF0d1a0),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+
+class DetailedRecipePage extends StatefulWidget {
+  final String recipeName;
+  final int recipeID;
+  final Function(Item)? onRecipeUpdated;
+  
+
+  const DetailedRecipePage({
+    required this.recipeName,
+    required this.recipeID,
+    super.key,
+    this.onRecipeUpdated,
+  });
+
+  @override
+  _DetailedRecipePageState createState() => _DetailedRecipePageState();
+}
+
+class _DetailedRecipePageState extends State<DetailedRecipePage> {
+  late Item _recipe; // Assuming Item is the model for your recipes
+  late int currYield = 1; // Initialize with default value to avoid LateInitializationError
+  String searchQuery = "";
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRecipe();
+  }
+
+  Future<void> _fetchRecipe() async {
+    try {
+      // Fetch the recipe using the recipeID passed to the widget
+      final fetchedRecipe = await RecipeApi.fetchRecipeById(widget.recipeID);
+      setState(() {
+        _recipe = fetchedRecipe;
+        currYield = _recipe.yield2; // Initialize currYield properly
+        _isLoading = false; // Set loading to false after fetching
+      });
+    } catch (error) {
+      print('Error fetching recipe: $error');
+      setState(() {
+        _isLoading = false; // Set loading to false even if there's an error
+      });
+      // Handle the error appropriately (e.g., show an alert)
+    }
+  }
+
+  void _updateRecipe(Item updatedRecipe) async {
+    // Preserve the recipeID before updating
+    final int preservedRecipeID = _recipe.recipeID; 
+
+    setState(() {
+      _recipe = updatedRecipe;
+      _recipe.recipeID = preservedRecipeID; // Ensure recipeID is not lost
+    });
+
+    // Optionally re-fetch the recipe from the database if needed
+    try {
+      final fetchedRecipe = await RecipeApi.fetchRecipeById(preservedRecipeID);
+      setState(() {
+        _recipe = updatedRecipe; // Update state with the fetched recipe
+      });
+    } catch (error) {
+      print('Error fetching recipe: $error');
+    }
+
+    if (widget.onRecipeUpdated != null) {
+      widget.onRecipeUpdated!(updatedRecipe); // Notify parent widget with the updated recipe
+    }
+  }
+
+  // Increment yield
+  void _incrementYield() {
+    if (currYield < 50) {
+      setState(() {
+        currYield++;
+      });
+    }
+  }
+
+  // Decrement yield, not going below 1
+  void _decrementYield() {
+    if (currYield > _recipe.yield2) {
+      setState(() {
+        currYield--;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0), // Same background as ProductPage
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: _isLoading ? const Center(child: CircularProgressIndicator()) : FutureBuilder<List<Item>>(
+          future: RecipeApi.getItems(searchQuery),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasData) {
+              final items = snapshot.data!;
+              final recipe = items.where((item) => item.recipeID == widget.recipeID).toList();
+              if (recipe.isEmpty) {
+                return const Center(child: Text('Recipe not found'));
+              }
+
+              final item = recipe.first; // The selected recipe
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Display the recipe name from the fetched item
+                  Text(
+                    item.name, // Use item.name instead of widget.recipeName
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200), // Same dark brown color
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(height: 10),
+
+                  Image.asset(
+                    productImages[item.productID] ?? 'assets/bagel3.jpg', // Dynamic image based on recipeID
+                    width: double.infinity,
+                    height: 250, // Image height
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Category:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  Text(
+                    item.category, // Display the category
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Yield:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        color: const Color(0xFF6D3200),
+                        icon: const Icon(Icons.arrow_left_rounded),
+                        onPressed: _decrementYield,
+                      ),
+                      Text(
+                        currYield.toString(), // Display current yield
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Color(0xFF6D3200),
+                        ),
+                      ),
+                      IconButton(
+                        color: const Color(0xFF6D3200),
+                        icon: const Icon(Icons.arrow_right_rounded),
+                        onPressed: _incrementYield,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Ingredients:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (item.ingredients.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: item.ingredients.map<Widget>((ingredient) {
+                        final yieldQuantity = ((ingredient.quantity * currYield) / _recipe.yield2).toStringAsFixed(1); // Adjust quantity based on currYield, 1 decimal place
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            '- $yieldQuantity ${ingredient.measurement} of ${ingredient.name}', // Display ingredient details
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Color(0xFF6D3200),
+                              fontFamily: "MyFont2"
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                  else
+                    const Text(
+                      'No ingredients available',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF6D3200),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Directions:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6D3200),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    item.steps.replaceAll('\\n', '\n'),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFF6D3200),
+                      fontFamily: "MyFont2"
+                    ),
+                  ),
+                  const SizedBox(height: 20), // Extra space before the bottom buttons
+
+                  // Use Align to center the buttons at the bottom
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Open the recipe update dialog
+                            showRecipeUpdateDialog(
+                              context,
+                              item, // Pass the current recipe item
+                              (updatedRecipe) {
+                                _updateRecipe(updatedRecipe);
+
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6D3200),
+                            foregroundColor: const Color(0xFFF0D1A0),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add),
+                              SizedBox(width: 8),
+                              Text('Update'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20), // Spacing between the buttons
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, true); // Close the page
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6D3200),
+                            foregroundColor: const Color(0xFFEEC07B),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0),
+                            ),
+                          ),
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Color(0xFFEEC07B),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            } else {
+              return const Center(child: Text('No data found'));
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated)  {
+  // Create a string representation of ingredients including measurement
+  String ingredientsString = recipe.ingredients.map((ingredient) {
+    return '${ingredient.ingredientID}:${ingredient.name}:${ingredient.quantity}:${ingredient.measurement}'; // Include measurement
+  }).join(', ');
+
+  TextEditingController nameController = TextEditingController(text: recipe.name);
+  TextEditingController stepsController = TextEditingController(text: recipe.steps);
+  TextEditingController ingredientsController = TextEditingController(text: ingredientsString);
+  TextEditingController categoryController = TextEditingController(text: recipe.category);
+  TextEditingController yieldController = TextEditingController(text: recipe.yield2.toString());
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFEEC07B), // Example color
+        titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
+            fontFamily: 'MyFont',
+            fontSize: 24.0), 
         title: const Text('Update Recipe'),
         content: SingleChildScrollView(
           child: Column(
@@ -358,7 +576,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
             children: [
               // Editable Fields for Recipe
               TextField(
-                controller: _nameController,
+                controller: nameController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Name', 
@@ -372,10 +590,10 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
               ),
               TextField(
-                controller: _ingredientsController,
+                controller: ingredientsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
-                  labelText: 'Ingredients (comma-separated)', 
+                  labelText: 'Ingredients (format: ID:name:quantity:measurement, ...)', 
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF6D3200)),
@@ -386,7 +604,7 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
               ),
               TextField(
-                controller: _stepsController,
+                controller: stepsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
                 decoration: const InputDecoration(
                   labelText: 'Steps', 
@@ -400,58 +618,139 @@ Future<void> showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChan
                 ),
                 maxLines: 5, // Allow multiline for recipe steps
               ),
+               TextField(
+              controller: categoryController, // New category controller
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+              ),
+            ),
+            TextField(
+              controller: yieldController, // New yield controller
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Yield',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+                ),
+              ),
+               // Optional: limit input to numbers
+            ),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog without changes
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // Update the recipe with new values
-              final updatedRecipe = Item(
-                recipeID: recipe.recipeID, // Keep the same recipe ID
-                name: _nameController.text,
-                steps: _stepsController.text,
-                productID: recipe.productID,
-                ingredients: _ingredientsController.text.split(',').map((ingredientString) {
-                  // Split each string by ':' to get ingredientID, name, and quantity
-                final parts = ingredientString.split(':');
+  TextButton(
+    onPressed: () {
+      Navigator.of(context).pop(); // Close dialog without changes
+    },
+    style: TextButton.styleFrom(
+      foregroundColor: const Color(0xFF6D3200), // Text color
+    ),
+    child: const Text('Cancel'),
+  ),
+  ElevatedButton(
+    onPressed: () async {
+      try {
+        // Update the recipe with new values
+        int yieldValue = int.tryParse(yieldController.text) ?? 0; // Default to 0 if parsing fails
+        print('Parsed yield value: $yieldValue');
+        print(recipe.productID);
+        // Create the updated recipe
+        final updatedRecipe = Item(
+          recipeID: recipe.recipeID,
+          name: nameController.text,
+          steps: stepsController.text,
+          productID: recipe.productID,
+          ingredients: ingredientsController.text.split(',').map((ingredientString) {
+            final parts = ingredientString.split(':');
+            if (parts.length == 4) {
+              return Ingredient(
+                ingredientID: int.parse(parts[0].trim()),
+                name: parts[1].trim(),
+                quantity: int.parse(parts[2].trim()),
+                measurement: parts[3].trim(),
+              );
+            } else {
+              throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
+            }
+          }).toList(),
+          category: categoryController.text,
+          yield2: yieldValue,
+        );
 
-                if (parts.length == 3) {
-                  return Ingredient(
-                    ingredientID: int.parse(parts[0].trim()), // Convert ingredientID to int
-                    name: parts[1].trim(),
-                    quantity: int.parse(parts[2].trim()), // Assuming quantity is a double
-                  );
-                } else {
-                  throw Exception('Invalid ingredient format');
-                }
-                }).toList(),  // Convert back to a list
-                            );
+        // Log the updated recipe
+        print('Updated recipe: ${updatedRecipe.toString()}');
 
-              // Call the update callback
-              onRecipeUpdated(updatedRecipe);
+        // Validate required fields
+        if (updatedRecipe.name.isEmpty || 
+            updatedRecipe.steps.isEmpty || 
+            updatedRecipe.productID == null || 
+            updatedRecipe.category.isEmpty || 
+            updatedRecipe.yield2 <= 0 || 
+            updatedRecipe.ingredients.isEmpty) {
+          throw Exception('Name, steps, product ID, category, yield, and ingredients are required');
+        }
 
-              // Close the dialog
-              Navigator.of(context).pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6D3200),
-              foregroundColor: const Color(0xFFF0d1a0),
-            ),
-            child: const Text('Update'),
-          ),
-        ],
+        // Prepare ingredients for the API call
+        List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
+          return {
+            'IngredientID': ingredient.ingredientID,
+            'Name': ingredient.name,
+            'Quantity': ingredient.quantity,
+            'Measurement': ingredient.measurement,
+          };
+        }).toList();
+        
+        print('Ingredients for API: $ingredientsForApi');
+
+        // Call the API to update the recipe
+        await RecipeApi().updateRecipe(
+          updatedRecipe.recipeID,
+          updatedRecipe.name,
+          updatedRecipe.steps,
+          ingredientsForApi,
+          updatedRecipe.productID,
+          updatedRecipe.category,
+          updatedRecipe.yield2,
+        );
+
+        // Call the update callback
+        
+          onRecipeUpdated(updatedRecipe);
+        
+
+        // Close the dialog
+        Navigator.pop(context, updatedRecipe);
+      } catch (error) {
+        print('Error updating recipe: $error');
+        // You might want to show an alert or a snackbar to the user here
+      }
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF6D3200),
+      foregroundColor: const Color(0xFFF0d1a0),
+    ),
+    child: const Text('Save Changes'),
+  ),
+],
+
       );
-    }
+    },
   );
 }
-
 
 // // Create a widget to display the data
 // class RecipeListPage extends StatelessWidget {

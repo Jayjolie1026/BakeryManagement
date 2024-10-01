@@ -1,11 +1,22 @@
+<!--
+    Author: (Ploy) Siyapa Chanhorm (front page/ login page)
+    Date: 
+    File: index.html
+    Purpose: login page
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Baller Bakery</title>
+    <title>Flour & Fantasy Bakery</title>
+    <!-- Link to FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
     integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
+
+    <!-- Link to Google Fonts (Example: 'Poppins' font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <!--Link to CSS-->
     <link rel="stylesheet" href="styles.css" />
 </head>
@@ -15,29 +26,13 @@
     <nav class="navbar">
         <div class="navbar__container">
             <!--logo image-->
-            <img src="final_logo.png" alt="Bigballer Bakery logo" height="150" width="190" length="100">
-            <!--
+            <img src="final_logo.png" alt="Flour & Fantasy Bakery logo" height="250" width="265" length="145">
             <ul class="navbar__menu">
-                <li class="navbar__item">
-                    <a href="/" class="navbar__links"><i class="fa fa-archive" aria-hidden="true"></i> Inventory </a>
-                </li>
-                <li class="navbar__item">
-                    <a href="recipe.html" class="navbar__links"><i class="fa fa-book" aria-hidden="true"></i> Recipe </a>
-                </li>
-                <li class="navbar__item">
-                    <a href="/" class="navbar__links"><i class="fa fa-tasks" aria-hidden="true"></i> Task </a>
-                </li>
-                <li class="navbar__item">
-                    <a href="account.html" class="navbar__links"><i class="fa fa-address-card" aria-hidden="true"></i> Employee </a>
-                </li>
-                <li class="navbar__btn">
-                    <a href="/" class="button"> Sign up </a>
-                </li> -->
             </ul>
         </div>    
     </nav>
     <!--front page end-->
-    
+
     <!--header section begin-->
     <div class="main">
         <div class="main__container">
@@ -51,27 +46,24 @@
         </div>
     </div>
     <!--header section end-->
-    
-    <!-- Sign-in Form Section (Right) -->
-    <div class="signin__container">
-        <h1>Sign In</h1>
-        
-        <!-- Updated form with id="loginForm" -->
-        <form id="loginForm" action="#" method="post" class="signin-form">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter your username" required>
-            
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            
-            <button type="submit" class="button">Sign In</button>
-        </form>
-        
-        <!-- Div to display login response messages -->
-        <div id="responseMessage"></div>
-        
-        <a href="/" class="button1">Forgot password</a>
-        <a href="register.html" class="button1">Register</a>
+
+    <!-- Sign-in Form Section (Flex Container) -->
+    <div class="signin__wrapper">
+        <div class="signin__container">
+            <h1>Sign In</h1>
+            <form id="loginForm" action="#" method="post" class="signin-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="username" required>
+                
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="password" required>
+                
+                <button type="submit" class="button">Sign In</button>
+            </form>
+            <div id="responseMessage"></div>
+            <a href="forget_pwd.html" class="button1">Forgot password</a>
+            <a href="register.html" class="button1">Register</a>
+        </div>
     </div>
 
     <!--Link to JS-->
