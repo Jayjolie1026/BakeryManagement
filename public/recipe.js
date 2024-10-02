@@ -21,7 +21,7 @@ async function loadRecipes() {
         console.error("Error loading recipes API:", error);
     }
 }
-
+//begin from 33 -41
 // Function to display recipes as buttons
 function displayRecipes(recipesToDisplay) {
     const recipeContainer = document.getElementById('recipe-container'); // Get the container for recipes
@@ -32,12 +32,35 @@ function displayRecipes(recipesToDisplay) {
     // Create and append buttons for each recipe in the recipesToDisplay array
     recipesToDisplay.forEach(recipe => {
         const recipeButton = document.createElement('button'); // Create a new button element
-        recipeButton.classList.add('recipe-button'); // Add a class to the button for styling
-        recipeButton.textContent = recipe.Name; // Set the button text to the recipe name
-        recipeButton.onclick = function(){
-            window.location.href=`instructions.html?ID=${recipe.RecipeID}`;
-        }
-        recipeContainer.appendChild(recipeButton); // Append the button to the recipe container
+        recipeButton.classList.add('recipe-button'); // Add a class to the button
+        
+        // Create an image element for the recipe
+        const recipeImage = document.createElement('img');
+        recipeImage.src = `assets/${recipe.RecipeID}.jpg`; // Set the image source to the recipe's image URL
+        recipeImage.alt = `${recipe.Name} Image`; // Add alt text for accessibility
+        recipeImage.classList.add('recipe-image'); // Add a class to the image for styling
+        
+        recipeImage.onerror = function(){
+            recipeImage.src = 'assets/noIMG.webp';
+        };
+
+
+        // Optionally, add a span to hold the recipe name (this part is optional, can be removed)
+        const recipeName = document.createElement('span');
+        recipeName.textContent = recipe.Name; // Set the text to the recipe name
+        recipeName.classList.add('recipe-name'); // Add a class for styling if needed
+    
+        // Set the button's click action to redirect to the recipe instructions
+        recipeButton.onclick = function() {
+            window.location.href = `instructions.html?ID=${recipe.RecipeID}`;
+        };
+    
+        // Append the image (and the name if you want to) to the button
+        recipeButton.appendChild(recipeImage);
+        recipeButton.appendChild(recipeName); // Remove this line if you don't want text
+    
+        // Append the button to the recipe container
+        recipeContainer.appendChild(recipeButton);
     });
 }
 
