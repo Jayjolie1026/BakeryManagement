@@ -22,12 +22,12 @@
         #idInput {
             margin-bottom: 10px;
         }
-        img{
+        img {
             width: 500px;
             height: 500px;
         }
-        .steps-list{
-            list-style-type:none;
+        .steps-list {
+            list-style-type: none;
         }
     </style>
 </head>
@@ -35,36 +35,42 @@
     <div id="recipeContainer"></div>
 
     <script>
-        async function fetchRecipe(ProductID) {
-            const apiUrl = `https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${ProductID}`;
-            
+        async function fetchRecipe(recipeID) {
             try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                // Use backticks for template literal to inject the recipeID
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${recipeID}`);
                 
-                if (data.length > 0) {
-                    const recipe = data[0];
-                    document.title = recipe.Name; //add title to the html page
+                if (!response.ok) {
+                    throw new Error('Recipe not found');
+                }
+
+                const recipe = await response.json();
+                
+                if (recipe) {
+                    document.title = recipe.Name; // Set page title
+                    
                     let html = `
                         <h1>${recipe.Name}</h1>
-                        <img src="bread1.png"> 
+                        <h2>Category: ${recipe.Category}</h2>
+                        <h2>Yield: ${recipe.Yield}</h2>
+                        <img src="bread1.png" alt="Recipe Image"> 
                         <h3>Ingredients:</h3>
-                        <ul>
-                    `; //update img to change based on recipe
+                        <ul class="ingredients-list">
+                    `;
                     
+                    // Loop through the ingredients and add them to the HTML
                     recipe.Ingredients.forEach(ingredient => {
                         html += `<li>${ingredient.Name}: ${ingredient.Quantity} ${ingredient.Measurement}</li>`;
                     });
                     
-                    const steps = recipe.Steps.split('\\n').filter(step => step.trim() !== ''); //split the step based on \\n
+                    html += '</ul><h3>Steps:</h3><ul class="steps-list">';
 
-                    html += `
-                        </ul>
-                        <h3>Steps:</h3>
-                         <ul class="steps-list">`;
+                    // Split the steps by newline and add each as a list item
+                    const steps = recipe.Steps.split('\\n').filter(step => step.trim() !== '');
                     steps.forEach(step => {
                         html += `<li>${step.trim()}</li>`;
                     });
+                    
                     html += '</ul>';
                     
                     document.getElementById('recipeContainer').innerHTML = html;
@@ -73,16 +79,16 @@
                 }
             } catch (error) {
                 console.error('Error fetching recipe:', error);
-                document.getElementById('recipeContainer').innerHTML = '<p>Error fetching recipe. Please try again.</p>';
+                document.getElementById('recipeContainer').innerHTML = `<p>${error.message}. Please try again.</p>`;
             }
         }
-    // Extract the query parameters from the URL
-    const params = new URLSearchParams(window.location.search);
 
-    // Get the RecipeID from the query parameters
-    const ID = params.get('ID');
+        // Extract the recipe ID from the URL query parameters
+        const params = new URLSearchParams(window.location.search);
+        const recipeID = params.get('ID');
 
-    window.onload=fetchRecipe(ID);
+        // Fetch the recipe when the page loads
+        window.onload = () => fetchRecipe(recipeID);
     </script>
 </body>
 </html>
