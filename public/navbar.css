@@ -8,6 +8,7 @@
     font-weight: 400;
 }
 
+/*navbar*/
 .navbar {
     background: #794500;
     height: 140px;
@@ -28,8 +29,9 @@
 	align-items:center;
 }
 .logo img{
-	width: 200px;
-    height: 200px;
+	width: 230px;
+    height: 250px;
+    margin-bottom: -40px;
 }
 
 
@@ -43,7 +45,7 @@
     position: relative;
 }
 
-/* Menu bar */
+/* nav bar */
 .navbar__menu {
     display: flex;
     align-items: center;
@@ -101,7 +103,7 @@
     background-color: #774E24;
     width: 10px;
     border-radius: 5px;
-    border: 2px solid #fff;
+    border: 2px solid #fff0c9;
     cursor: pointer;
 }
 .nav-button a{
@@ -113,4 +115,13 @@
 .nav-button:hover, .nav-button a:hover{
     background-color: bisque;
     color: #6E0D25;
+}
+
+/*search bar*/
+.searchbar {
+    width: 300px;
+    height: 35px;
+    border-radius: 50px;
+    text-align: center;
+    background-color: #ded0be;
 }

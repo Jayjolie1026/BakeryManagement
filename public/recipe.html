@@ -19,6 +19,7 @@
             color: #333;
             }
 
+
         .main-body-container{
             display: flex;
             justify-content: center;
@@ -26,13 +27,17 @@
             flex-wrap: wrap;
         }
 
+        /*background recipe button*/
         .recipe-container {
-            background: #e5be8b;
+            background: #914b0e;
             /* flex-direction:column; */
-            align-items:center;
+            align-items: center;
             border-style: solid;
+            justify-items:center;
+            padding: 0 5rem;
 
         }
+
         .recipe-button {
             min-width: 200px;
             min-height: 300px;
@@ -41,9 +46,10 @@
             background-color: #f7ebd5;
             color: rgb(0, 0, 0);
             text-align: center;
+            font-size: 1.14rem;
             text-decoration: none;
             border-radius: 20px;
-            border-style:solid;
+            border-style: solid;
             cursor: pointer;
         }
         
@@ -61,16 +67,12 @@
         <div class="logo">
         <img src="final_logo.png" alt="Bigballer Bakery logo" >
         </div>
-
         <ul class="navbar__menu">
             <li class="navbar__item">
                 <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
             </li>
             <li class="navbar__item">
                 <a href="/" class="navbar__links"><i class="/" aria-hidden="true"></i> Task</a>
-            </li>
-            <li class="navbar__item">
-                <a href="account.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Employee</a>
             </li>
             <li class="navbar__btn">
                 <a href="index.html" class="button">Log out</a>
@@ -80,10 +82,11 @@
     <h1 class="recipe-header">Flour & Fantasy Recipes</h1>
     <div class="main-body-container">
     <!--Recipe Container-->
-        <input type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+        <input class="searchbar" type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
         <div id="recipe-container" class="recipe-container"></div>
     </div>
 
     <script src="recipe.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
