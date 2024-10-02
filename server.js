@@ -1416,45 +1416,59 @@ app.get('/recipes', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const result = await pool.request().query(`
             SELECT 
-                r.RecipeID, r.Name, r.Steps, r.ProductID, r.Category, r.Yield,  -- Added Category and Yield
-                ri.IngredientID, i.Name AS IngredientName, 
+                r.RecipeID, 
+                r.Name, 
+                r.Steps, 
+                r.ProductID, 
+                r.Category, 
+                r.Yield,  -- Category and Yield
+                ri.IngredientID, 
+                i.Name AS IngredientName, 
                 ri.Quantity AS IngredientQuantity, 
-                ri.Measurement AS IngredientMeasurement
+                ri.Measurement AS IngredientMeasurement,
+                inv.EntryID,  -- Inventory EntryID
+                inv.Quantity AS InventoryQuantity  -- Inventory Quantity
             FROM tblRecipes r
             LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
             LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+            LEFT JOIN tblInventory inv ON i.IngredientID = inv.IngredientID  -- Join Inventory
         `);
 
-        const recipes = result.recordset.reduce((acc, row) => {
-            let recipe = acc.find(r => r.RecipeID === row.RecipeID);
-            if (!recipe) {
-                recipe = {
-                    RecipeID: row.RecipeID,
-                    Name: row.Name,
-                    Steps: row.Steps,
-                    ProductID: row.ProductID,
-                    Category: row.Category,  // Include Category
-                    Yield: row.Yield,        // Include Yield
-                    Ingredients: []
-                };
-                acc.push(recipe);
-            }
-            if (row.IngredientID) {
-                recipe.Ingredients.push({
-                    IngredientID: row.IngredientID,
-                    Name: row.IngredientName,
-                    Quantity: row.IngredientQuantity,
-                    Measurement: row.IngredientMeasurement
-                });
-            }
-            return acc;
-        }, []);
+            // Process the result
+            const recipes = result.recordset.reduce((acc, row) => {
+                let recipe = acc.find(r => r.RecipeID === row.RecipeID);
+                if (!recipe) {
+                    recipe = {
+                        RecipeID: row.RecipeID,
+                        Name: row.Name,
+                        Steps: row.Steps,
+                        ProductID: row.ProductID,
+                        Category: row.Category,  // Include Category
+                        Yield: row.Yield,        // Include Yield
+                        Ingredients: []          // Initialize as an empty array
+                    };
+                    acc.push(recipe);
+                }
+                if (row.IngredientID) {
+                    recipe.Ingredients.push({
+                        IngredientID: row.IngredientID,
+                        Name: row.IngredientName,
+                        Quantity: row.IngredientQuantity,
+                        Measurement: row.IngredientMeasurement,
+                        EntryID: row.EntryID,    // Store EntryID at recipe level
+                        InventoryQuantity: row.InventoryQuantity,  // Store Inventory Quantity at recipe level
+                    });
+                }
+                return acc;
+            }, []);
+
 
         res.json(recipes);
     } catch (error) {
         res.status(500).send('Error retrieving recipes: ' + error.message);
     }
 });
+
 app.get('/recipes/:recipe_id', async (req, res) => {
     const { recipe_id } = req.params; // Get the recipe ID from the request parameters
 
@@ -1467,10 +1481,13 @@ app.get('/recipes/:recipe_id', async (req, res) => {
                     r.RecipeID, r.Name, r.Steps, r.ProductID, r.Category, r.Yield,
                     ri.IngredientID, i.Name AS IngredientName, 
                     ri.Quantity AS IngredientQuantity, 
-                    ri.Measurement AS IngredientMeasurement
+                    ri.Measurement AS IngredientMeasurement,
+                    inv.EntryID,  -- Include Inventory EntryID
+                    inv.Quantity AS InventoryQuantity  -- Include Inventory Quantity
                 FROM tblRecipes r
                 LEFT JOIN tblRecipeIngredients ri ON r.RecipeID = ri.RecipeID
                 LEFT JOIN tblIngredients i ON ri.IngredientID = i.IngredientID
+                LEFT JOIN tblInventory inv ON i.IngredientID = inv.IngredientID  -- Join Inventory
                 WHERE r.RecipeID = @recipe_id
             `);
 
@@ -1497,7 +1514,9 @@ app.get('/recipes/:recipe_id', async (req, res) => {
                     IngredientID: row.IngredientID,
                     Name: row.IngredientName,
                     Quantity: row.IngredientQuantity,
-                    Measurement: row.IngredientMeasurement
+                    Measurement: row.IngredientMeasurement,
+                    EntryID: row.EntryID,  // Add EntryID from Inventory
+                    InventoryQuantity: row.InventoryQuantity,  // Add Inventory Quantity
                 });
             }
         });
@@ -1507,6 +1526,7 @@ app.get('/recipes/:recipe_id', async (req, res) => {
         res.status(500).send('Error retrieving recipe: ' + error.message);
     }
 });
+
 
 
 app.get('/recipes/product/:productID', async (req, res) => {
