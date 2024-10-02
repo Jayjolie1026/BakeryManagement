@@ -6,6 +6,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playwrite+BR:wght@100..400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playwrite+CO:wght@100..400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap');
 
 * {
     box-sizing: border-box;
@@ -119,6 +120,7 @@ body.fade-out {
     margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
+    font-family: 'Sofadi One';
     animation: fadeInUp 2s ease-in-out; /* Delayed fade-in */
 }
 
@@ -132,7 +134,7 @@ body.fade-out {
     max-width: 398px; /* Standard max width for form */
     width: 100%; /* Allow the container to be responsive */
     margin-left: 20px; /* Space from image */
-    
+    font-family: 'Sofadi One';
     position: absolute;
     top: 250px;
     right: 90px;
@@ -142,19 +144,21 @@ body.fade-out {
 .signin__container h1 {
     color: #774E24; /* White text for better contrast */
     font-size: 2rem;
+    font-family: 'Sofadi One';
     margin-bottom: -15px;
 }
 
 .signin-form label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 37px;
     text-align: left;
     color: #fff; /* White text for better contrast */
 }
 
 .signin-form input {
     width: 90%;
-    padding: 15px;
+    font-family: 'Sofadi One';
+    padding: 18px;
     margin-right: 10px;
     margin-top: -50px;
     border-radius: 10px;
@@ -166,6 +170,7 @@ body.fade-out {
     padding: 12px;
     background-color: #774E24;
     color: #fff;
+    c
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -180,6 +185,7 @@ body.fade-out {
 .button1 {
     width: 80%;
     display: block;
+    font-family: 'Sofadi One';
     text-decoration: none;
     color: #774E24;
     margin-bottom: 10px;
