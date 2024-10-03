@@ -692,7 +692,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   String _getProductImage() {
   // Get the image path from the mapping based on the product ID
   // If no image path is found, return a default image path
-  return productImages[_product.productID] ?? 'assets/bagel3.png';
+  return productImages[_product.productID] ?? 'assets/bagel3.jpg';
 }
 
 

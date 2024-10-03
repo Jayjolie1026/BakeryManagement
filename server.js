@@ -489,6 +489,7 @@ app.post('/users', async (req, res) => {
     const { firstName, lastName, username, password, email, phoneNumber, address } = req.body;
 
     const newEmployeeID = uuidv4(); // Generate a GUID for the EmployeeID
+    const jobID = 3;
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -507,7 +508,8 @@ app.post('/users', async (req, res) => {
             .input('lastName', sql.VarChar, lastName)
             .input('username', sql.VarChar, username)
             .input('password', sql.VarChar, hashedPassword)
-            .query('INSERT INTO tblUsers (EmployeeID, FirstName, LastName, Username, Password) VALUES (@employeeID, @firstName, @lastName, @username, @password)');
+            .input('jobID', sql.Int, jobID)
+            .query('INSERT INTO tblUsers (EmployeeID, FirstName, LastName, Username, Password, JobID) VALUES (@employeeID, @firstName, @lastName, @username, @password, @jobID)');
 
         // Add email, phone number, and address to their respective tables
         if (email) {
