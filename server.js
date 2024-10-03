@@ -2143,16 +2143,22 @@ app.post('/sessions/start', async (req, res) => {
             .input('last_activity_datetime', sql.DateTime, new Date()) // Add LastActivityDateTime
             .query(`
                 INSERT INTO tblSessions (EmployeeID, CreateDateTime, LastActivityDateTime) 
+                OUTPUT INSERTED.SessionID -- Add this line to return the newly inserted SessionID
                 VALUES (@employee_id, @create_datetime, @last_activity_datetime)
             `);
         console.log('Session created successfully'); // Log successful session creation
         console.log('Result:', result); // Log the result of the query
-        const sessionId = result.recordset[0].SessionID;
-        res.status(201).json({
-            message: 'Session created successfully',
-            session_id: sessionId,
-            employee_id: employee_id
-        });
+        if (result.recordset.length > 0) {
+            const sessionId = result.recordset[0].SessionID; // This should now work
+            res.status(201).json({
+                message: 'Session created successfully',
+                session_id: sessionId,
+                employee_id: employee_id
+            });
+        } else {
+            // Handle the case where no session ID was returned
+            res.status(500).json({ error: 'Session could not be created' });
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
