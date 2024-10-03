@@ -278,6 +278,9 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
       MaterialPageRoute(builder: (context) => const SignInPage()),
     );
   }
+  setState(() {
+    _selectedIndex = index;
+  });
   }
    @override
   void initState() {
@@ -452,7 +455,21 @@ class OptionsPage extends StatelessWidget {
             ),
             TextButton(
               child: const Text('Logout'),
-              onPressed: () {
+              onPressed: () async{
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+        
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+      
+                  }
+
                 // Perform logout action here
                 Navigator.of(context).pop(); // Close the dialog
               },
@@ -1501,7 +1518,26 @@ if (!isValidPassword(password)) {
             children: <Widget>[
               // Cancel Button
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async{
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                   Navigator.pop(context); // Go back to the previous page
                 },
                 style: ElevatedButton.styleFrom(
@@ -1565,7 +1601,26 @@ class UserActionSelectionPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async{
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                   // Navigate to the add page
                   Navigator.push(
                     context,
@@ -1580,7 +1635,26 @@ class UserActionSelectionPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async{
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
