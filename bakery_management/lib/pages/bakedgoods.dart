@@ -767,7 +767,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   height: 1.2
                 ),
                 textAlign: TextAlign.left,
-
             ),
             // Product image
             SizedBox(
@@ -779,6 +778,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
               const SizedBox(height: 10),
+               Text.rich(
+                  TextSpan(
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: 'Product ID:\n',
+                        style: TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold, // Bold heading
+                          height: 1.2
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_product.productID}',
+                        style: const TextStyle(
+                          color: Color(0xFF6D3200), // Dark brown
+                          fontSize: 20,
+                          height: 1.2
+                        ),
+                      ),
+                    ],
+                  ),
+               ),
 
                 Text.rich(
                   TextSpan(

@@ -554,6 +554,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              buildDetailRow('IngredientID', (_item.ingredientID).toString()),
               buildDetailRow('Notes', _item.notes),
               buildDetailRow('Quantity', '${_item.quantity} ${_item.invMeasurement}'),
               buildDetailRow('Max Amount', _item.maxAmount.toString()),

@@ -906,7 +906,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               TextField(
                   controller: _countryController,
                   style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'County',
+                  decoration: const InputDecoration(labelText: 'Country',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)),
                   focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
@@ -1213,7 +1213,7 @@ if (!isValidPassword(password)) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
