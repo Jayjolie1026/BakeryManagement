@@ -6,8 +6,9 @@
     <title>Flour & Fantasy-Recipes</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
     integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!--Poppins, Cursive-->
     <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet"> <!--font from mobile team-->
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!--font from mobile team-->
     <link rel="stylesheet" href="recipe.css">
     <link rel="stylesheet" href="navbar.css">
 
@@ -17,49 +18,72 @@
             min-height: 100vh;
             background-color: rgb(228, 213, 194);
             color: #333;
+        }
+
+        body.fade-out {
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
             }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
 
         .main-body-container{
             display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
             justify-content: center;
-            align-items: center; 
             flex-wrap: wrap;
+            animation: fadeInUp 1s ease-in-out;
         }
 
         /*background recipe button*/
         .recipe-container {
             background: #914b0e;
-            /* flex-direction:column; */
+            flex-direction:column; 
             align-items: center;
-            border-style: solid;
-            justify-items:center;
             padding: 0 5rem;
 
         }
 
         .recipe-button {
             min-width: 200px;
-            min-height: 300px;
+            min-height: 250px;
+            height: auto;
             margin: 10px 0;
-            padding: 10px;
+            padding: 15px;
             background-color: #f7ebd5;
             color: rgb(0, 0, 0);
             text-align: center;
-            font-family: 'Sofadi One';
+            font-family: "Playwrite DE Grund", cursive;
             font-size: 1.14rem;
             text-decoration: none;
             border-radius: 20px;
             border-style: solid;
             cursor: pointer;
+            white-space:normal;
+            overflow-wrap: break-word; /*long words should break down to the next line*/
         }
-        
-        .recipe-header{
-            background-color: #ffff;
+
+        /*Style for recipe right here */
+        .recipe-image{
+            display:flex;
             width: 100%;
-            text-align: center;
-            font-family: "Playwrite CO", cursive;
-        } 
+            max-width: 200px;
+            max-height: 200px;
+            vertical-align: top;
+
+
+        
+        }
 
     </style>
 </head>
@@ -67,24 +91,28 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="logo">
-        <img src="final_logo.png" alt="Bigballer Bakery logo" >
+        <img src="final_logo.png" alt="flour & fantasy logo" >
         </div>
         <ul class="navbar__menu">
             <li class="navbar__item">
-                <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
+                <a href="recipe.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Recipe</a>
             </li>
             <li class="navbar__item">
-                <a href="/" class="navbar__links"><i class="/" aria-hidden="true"></i> Task</a>
+                <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
+            </li>
+            <li class="navbar__item"></li>
+                <a href="account.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Employee</a>
             </li>
             <li class="navbar__btn">
                 <a href="index.html" class="button">Log out</a>
             </li>
         </ul>
     </nav>
-    <h1 class="recipe-header">Flour & Fantasy Recipes</h1>
+
     <div class="main-body-container">
-    <!--Recipe Container-->
-        <input class="searchbar" type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+        <div class="search-container" style="display: flex; justify-content: center; align-items: center;">
+            <input class="searchbar" type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+        </div>
         <div id="recipe-container" class="recipe-container"></div>
     </div>
 

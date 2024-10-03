@@ -12,7 +12,6 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Georgia, Times, 'Times New Roman', serif;
     font-weight: 500;
 }
 
@@ -23,7 +22,6 @@ body {
     background-attachment: fixed;
     color: #333;
     line-height: 1.6;
-    font-family:'Courier New', Courier, monospace;
     transition: opacity 1s ease-in-out;
 }
 
@@ -96,7 +94,7 @@ body.fade-out {
     color: #ffffff; /* Changed to white for better contrast */
     margin-bottom: 10px;
     margin-left: 19px;
-    animation: fadeInUp 1.5s ease-in-out;
+    animation: fadeInUp 1s ease-in-out;
 }
 
 .main__img {
@@ -121,7 +119,7 @@ body.fade-out {
     margin-left: 10px;
     font-weight: 300;
     font-family: 'Sofadi One';
-    animation: fadeInUp 2s ease-in-out; /* Delayed fade-in */
+    animation: fadeInUp 1s ease-in-out; /* Delayed fade-in */
 }
 
 /* Sign-in Form Section */
@@ -130,7 +128,7 @@ body.fade-out {
     border-radius: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 35px;
-    animation: fadeInRight 1.5s ease-in-out; /* Smooth slide-in effect */
+    animation: fadeInRight 1s ease-in-out; /* Smooth slide-in effect */
     max-width: 398px; /* Standard max width for form */
     width: 100%; /* Allow the container to be responsive */
     margin-left: 20px; /* Space from image */
@@ -170,9 +168,9 @@ body.fade-out {
     padding: 12px;
     background-color: #774E24;
     color: #fff;
-    c
     border: none;
     border-radius: 5px;
+    font-family: 'Sofadi One';
     cursor: pointer;
     margin-top: 10px;
     margin-bottom: 10px;
