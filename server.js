@@ -554,12 +554,16 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .query('INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID) VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID)');
         }
+
         console.log('User added successfully');
-        res.status(201).send('User added successfully');
+        
+        // Return the employeeID in the response
+        res.status(201).json({ message: 'User added successfully', employee_id: newEmployeeID });
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
+
 
 // Endpoint to get emails and phone numbers for a specific employee
 app.get('/employee/:id/contacts', async (req, res) => {

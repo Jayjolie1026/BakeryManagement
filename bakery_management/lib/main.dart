@@ -690,15 +690,47 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     print("Response body: ${response.body}");
 
     if (response.statusCode == 201) {
-       Navigator.pushReplacement(
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+       await prefs.setString('username', _usernameController.text); 
+      final firstName = _firstNameController.text; // Get first name from response
+      final jobId = 3;
+      await prefs.setString('firstName', firstName); // Save first name
+      await prefs.setInt('jobId', jobId); // Save job ID
+
+      final responseBody = jsonDecode(response.body);
+      print('Decoded response body: $responseBody');
+       final employeeId = responseBody['employee_id'];
+      await prefs.setString('employeeId', employeeId);
+      print('Employee ID: $employeeId');
+
+      final sessionResponse = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/sessions/start'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'employee_id': employeeId,
+      }),
+    );
+     if (sessionResponse.statusCode == 201) {
+      final sessionResponseBody = jsonDecode(sessionResponse.body);
+      final sessionId = sessionResponseBody['session_id'];  
+      await prefs.setInt('sessionId', sessionId);
+      print('Session ID: $sessionId');
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BakeryHomePage()),
       );
-    } else {
+       } else {
+      // Handle session creation failure
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create account: ${response.body}')),
+        const SnackBar(content: Text('Failed to create session')),
       );
     }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failure to create an account')),
+      );
+    }
+
   }
 
   @override
