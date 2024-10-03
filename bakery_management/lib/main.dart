@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/bakedgoods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/sessions.dart';
 
 
   void _logout(BuildContext context) async {
@@ -24,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
     MaterialPageRoute(builder: (context) => const UserActionSelectionPage()),
   );
 }
+
 
   
   Future<String?> getUsername() async {
@@ -106,7 +108,10 @@ class _SignInPageState extends State<SignInPage> {
     print('Session response body: ${sessionResponse.body}');
 
     if (sessionResponse.statusCode == 201) {
-      // Navigate to the home page after successfully creating a session
+      final sessionResponseBody = jsonDecode(sessionResponse.body);
+      final sessionId = sessionResponseBody['session_id'];  
+      await prefs.setInt('sessionId', sessionId);
+      print('Session ID: $sessionId');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BakeryHomePage()),
@@ -239,6 +244,8 @@ class BakeryHomePage extends StatefulWidget {
 class _BakeryHomePageState extends State<BakeryHomePage> {
   int _selectedIndex = 0; // Track selected tab
   String firstName = "User";
+  int? sessionID;
+  
 
   // List of pages corresponding to each tab (Home, Vendors, Recipes, Inventory, Baked Goods, Options)
   final List<Widget> _pages = [
@@ -251,15 +258,32 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
   ];
 
   // Handler for when a bottom navigation item is tapped
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _onItemTapped(int index) async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+    if (sessionId != null) {
+    // Create an instance of SessionService
+    SessionService sessionService = SessionService(context);
+
+    // Check the session status
+    await sessionService.checkSession(sessionId); // Check if the session is active
+
+    // If the session is active, update it
+    await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+  } else {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
+  }
   }
    @override
   void initState() {
     super.initState();
     _loadFirstName(); // Load first name when the widget is initialized
+    _loadSessionID();
   }
    Future<void> _loadFirstName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -267,6 +291,13 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
       firstName = prefs.getString('firstName') ?? "User"; // Default to "User" if not found
     });
   }
+  Future<void> _loadSessionID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      sessionID = prefs.getInt('sessionId'); // Default to "User" if not found
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {

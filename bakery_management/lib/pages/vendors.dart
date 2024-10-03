@@ -4,7 +4,10 @@ import 'vendorsFunctions.dart';
 import 'vendorsItemClass.dart';
 import 'dart:async';
 import 'inventorySearchWidget.dart';
-import 'package:url_launcher/url_launcher.dart'; // For launching phone and email
+import 'package:url_launcher/url_launcher.dart'; 
+import 'package:bakery_management/pages/sessions.dart';
+import 'package:bakery_management/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VendorsPage extends StatefulWidget {
   const VendorsPage({super.key});
@@ -75,6 +78,25 @@ class _VendorsPageState extends State<VendorsPage> {
     ),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () async {
+         SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
         await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
       },
       label: const Text(
@@ -122,6 +144,25 @@ class _VendorsPageState extends State<VendorsPage> {
   elevation: 4,
   child: GestureDetector(
     onTap: () async {
+       SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
       final result = await Navigator.push(
         context,
         MaterialPageRoute(
@@ -320,6 +361,25 @@ class VendorDetailsPage extends StatelessWidget {
                               children: <Widget>[
                                 ElevatedButton(
                                   onPressed: () async {
+                                     SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                                     final updatedVendor = await handleEditVendor(context, vendor);
                                     if (updatedVendor) {
                                       Navigator.of(context).pop(true);

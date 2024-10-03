@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'recipeItemClass.dart';
 import 'recipeAPI.dart';
 import 'recipeFunctions.dart';
+import 'package:bakery_management/pages/sessions.dart';
+import 'package:bakery_management/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 // Recipe Page
 class RecipePage extends StatefulWidget {
@@ -63,6 +67,25 @@ class _RecipePageState extends State<RecipePage> {
               final item = items[index];
               return GestureDetector(
                 onTap: () async {
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                   // Navigate to the detailed recipe page
                   final updatedRecipe = await Navigator.push(
                     context,
@@ -142,8 +165,26 @@ class _RecipePageState extends State<RecipePage> {
         child: IconButton(
           icon: Icon(Icons.filter_list),
           color: Colors.brown,  // Adjust color to match your theme
-          onPressed: () {
-            // Open filter dialog or perform any filter action here
+          onPressed: () async{
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+            if (sessionId != null) {
+            // Create an instance of SessionService
+            SessionService sessionService = SessionService(context);
+
+            // Check the session status
+            await sessionService.checkSession(sessionId); // Check if the session is active
+
+            // If the session is active, update it
+            await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignInPage()),
+            );
+          }
             _showFilterOptions();
           },
         ),

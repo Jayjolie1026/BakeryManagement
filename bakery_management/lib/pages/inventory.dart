@@ -8,6 +8,9 @@ import 'inventoryFunctions.dart';
 import 'package:intl/intl.dart';
 import 'vendors.dart';
 import 'vendorsAPI.dart';
+import 'package:bakery_management/pages/sessions.dart';
+import 'package:bakery_management/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class InventoryPage extends StatefulWidget {
@@ -97,7 +100,26 @@ class _InventoryPageState extends State<InventoryPage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return GestureDetector(
-                onTap: ()  {
+                onTap: () async {
+                   SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                    navigateToDetailPage(item); // Call the navigateToDetailPage function
                 },
                 child: buildItem(item), // Your custom widget to display the item
@@ -110,6 +132,7 @@ class _InventoryPageState extends State<InventoryPage> {
     ),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () => showAddIngredientAndInventoryDialog(context, () {
+        
         // Refresh the inventory list after adding a new item
         init(); // Re-fetch the full list after a new item is added
       }),
@@ -185,7 +208,26 @@ Widget buildSearchWithFilter() => Row(
       child: IconButton(
         icon: Icon(Icons.filter_list),
         color: Colors.brown,  // Adjust color to match your theme
-        onPressed: () {
+        onPressed: () async{
+           SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
           // Open filter dialog or perform any filter action here
           _showFilterOptions();
         },
@@ -529,6 +571,25 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             children: [
               ElevatedButton(
                 onPressed: () async {
+                   SharedPreferences prefs = await SharedPreferences.getInstance();
+                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                  if (sessionId != null) {
+                  // Create an instance of SessionService
+                  SessionService sessionService = SessionService(context);
+
+                  // Check the session status
+                  await sessionService.checkSession(sessionId); // Check if the session is active
+
+                  // If the session is active, update it
+                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                  );
+                }
                   // Update action
                   showInventoryAndIngredientUpdateDialog(
                     context,

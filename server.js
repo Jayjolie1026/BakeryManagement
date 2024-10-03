@@ -2147,8 +2147,10 @@ app.post('/sessions/start', async (req, res) => {
             `);
         console.log('Session created successfully'); // Log successful session creation
         console.log('Result:', result); // Log the result of the query
+        const sessionId = result.recordset[0].SessionID;
         res.status(201).json({
             message: 'Session created successfully',
+            session_id: sessionId,
             employee_id: employee_id
         });
     } catch (error) {
@@ -2181,6 +2183,45 @@ app.put('/sessions/:session_id/update', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// GET /sessions/:session_id/check: Check if the session is still active
+app.get('/sessions/:session_id/check', async (req, res) => {
+    const { session_id } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Step 1: Get the session's last activity time
+        const lastActivityResult = await pool.request()
+            .input('session_id', sql.Int, session_id)
+            .query(`
+                SELECT LastActivityDateTime
+                FROM tblSessions 
+                WHERE SessionID = @session_id
+            `);
+
+        if (lastActivityResult.recordset.length === 0) {
+            return res.status(404).json({ message: 'Session not found' });
+        }
+
+        const lastActivityTime = lastActivityResult.recordset[0].LastActivityDateTime;
+        const currentTime = new Date();
+
+        // Step 2: Calculate time difference in minutes
+        const timeDifference = (currentTime - lastActivityTime) / (1000 * 60); // Difference in minutes
+
+        if (timeDifference <= 30) {
+            // Step 3: If last activity is within 30 minutes, session is active
+            res.status(200).json({ active: true });
+        } else {
+            // Step 4: If last activity is more than 30 minutes ago, session has expired
+            res.status(401).json({ active: false, message: 'Session expired. Please sign in again.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 app.use('/sessions/validate', async (req, res) => {
     try {
