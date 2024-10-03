@@ -40,8 +40,21 @@ console.log('Server is starting.');
 app.post('/tasks', async (req, res) => {
     const { Description, CreateDate, DueDate, AssignedBy } = req.body;
 
+    // Debugging: Log incoming request data
+    console.log('Received POST request to create task with data:', {
+        Description,
+        CreateDate,
+        DueDate,
+        AssignedBy
+    });
+
     try {
+        // Debugging: Log before connecting to the database
+        console.log('Connecting to the database...');
         const pool = await sql.connect(dbConfig);
+
+        // Debugging: Log before executing the SQL query
+        console.log('Inserting task into tblTasks...');
         const result = await pool.request()
             .input('Description', sql.VarChar(100), Description)
             .input('CreateDate', sql.Date, CreateDate)
@@ -49,8 +62,19 @@ app.post('/tasks', async (req, res) => {
             .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
             .query('INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)');
 
-        res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+        // Debugging: Log query result
+        console.log('Task inserted successfully. Result:', result);
+
+        // If no recordset is returned, handle it
+        if (result.recordset && result.recordset.length > 0) {
+            res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+        } else {
+            res.status(201).json({ message: 'Task created successfully, but no task ID returned' });
+        }
     } catch (error) {
+        // Debugging: Log the error message
+        console.error('Error occurred while creating task:', error.message);
+
         res.status(500).json({ message: 'Error creating task', error: error.message });
     }
 });
