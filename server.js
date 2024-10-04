@@ -2030,7 +2030,80 @@ app.put('/inventory/:item_id', async (req, res) => {
     }
 });
 
+// PUT /inventory/:ingredient_id: Update an inventory item by IngredientID
+app.put('/inventory/:ingredient_id', async (req, res) => {
+    const { ingredient_id } = req.params;
+    const { quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
+    // Validate input
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && measurement === undefined) {
+        return res.status(400).send('At least one field (quantity, cost, create_datetime, expire_datetime, or measurement) is required for update');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Prepare update query
+        let updateQuery = 'UPDATE tblInventory SET ';
+        const updateParams = [];
+
+        if (quantity !== undefined) {
+            updateQuery += 'Quantity = @quantity, ';
+            updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
+        }
+        if (notes !== undefined) {
+            updateQuery += 'Notes = @notes, ';
+            updateParams.push({ name: 'notes', value: notes, type: sql.VarChar });
+        }
+        if (cost !== undefined) {
+            updateQuery += 'Cost = @cost, ';
+            updateParams.push({ name: 'cost', value: cost, type: sql.Decimal });
+        }
+        if (create_datetime !== undefined) {
+            updateQuery += 'CreateDateTime = @create_datetime, ';
+            updateParams.push({ name: 'create_datetime', value: new Date(create_datetime), type: sql.DateTime });
+        }
+        if (expire_datetime !== undefined) {
+            updateQuery += 'ExpireDateTime = @expire_datetime, ';
+            updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
+        }
+        if (measurement !== undefined) {
+            updateQuery += 'Measurement = @measurement, ';
+            updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
+        }
+
+        // Remove trailing comma and space
+        updateQuery = updateQuery.slice(0, -2);
+        updateQuery += ' WHERE IngredientID = @ingredient_id';
+
+        // Execute update query
+        const request = pool.request();
+        request.input('ingredient_id', sql.Int, ingredient_id);
+
+        updateParams.forEach(param => {
+            request.input(param.name, param.type, param.value);
+        });
+
+        const result = await request.query(updateQuery);
+
+        if (result.rowsAffected[0] > 0) {
+            // Fetch the updated item and return it with the IngredientID
+            const updatedItemResult = await pool.request()
+                .input('ingredient_id', sql.Int, ingredient_id)
+                .query(`SELECT * FROM dbo.tblInventory WHERE IngredientID = @ingredient_id`);
+
+            if (updatedItemResult.recordset.length > 0) {
+                res.json(updatedItemResult.recordset[0]);  // Return the updated item including IngredientID
+            } else {
+                res.status(404).send('Inventory item not found after update');
+            }
+        } else {
+            res.status(404).send('Inventory item not found');
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 // DELETE /inventory/name/:item_name: Remove an item by name
