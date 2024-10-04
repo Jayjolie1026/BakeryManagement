@@ -11,7 +11,7 @@ class Ingredient {
     required this.quantity,
     required this.measurement, // Include measurement in constructor
   });
-   @override
+  @override
   String toString() {
     return 'Ingredient{id: $ingredientID, name: $name, quantity: $quantity, measurement: $measurement}';
   }
@@ -25,10 +25,10 @@ class Ingredient {
       measurement: json['Measurement'] ?? '', // Default to empty string if null
     );
   }
-
 }
+
 class Item {
-   int recipeID;
+  int recipeID;
   final String name;
   final String steps;
   final int productID;
@@ -46,6 +46,7 @@ class Item {
     required this.category, // Include category in constructor
     required this.yield2,
   });
+
   @override
   String toString() {
     return 'Item{recipeID: $recipeID, name: $name, steps: $steps, productID: $productID, ingredients: $ingredients, category: $category, yield: $yield2}';
