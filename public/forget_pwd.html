@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Big Baller Bakery - Forget Password</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!--Poppins, Cursive-->
+    <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet"> <!--font from mobile team-->
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!--font from mobile team-->
 
     <style>
         body {
@@ -13,7 +15,24 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            font-family: 'Sofadi One';
             margin: 0;
+            animation: fadeInUp 1s ease-in-out;
+        }
+
+        body.fade-out {
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .forgot-password-container {
@@ -24,10 +43,10 @@
             max-width: 400px;
             width: 100%;
             text-align: center;
+            animation: fadeInUp 1s ease-in-out;
         }
 
         .forgot-password-container h1 {
-            font-family: 'Playfair Display', serif;
             color: #6E0D25;
             margin-bottom: 20px;
         }
@@ -49,6 +68,7 @@
         .forgot-password-container .button {
             background-color: #774E24;
             color: white;
+            font-family: 'Sofadi One';
             border: none;
             padding: 12px;
             width: 90%;

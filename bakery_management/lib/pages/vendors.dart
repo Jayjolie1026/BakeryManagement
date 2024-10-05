@@ -4,7 +4,10 @@ import 'vendorsFunctions.dart';
 import 'vendorsItemClass.dart';
 import 'dart:async';
 import 'inventorySearchWidget.dart';
-import 'package:url_launcher/url_launcher.dart'; // For launching phone and email
+import 'package:url_launcher/url_launcher.dart'; 
+import 'sessions.dart';
+import 'package:bakery_management/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VendorsPage extends StatefulWidget {
   const VendorsPage({super.key});
@@ -49,7 +52,7 @@ class _VendorsPageState extends State<VendorsPage> {
         vendors = updatedVendors; // Update the vendor list with fresh data
       });
     } catch (e) {
-      print('Error fetching vendors: $e');
+      // error
     }
   }
 
@@ -59,7 +62,7 @@ class _VendorsPageState extends State<VendorsPage> {
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
-        SizedBox(height: 25.0),
+        const SizedBox(height: 25.0),
         buildSearch(),
         Expanded(
           child: ListView.builder(
@@ -75,6 +78,25 @@ class _VendorsPageState extends State<VendorsPage> {
     ),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+        if (sessionId != null) {
+          // Create an instance of SessionService
+          SessionService sessionService = SessionService(context);
+
+          // Check the session status
+          await sessionService.checkSession(sessionId); // Check if the session is active
+
+          // If the session is active, update it
+          await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInPage()),
+          );
+        }
         await showAddVendorDialog(context, _refreshVendors); // Refresh the vendor list after adding a new vendor
       },
       label: const Text(
@@ -85,10 +107,11 @@ class _VendorsPageState extends State<VendorsPage> {
         ),
       ),
       icon: const Icon(
-    Icons.add,
-    color: Color(0xFFEEC07B), // Light brown icon color
+        Icons.add,
+        color: Color(0xFFEEC07B), // Light brown icon color
       ),
-      backgroundColor: const Color(0xFF422308),),
+      backgroundColor: const Color(0xFF422308),
+    ),
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
   );
 
@@ -96,7 +119,7 @@ class _VendorsPageState extends State<VendorsPage> {
     text: query,
     hintText: 'Search by Vendor',
     onChanged: searchVendor,
-    backgroundColor: Color(0XFFEEC07B)
+    backgroundColor: const Color(0XFFEEC07B)
   );
 
   Future<void> searchVendor(String query) async => debounce(() async {
@@ -109,45 +132,64 @@ class _VendorsPageState extends State<VendorsPage> {
         this.vendors = vendors.where((vendor) => vendor.vendorName.toLowerCase().contains(query.toLowerCase())).toList();
       });
     } catch (e) {
-      print('Error searching vendors: $e');
+      // error
     }
   });
 
   Widget buildItem(Vendor vendor) => Card(
-  color: const Color(0xFF6D3200),
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(50),
-  ),
-  margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
-  elevation: 4,
-  child: GestureDetector(
-    onTap: () async {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => VendorDetailsPage(vendor: vendor),
-        ),
-      );
-      if (result == true) {
-        _refreshVendors(); // Refresh the list if there were changes
-      }
-    },
-    child: Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
-      child: Center(
-        child: Text(
-          vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
-          style: const TextStyle(
-            color: Color(0xFFEEC07B),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    color: const Color(0xFF6D3200),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(50),
+    ),
+    margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    elevation: 4,
+    child: GestureDetector(
+      onTap: () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+        if (sessionId != null) {
+          // Create an instance of SessionService
+          SessionService sessionService = SessionService(context);
+
+          // Check the session status
+          await sessionService.checkSession(sessionId); // Check if the session is active
+
+          // If the session is active, update it
+          await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInPage()),
+          );
+        }
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VendorDetailsPage(vendor: vendor),
+          ),
+        );
+        if (result == true) {
+          _refreshVendors(); // Refresh the list if there were changes
+        }
+      },
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+        child: Center(
+          child: Text(
+            vendor.vendorName.isNotEmpty ? vendor.vendorName : 'Unnamed Vendor',
+            style: const TextStyle(
+              color: Color(0xFFEEC07B),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     ),
-  ),
-);
+  );
 }
 
 class VendorDetailsPage extends StatelessWidget {
@@ -198,7 +240,7 @@ class VendorDetailsPage extends StatelessWidget {
                             // Centered Vendor Name
                             Center(
                               child: Text(
-                                '${vendor.vendorName}',
+                                vendor.vendorName,
                                 style: const TextStyle(
                                   color: Color(0xFF6D3200), // Dark brown
                                   fontSize: 30,
@@ -209,9 +251,9 @@ class VendorDetailsPage extends StatelessWidget {
                             const SizedBox(height: 10),
 
                             // Vendor ID
-                            Text(
+                            const Text(
                               'ID:',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF6D3200), // Dark brown
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -230,9 +272,9 @@ class VendorDetailsPage extends StatelessWidget {
                             const SizedBox(height: 10),
 
                             // Phone Number
-                            Text(
+                            const Text(
                               'Phone:',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF6D3200),
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -263,9 +305,9 @@ class VendorDetailsPage extends StatelessWidget {
                             const SizedBox(height: 10),
 
                             // Email
-                            Text(
+                            const Text(
                               'Email:',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF6D3200),
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -292,9 +334,9 @@ class VendorDetailsPage extends StatelessWidget {
                             const SizedBox(height: 10),
 
                             // Address
-                            Text(
+                            const Text(
                               'Address:',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF6D3200),
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -320,14 +362,33 @@ class VendorDetailsPage extends StatelessWidget {
                               children: <Widget>[
                                 ElevatedButton(
                                   onPressed: () async {
+                                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                                    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                                    if (sessionId != null) {
+                                      // Create an instance of SessionService
+                                      SessionService sessionService = SessionService(context);
+
+                                      // Check the session status
+                                      await sessionService.checkSession(sessionId); // Check if the session is active
+
+                                      // If the session is active, update it
+                                      await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                                    } else {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const SignInPage()),
+                                      );
+                                    }
                                     final updatedVendor = await handleEditVendor(context, vendor);
                                     if (updatedVendor) {
                                       Navigator.of(context).pop(true);
                                     }
                                   },
                                   style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-                                    foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                                    backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)),
+                                    foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)),
                                   ),
                                   child: const Row(
                                     children: [
@@ -346,8 +407,8 @@ class VendorDetailsPage extends StatelessWidget {
                                     }
                                   },
                                   style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-                                    foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                                    backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)),
+                                    foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)),
                                   ),
                                   child: const Row(
                                     children: [
@@ -378,8 +439,8 @@ class VendorDetailsPage extends StatelessWidget {
                         Navigator.of(context).pop();
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-                        foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
+                        backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)),
+                        foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)),
                       ),
                       child: const Text('Close', style: TextStyle(fontSize: 17)),
                     ),

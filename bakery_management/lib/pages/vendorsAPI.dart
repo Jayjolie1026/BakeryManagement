@@ -64,7 +64,7 @@ Future<void> addVendor(
   );
 
   if (response.statusCode == 201) {
-    print('Vendor added successfully');
+    // success
   } else {
     throw Exception('Failed to add vendor: ${response.body}');
   }
@@ -102,7 +102,7 @@ Future<void> updateVendor(
   );
 
   if (response.statusCode == 200) {
-    print('Vendor updated successfully');
+    // success
   } else {
     throw Exception('Failed to update vendor: ${response.body}');
   }

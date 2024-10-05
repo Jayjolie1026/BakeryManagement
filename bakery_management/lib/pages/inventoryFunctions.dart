@@ -308,9 +308,6 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
                 'vendorID': int.tryParse(vendorIDController.text),
               });
 
-              // Print ingredient body before sending request
-              print('Sending ingredient request with body: $ingredientBody');
-
               // Send ingredient POST request
               final ingredientResponse = await http.post(
                 Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'),
@@ -335,8 +332,6 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
                   'expire_datetime': expireDateTime.toIso8601String(),
                 });
 
-                // Print inventory body before sending request
-                print('Sending inventory request with body: $inventoryBody');
 
                 // Send inventory POST request
                 final inventoryResponse = await http.post(
@@ -350,13 +345,13 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item added')),
                   );
                 } else {
-                  print('Failed to add inventory item: ${inventoryResponse.body}');
+                  // error for adding to inventory
                 }
               } else {
-                print('Failed to add ingredient: ${ingredientResponse.body}');
+                // error for adding to ingredient
               }
             } catch (e) {
-              print('Error: $e');
+              // error
             }
           },
           style: ElevatedButton.styleFrom(
@@ -421,8 +416,9 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
       return AlertDialog(
         backgroundColor: const Color(0xFFEEC07B), // Example color
         titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
-            fontFamily: 'MyFont',
-            fontSize: 24.0),
+          fontFamily: 'MyFont',
+          fontSize: 24.0
+        ),
         title: const Text('Update Item'),
         content: SingleChildScrollView(
           child: Column(
@@ -727,7 +723,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                 Navigator.pop(context,updatedItem );
               } catch (e) {
                 // Show error message
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to update item")));
               }
             },
             style: ElevatedButton.styleFrom(
@@ -750,74 +746,3 @@ String formatDate(DateTime dateTime) {
 
   return '$year-$month-$day'; // Format as YYYY-MM-DD
 }
-
-// temporary code to delete item
-// Future<void> showDeleteIngredientDialog(BuildContext context, Function onDelete) {
-//   final TextEditingController ingredientController = TextEditingController();
-//
-//   return showDialog<void>(
-//     context: context,
-//     builder: (BuildContext context) {
-//       return AlertDialog(
-//         title: const Text('Delete Ingredient'),
-//         content: Column(
-//           mainAxisSize: MainAxisSize.min,
-//           children: <Widget>[
-//             const Text('Enter the name of the ingredient you want to delete:'),
-//             const SizedBox(height: 10),
-//             TextField(
-//               controller: ingredientController,
-//               decoration: const InputDecoration(
-//                 border: OutlineInputBorder(),
-//                 labelText: 'Ingredient Name',
-//               ),
-//             ),
-//           ],
-//         ),
-//         actions: <Widget>[
-//           TextButton(
-//             child: const Text('Cancel'),
-//             onPressed: () {
-//               Navigator.of(context).pop(); // Close the dialog
-//             },
-//           ),
-//           TextButton(
-//             child: const Text('Delete'),
-//             onPressed: () async {
-//               final String ingredientName = Uri.encodeComponent(ingredientController.text.trim());
-//
-//               if (ingredientName.isNotEmpty) {
-//                 final invResponse = await http.delete(
-//                   Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/name/$ingredientName'),
-//                 );
-//
-//                 if (invResponse.statusCode != 200) {
-//                   print('Failed to delete inventory item');
-//                 } else {
-//                   print('Inventory item deleted successfully');
-//                 }
-//
-//                 final ingResponse = await http.delete(
-//                   Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients/$ingredientName'),
-//                 );
-//
-//                 if (ingResponse.statusCode != 200) {
-//                   print('Failed to delete ingredient');
-//                 } else {
-//                   print('Ingredient deleted successfully');
-//                 }
-//
-//                 Navigator.of(context).pop(); // Close the dialog after deleting
-//               } else {
-//                 // Optionally show an error message if the input is empty
-//                 ScaffoldMessenger.of(context).showSnackBar(
-//                   const SnackBar(content: Text('Please enter an ingredient name')),
-//                 );
-//               }
-//             },
-//           )
-//         ],
-//       );
-//     },
-//   );
-// }
