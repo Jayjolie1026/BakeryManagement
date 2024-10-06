@@ -354,7 +354,7 @@ class _InventoryPageState extends State<InventoryPage> {
           child: Text(
             item.ingredientName,
             style: const TextStyle(
-              color: Color.fromARGB(255, 243, 217, 162),
+              color: Color(0xFFEEC07B),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),

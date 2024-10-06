@@ -42,23 +42,32 @@ app.post('/tasks', async (req, res) => {
 
         const pool = await sql.connect(dbConfig);
 
+        // Use OUTPUT to return the inserted TaskID
         const result = await pool.request()
             .input('Description', sql.VarChar(100), Description)
             .input('CreateDate', sql.Date, CreateDate)
             .input('DueDate', sql.Date, DueDate)
             .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
-            .query('INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)');
+            .query(`
+                INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) 
+                OUTPUT INSERTED.TaskID 
+                VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)
+            `);
 
-        // If no recordset is returned, handle it
-        if (result.recordset && result.recordset.length > 0) {
-            res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+        // Check if the result has any records
+        if (result.recordset.length > 0) {
+            res.status(201).json({ 
+                message: 'Task created successfully', 
+                taskId: result.recordset[0].TaskID 
+            });
         } else {
-            res.status(201).json({ message: 'Task created successfully, but no task ID returned' });
+            res.status(400).json({ message: 'Task created but no TaskID returned' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Error creating task', error: error.message });
     }
 });
+
 
 // Get All Tasks
 app.get('/tasks', async (req, res) => {
