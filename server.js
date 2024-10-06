@@ -1799,6 +1799,70 @@ app.put('/recipes/name/:name', async (req, res) => {
 
 
 
+// POST /recipes/:recipe_id/bake: Bake a recipe by ID
+app.post('/recipes/:recipe_id/bake', async (req, res) => {
+    const { recipe_id } = req.params;
+    const { yieldAmount } = req.body; // The amount to bake
+
+    // Validate input
+    if (!yieldAmount) {
+        return res.status(400).send('Yield amount is required for baking');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Fetch the recipe and its ingredients
+        const recipeResult = await pool.request()
+            .input('recipe_id', sql.Int, recipe_id)
+            .query('SELECT * FROM tblRecipes WHERE RecipeID = @recipe_id');
+
+        if (recipeResult.recordset.length === 0) {
+            return res.status(404).send('Recipe not found');
+        }
+
+        const recipe = recipeResult.recordset[0];
+
+        // Calculate the total quantity of each ingredient needed based on the yield amount
+        const ingredientQuantitiesNeeded = {};
+        
+        for (const ingredient of recipe.ingredients) {
+            const requiredAmount = (ingredient.quantity * yieldAmount) / recipe.yield2; // Adjust according to your yield calculation
+            ingredientQuantitiesNeeded[ingredient.ingredientID] = requiredAmount;
+        }
+
+        // Check inventory and update
+        for (const [ingredientID, amountNeeded] of Object.entries(ingredientQuantitiesNeeded)) {
+            const inventoryResult = await pool.request()
+                .input('ingredient_id', sql.Int, ingredientID)
+                .query('SELECT InventoryQuantity FROM tblIngredients WHERE IngredientID = @ingredient_id');
+
+            if (inventoryResult.recordset.length === 0 || inventoryResult.recordset[0].InventoryQuantity < amountNeeded) {
+                return res.status(400).send(`Not enough stock for ingredient ID: ${ingredientID}`);
+            }
+
+            // Update inventory
+            await pool.request()
+                .input('ingredient_id', sql.Int, ingredientID)
+                .input('amount_needed', sql.Decimal, amountNeeded)
+                .query('UPDATE tblIngredients SET InventoryQuantity = InventoryQuantity - @amount_needed WHERE IngredientID = @ingredient_id');
+        }
+
+        // Update product quantity using the productID of the selected recipe
+        await pool.request()
+            .input('product_id', sql.Int, recipe.productID)
+            .input('amount_baked', sql.Int, yieldAmount)
+            .query('UPDATE tblProducts SET Quantity = Quantity + @amount_baked WHERE ProductID = @product_id');
+
+        res.status(200).send('Baking successful! Inventory updated.');
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+
+
+
 // DELETE /recipes/name/:name: Delete a recipe by name
 app.delete('/recipes/name/:name', async (req, res) => {
     const { name } = req.params;
