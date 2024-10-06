@@ -90,7 +90,7 @@ class _InventoryPageState extends State<InventoryPage> {
           },
         ),
       ),
-      const SizedBox(height: 50),  // Add some space at the bottom
+      const SizedBox(height: 80),  // Add some space at the bottom
     ],
   ),
   floatingActionButton: FloatingActionButton.extended(
@@ -110,46 +110,6 @@ class _InventoryPageState extends State<InventoryPage> {
     foregroundColor: const Color.fromARGB(255, 243, 217, 162),
   ),
   floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-
-
- // Center at the bottom
-
-    // --------------------temporary code to delete items------------------------------
-    //   floatingActionButton: Row(
-    //     mainAxisAlignment: MainAxisAlignment.center,
-    //     children: [
-    //       FloatingActionButton.extended(
-    //         heroTag: 'uniqueTag2',
-    //         onPressed: () => showAddIngredientAndInventoryDialog(context, () {
-    //           // Refresh the inventory list after adding new item
-    //           setState(() {
-    //             init();
-    //           });
-    //         }), // Open form for new ingredient
-    //         label: const Text('Add Ingredient'),
-    //         icon: const Icon(Icons.add),
-    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-    //       ),
-    //       const SizedBox(width: 16),
-    //       FloatingActionButton.extended(
-    //         heroTag: 'uniqueTag1',
-    //         onPressed: () {
-    //           showDeleteIngredientDialog(context, () {
-    //             setState(() {
-    //               init();
-    //             });
-    //           });
-    //         },
-    //         label: const Text('Delete Ingredient'),
-    //         icon: const Icon(Icons.delete),
-    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-    //       ),
-    //     ],
-    //   ),
-    //   floatingActionButtonLocation:
-    //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
 
   
@@ -321,7 +281,7 @@ void searchItem(String query) {
           child: Text(
             item.ingredientName,
             style: const TextStyle(
-              color: Color.fromARGB(255, 243, 217, 162),
+              color: Color(0xFFEEC07B),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),

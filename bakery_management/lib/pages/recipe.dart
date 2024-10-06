@@ -259,7 +259,7 @@ void applyCategoryFilter(String category) {
   child: Card(
     color: const Color(0xFF6D3200),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(50),
+      borderRadius: BorderRadius.circular(30),
     ),
     margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
     elevation: 4,

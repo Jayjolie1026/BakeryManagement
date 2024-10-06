@@ -25,15 +25,20 @@ Future<List<Task>> getTasks() async {
 // Function to add a task
 Future<void> addTask({
   required String description,
+  DateTime? createDate, // No default value here
   required DateTime dueDate,
   required String assignedBy,
 }) async {
   final url = Uri.parse(baseUrl);
+
+  // Use current date if no createDate is provided
+  final DateTime actualCreateDate = createDate ?? DateTime.now();
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
     body: json.encode({
       'Description': description,
+      'CreateDate': actualCreateDate.toIso8601String(),
       'DueDate': dueDate.toIso8601String(),
       'AssignedBy': assignedBy,
     }),
@@ -65,11 +70,12 @@ Future<void> updateTask({
   final response = await http.put(
     url,
     headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      'Description': description,
-      'DueDate': dueDate.toIso8601String(),
-      'AssignedBy': assignedBy,
-    }),
+body: json.encode({
+  'Description': description,
+  'DueDate': DateTime(dueDate.year, dueDate.month, dueDate.day).toIso8601String(),
+  'AssignedBy': assignedBy,
+}),
+
   );
 
   if (response.statusCode == 200) {

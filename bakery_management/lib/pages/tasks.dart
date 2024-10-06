@@ -2,190 +2,76 @@ import 'package:bakery_management/pages/tasksAPI.dart';
 import 'package:flutter/material.dart';
 import 'tasksFunctions.dart';
 import 'tasksItemClass.dart';
+import 'package:intl/intl.dart'; // Import intl package for date formatting
 
-class TaskDetailsPage extends StatelessWidget {
-  final Task task;
+import 'package:bakery_management/pages/tasksAPI.dart';
+import 'package:flutter/material.dart';
+import 'tasksFunctions.dart';
+import 'tasksItemClass.dart';
+import 'package:intl/intl.dart'; // Import intl package for date formatting
 
-  const TaskDetailsPage({super.key, required this.task});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0D1A0),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF0D1A0),
-        elevation: 0,
-        toolbarHeight: 100,
-        title: const Text('Task Details', style: TextStyle(color: Color(0xFF6D3200))),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF6D3200)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+Future<void> showTaskDetailsDialog(BuildContext context, Task task) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFFEEC07B), // Light brown background
+        title: const Text(
+          'Task Details',
+          style: TextStyle(
+            color: Color(0xFF6D3200), 
+            fontSize: 25, 
+            fontWeight: FontWeight.bold, // Bold text
+            decoration: TextDecoration.underline, // Underline text
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // Task Description
-              _buildSectionTitle('Description:'),
-              _buildSectionContent(task.description),
-
-              // Create Date
-              _buildSectionTitle('Created On:'),
-              _buildSectionContent(task.createDate.toLocal().toString().split(' ')[0]),
-
-              // Due Date
-              _buildSectionTitle('Due Date:'),
-              _buildSectionContent(
-                task.dueDate != null ? task.dueDate.toLocal().toString().split(' ')[0] : 'No due date',
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Color(0xFF6D3200), fontSize: 16), // Dark brown text with increased font size
+                  children: [
+                    const TextSpan(text: 'Description:\n', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)), // Bold heading with increased font size
+                    TextSpan(text: '\t\t${task.description}', style: const TextStyle(fontSize: 20)), // Tab before data (increased tabs for better alignment)
+                  ],
+                ),
               ),
-
-              // Assigned By
-              _buildSectionTitle('Assigned By:'),
-              _buildSectionContent(task.assignedBy),
-
-              const SizedBox(height: 25),
-
-              // Update/Delete Buttons
-              _buildActionButtons(context),
-              const SizedBox(height: 80), // Added space for the close button
+              const SizedBox(height: 8),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Color(0xFF6D3200), fontSize: 16),
+                  children: [
+                    const TextSpan(text: 'Created On:\n', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)), // Bold heading with increased font size
+                    TextSpan(text: '\t\t${DateFormat('yMMMd').format(task.createDate)}', style: const TextStyle(fontSize: 20)), // Tab before data
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(color: Color(0xFF6D3200), fontSize: 16),
+                  children: [
+                    const TextSpan(text: 'Due Date:\n', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)), // Bold heading with increased font size
+                    TextSpan(text: '\t\t${DateFormat('yMMMd').format(task.dueDate)}', style: const TextStyle(fontSize: 20)), // Tab before data
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-      ),
-
-      // Close Button at the Bottom
-      bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFFF0D1A0),
-        child: Center(
-          child: ElevatedButton(
+        actions: [
+          TextButton(
+            child: const Text('Close', style: TextStyle(color: Color(0xFF6D3200))),
             onPressed: () {
               Navigator.of(context).pop();
             },
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-              foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
-            ),
-            child: const Text('Close', style: TextStyle(fontSize: 17)),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: Color(0xFF6D3200),
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildSectionContent(String content) {
-    return Column(
-      children: [
-        Text(
-          content,
-          style: const TextStyle(
-            color: Color(0xFF6D3200),
-            fontSize: 20,
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        ElevatedButton(
-          onPressed: () async {
-            try {
-              final updatedTask = await handleEditTask(context, task);
-              if (updatedTask) {
-                Navigator.of(context).pop(true);
-              }
-            } catch (e) {
-              // Handle the error (e.g., show a SnackBar)
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error updating task: $e')),
-              );
-            }
-          },
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.edit, color: Color(0xFFEEC07B)),
-              SizedBox(width: 8),
-              Text('Update', style: TextStyle(fontSize: 17)),
-            ],
-          ),
-        ),
-        const SizedBox(width: 20),
-        ElevatedButton(
-          onPressed: () async {
-            final confirmed = await _showDeleteConfirmationDialog(context);
-            if (confirmed) {
-              try {
-                final deleted = await handleRemoveTask(context, task.taskID);
-                if (deleted) {
-                  Navigator.of(context).pop(true);
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error deleting task: $e')),
-                );
-              }
-            }
-          },
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)),
-            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.delete, color: Color(0xFFEEC07B)),
-              SizedBox(width: 8),
-              Text('Delete', style: TextStyle(fontSize: 17)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this task?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
-  }
+        ],
+      );
+    },
+  );
 }
+

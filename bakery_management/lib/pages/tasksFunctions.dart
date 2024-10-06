@@ -26,109 +26,155 @@ Future<Task> fetchTaskDetails(int id) async {
   }
 }
 
-// Dialog to add a new task
-Future<void> showAddTaskDialog(BuildContext context, VoidCallback onTaskAdded) async {
-  String taskDescription = '';
-  DateTime? taskDueDate;
-  String assignedBy = '';
+Future<bool> showAddTaskDialog(BuildContext context, String userId) async {
+  bool taskAdded = false; // Variable to track if a task was added
 
-  showDialog(
+  taskAdded = await showDialog<bool>(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: const Color(0xFFEEC07B), // Light brown background
-        title: const Text(
-          'Add Task',
-          style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Task Description',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
-                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
-                onChanged: (value) {
-                  taskDescription = value;
-                },
-              ),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'Assigned By',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                ),
-                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
-                onChanged: (value) {
-                  assignedBy = value;
-                },
-              ),
-              // Date picker for the due date
-              TextButton(
-                onPressed: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2101),
-                  );
-                  if (pickedDate != null) {
-                    taskDueDate = pickedDate;
-                  }
-                },
-                child: Text(
-                  taskDueDate == null
-                      ? 'Select Due Date'
-                      : 'Due Date: ${taskDueDate!.toLocal()}'.split(' ')[0],
-                  style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF6D3200))),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-              foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-            ),
-            onPressed: () async {
-              try {
-                // Add task using the provided details
-                await addTask(
-                  taskDescription,
-                  taskDueDate!,
-                  assignedBy,
-                );
-                Navigator.of(context).pop();
-                onTaskAdded(); // Call the callback to refresh the list
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error adding task: $e')),
-                );
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      );
+      return AddTaskDialog(userId: userId);
     },
-  );
+  ) ?? false; // Return false if the dialog is dismissed or cancelled
+
+  return taskAdded;
 }
 
-// Dialog to handle editing a task
+class AddTaskDialog extends StatefulWidget {
+  final String userId;
+
+  const AddTaskDialog({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  _AddTaskDialogState createState() => _AddTaskDialogState();
+}
+
+class _AddTaskDialogState extends State<AddTaskDialog> {
+  String taskDescription = '';
+  DateTime? taskDueDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFFEEC07B), // Light brown background
+      title: const Text(
+        'Add Task',
+        style: TextStyle(
+          color: Color(0xFF6D3200),
+          fontSize: 25,
+          fontWeight: FontWeight.bold, // Bold text
+          decoration: TextDecoration.underline, // Underline text
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Task Description Input
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Task Description',
+                labelStyle: const TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                counterText: '${taskDescription.length}/100', // Character counter
+              ),
+              style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+              maxLines: null, // Allows the TextField to grow
+              maxLength: 100, // Limit input to 100 characters
+              onChanged: (value) {
+                setState(() {
+                  taskDescription = value;
+                });
+              },
+            ),
+            const SizedBox(height: 10), // Reduced space between elements
+            
+            // Button to select due date
+            TextButton(
+              onPressed: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(2101),
+                );
+
+                if (pickedDate != null) {
+                  // Set the selected due date and rebuild the widget
+                  setState(() {
+                    taskDueDate = pickedDate;
+                  });
+                }
+              },
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: taskDueDate == null
+                          ? 'Select Due Date'
+                          : 'Due: ${taskDueDate!.toLocal().toIso8601String().split('T')[0]}', // Format the date
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown text
+                        decoration: TextDecoration.underline, // Underlined text
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Cancel', style: TextStyle(color: Color(0xFF6D3200))),
+          onPressed: () {
+            Navigator.of(context).pop(false); // Return false when cancelled
+          },
+        ),
+        ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+          ),
+          onPressed: () async {
+            var assID = widget.userId;
+            print('Assigned ID function: $assID');
+            try {
+              // Ensure taskDueDate is not null before proceeding
+              if (taskDueDate != null && taskDescription.isNotEmpty) {
+                // Add task using the provided details
+                await addTask(
+                  description: taskDescription,
+                  dueDate: taskDueDate!, // Use the selected due date
+                  assignedBy: widget.userId, // Send the user ID as AssignedBy
+                );
+                Navigator.of(context).pop(true); // Return true when the task is successfully added
+              } else {
+                // Show a message if required fields are not filled
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a description and select a due date.')),
+                );
+              }
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error adding task: $e')),
+              );
+            }
+          },
+          child: const Text('Add'),
+        ),
+      ],
+    );
+  }
+}
+
+
+
 Future<bool> handleEditTask(BuildContext context, Task task) async {
   final descriptionController = TextEditingController(text: task.description);
-  final assignedByController = TextEditingController(text: task.assignedBy);
-  DateTime? dueDate = task.dueDate;
+  DateTime dueDate = task.dueDate; // Initialize with the current due date if it exists
+
+  // Initialize the current character count
+  int currentLength = task.description.length;
 
   final result = await showDialog<bool>(
     context: context,
@@ -137,45 +183,108 @@ Future<bool> handleEditTask(BuildContext context, Task task) async {
         backgroundColor: const Color(0xFFEEC07B), // Light brown background
         title: const Text(
           'Update Task Info',
-          style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+          style: TextStyle(
+            color: Color(0xFF6D3200),
+            fontSize: 25,
+            fontWeight: FontWeight.bold, // Bold text
+            decoration: TextDecoration.underline, // Underline text
+          ),
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: descriptionController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(
-                  labelText: 'Task Description',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Task Description (Editable)
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(
+                    color: Color(0xFF6D3200),
+                    fontSize: 20,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Task Description:\n',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              TextField(
-                controller: assignedByController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(
-                  labelText: 'Assigned By',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+              const SizedBox(height: 8), // Reduced space for better spacing
+
+              // TextField with max height and multiline support
+              Container(
+                constraints: BoxConstraints(maxHeight: 120), // Limit height
+                child: TextField(
+                  controller: descriptionController,
+                  maxLines: null, // Allow multiple lines
+                  maxLength: 100, // Limit input to 100 characters
+                  style: const TextStyle(color: Color(0xFF6D3200), fontSize: 20),
+                  decoration: InputDecoration(
+                    labelStyle: const TextStyle(color: Color(0xFF6D3200), fontSize: 20), // Dark brown label text
+                    border: const OutlineInputBorder(), // Optional: add border for clarity
+                    counterText: '$currentLength/100', // Dynamic character counter
+                  ),
+                  onChanged: (text) {
+                    // Update current length on text change
+                    currentLength = text.length;
+                    // Force a rebuild to update the displayed character count
+                    (context as Element).markNeedsBuild();
+                  },
                 ),
               ),
+              const SizedBox(height: 20), // Keep space below for date section
+
+              // Due Date (Display + Change Date Button)
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(
+                    color: Color(0xFF6D3200),
+                    fontSize: 20,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Due Date:\n',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4), // Smaller space between date heading and button
+
+              // Text widget to display the due date
               TextButton(
                 onPressed: () async {
                   DateTime? pickedDate = await showDatePicker(
                     context: context,
-                    initialDate: dueDate ?? DateTime.now(),
+                    initialDate: dueDate,
                     firstDate: DateTime.now(),
                     lastDate: DateTime(2101),
                   );
+
                   if (pickedDate != null) {
-                    dueDate = pickedDate;
+                    // Strip time information and set it to midnight
+                    dueDate = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, 12); // Set noon to avoid any time zone shifts
+                    
+                    // Force a rebuild to update the displayed date
+                    (context as Element).markNeedsBuild();
                   }
                 },
                 child: Text(
-                  dueDate == null
-                      ? 'Select Due Date'
-                      : 'Due Date: ${dueDate!.toLocal()}'.split(' ')[0],
-                  style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+                  dueDate != null
+                      ? 'Due: ${dueDate.toLocal().toIso8601String().split('T')[0]}'
+                      : 'Select Due Date',
+                  style: const TextStyle(
+                    color: Color(0xFF6D3200), // Dark brown text
+                    fontSize: 20, // Same font size as the description
+                    decoration: TextDecoration.underline, // Underline text
+                  ),
                 ),
               ),
             ],
@@ -197,11 +306,13 @@ Future<bool> handleEditTask(BuildContext context, Task task) async {
               try {
                 // Update task using the provided details
                 await updateTask(
-                  task.taskId!, // Assuming task has an id
-                  descriptionController.text,
-                  dueDate!,
-                  assignedByController.text,
+                  taskId: task.taskId!,
+                  description: descriptionController.text,
+                  // Convert the selected due date to UTC before sending it to the server
+                  dueDate: DateTime(dueDate.year, dueDate.month, dueDate.day).toUtc(),
+                  assignedBy: task.assignedBy,
                 );
+
                 Navigator.of(context).pop(true);
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -219,6 +330,7 @@ Future<bool> handleEditTask(BuildContext context, Task task) async {
   return result ?? false;
 }
 
+
 // Dialog to confirm deletion of a task
 Future<void> showDeleteTaskDialog(BuildContext context, int taskId, VoidCallback onTaskDeleted) async {
   showDialog(
@@ -228,11 +340,16 @@ Future<void> showDeleteTaskDialog(BuildContext context, int taskId, VoidCallback
         backgroundColor: const Color(0xFFEEC07B), // Light brown background
         title: const Text(
           'Delete Task',
-          style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+          style: TextStyle(
+            color: Color(0xFF6D3200), // Dark brown text
+            fontWeight: FontWeight.bold, // Bold text
+            fontSize: 25,
+            decoration: TextDecoration.underline, // Underline text
+          )
         ),
         content: const Text(
           'Are you sure you want to delete this task?',
-          style: TextStyle(color: Color(0xFF6D3200)), // Dark brown text
+          style: TextStyle(color: Color(0xFF6D3200), fontSize: 17), // Dark brown text
         ),
         actions: [
           TextButton(
@@ -266,66 +383,3 @@ Future<void> showDeleteTaskDialog(BuildContext context, int taskId, VoidCallback
   );
 }
 
-// Function to add a task using the API
-Future<void> addTask(String description, DateTime dueDate, String assignedBy) async {
-  try {
-    final response = await http.post(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/tasks'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'description': description,
-        'dueDate': dueDate.toIso8601String(),
-        'assignedBy': assignedBy,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to add task. Status code: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Error adding task: $e');
-    throw Exception('Failed to add task');
-  }
-}
-
-// Function to update a task using the API
-Future<void> updateTask(int id, String description, DateTime dueDate, String assignedBy) async {
-  try {
-    final response = await http.put(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/tasks/$id'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'description': description,
-        'dueDate': dueDate.toIso8601String(),
-        'assignedBy': assignedBy,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update task. Status code: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Error updating task: $e');
-    throw Exception('Failed to update task');
-  }
-}
-
-// Function to delete a task using the API
-Future<void> deleteTask(int id) async {
-  try {
-    final response = await http.delete(
-      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/tasks/$id'),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete task. Status code: ${response.statusCode}');
-    }
-  } catch (e) {
-    print('Error deleting task: $e');
-    throw Exception('Failed to delete task');
-  }
-}

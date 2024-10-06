@@ -1,3 +1,4 @@
+import 'package:bakery_management/pages/tasksFunctions.dart';
 import 'package:flutter/material.dart';
 import 'package:bakery_management/pages/inventory.dart';
 import 'package:bakery_management/pages/recipe.dart';
@@ -8,6 +9,7 @@ import 'package:bakery_management/pages/bakedgoods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bakery_management/pages/tasksItemClass.dart';
 import 'package:bakery_management/pages/tasksAPI.dart';
+import 'package:bakery_management/pages/tasks.dart';
 
 
   void _logout(BuildContext context) async {
@@ -230,7 +232,6 @@ Widget build(BuildContext context) {
 }
 }
 
-
 class BakeryHomePage extends StatefulWidget {
   const BakeryHomePage({super.key});
 
@@ -269,51 +270,53 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
       firstName = prefs.getString('firstName') ?? "User"; // Default to "User" if not found
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
-        title: null, // Remove the title to use FlexibleSpaceBar
-       flexibleSpace: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
-          child: _selectedIndex == 0 // Check if the selected index is 0 (Home Page)
-              ? Text(
-                  'Hi $firstName!', // Display the greeting
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: const Color.fromARGB(255, 243, 217, 162),
-                  ), // Customize the text style as needed
-                )
-              : Container(), // Show an empty container for other pages
+appBar: AppBar(
+  title: null, // Remove the title to use FlexibleSpaceBar
+  flexibleSpace: Center(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+      child: _selectedIndex == 0 // Check if the selected index is 0 (Home Page)
+          ? Text(
+              'Hi $firstName!', // Display the greeting
+              style: TextStyle(
+                fontSize: 24,
+                color: const Color.fromARGB(255, 243, 217, 162),
+              ), // Customize the text style as needed
+            )
+          : Container(), // Show an empty container for other pages
+    ),
+  ),
+  centerTitle: true,
+  backgroundColor: const Color(0xFF422308),
+  leading: PopupMenuButton<String>(
+    icon: const Icon(Icons.menu),
+    onSelected: (value) {
+      if (value == 'logout') {
+        _logout(context);
+      } else if (value == 'userOptions') {
+        _navigateToUserOptions(context);
+      }
+    },
+    itemBuilder: (BuildContext context) {
+      return [
+        const PopupMenuItem<String>(
+          value: 'userOptions',
+          child: Text('User Options'),
         ),
-      ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF422308),
-         leading: PopupMenuButton<String>(
-          icon: const Icon(Icons.menu),
-          onSelected: (value) {
-            if (value == 'logout') {
-              _logout(context);
-            } else if (value == 'userOptions') {
-              _navigateToUserOptions(context);
-            }
-          },
-          itemBuilder: (BuildContext context) {
-            return [
-              const PopupMenuItem<String>(
-                value: 'userOptions',
-                child: Text('User Options'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ];
-          },
+        const PopupMenuItem<String>(
+          value: 'logout',
+          child: Text('Logout'),
         ),
-      ),
+      ];
+    },
+  ),
+),
+
       backgroundColor: const Color(0xFFF0D1A0),
       body: _pages[_selectedIndex], // Display the selected page
 
@@ -368,130 +371,247 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<Task>> tasks;
+  String? _employeeId;
+  String? _jobId;
 
   @override
   void initState() {
     super.initState();
     tasks = getTasks(); // Fetch tasks on initialization
+    _loadEmployeeId();
+    _loadJobID(); // Load the job ID during initialization
+  }
+
+Future<void> _loadJobID() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  setState(() {
+    // Retrieve the jobId from SharedPreferences
+    int? jobId = prefs.getInt('jobId');
+    if (jobId != null) {
+      print('Loaded Job ID: $jobId');
+      _jobId = jobId.toString(); // Convert to string if necessary
+    } else {
+      print('No Job ID found in SharedPreferences');
+    }
+  });
+}
+
+
+
+  Future<void> _loadEmployeeId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _employeeId = prefs.getString('employeeId'); // Retrieve the stored employeeId
+      print('Employee ID: $_employeeId');
+    });
+  }
+
+  Future<void> _refreshTasks() async {
+    setState(() {
+      tasks = getTasks(); // Re-fetch the tasks
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
       body: Column(
         children: [
-          // Image and welcome text
-          Expanded(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    'assets/Final_logo.png',
-                    width: 300,
-                    height: 300,
-                  ),
-                  Positioned(
-                    top: 40,
-                    child: Text(
-                      'Welcome to',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontFamily: 'MyFont',
-                        color: Colors.brown[900],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Task List
-          Expanded(
-            flex: 2,
-            child: FutureBuilder<List<Task>>(
-              future: tasks,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No tasks available.'));
-                }
-
-                final taskList = snapshot.data!;
-                return ListView.builder(
-                  itemCount: taskList.length,
-                  itemBuilder: (context, index) {
-                    final task = taskList[index];
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.brown[300],
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  task.description,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.brown[900],
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Due: ${task.dueDate.toLocal().toString().split(' ')[0]}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.brown[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Edit and Delete buttons
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit, color: Colors.white),
-                                onPressed: () {
-                                  // Handle edit action
-                                  // You can implement the logic to edit the task
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.clear, color: Colors.white),
-                                onPressed: () {
-                                  // Handle delete action
-                                  // You can implement the logic to delete the task
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+          _buildHeader(),
+          _buildAddTaskButton(),
+          _buildTaskList(),
         ],
       ),
     );
   }
+
+  Widget _buildHeader() {
+    return Expanded(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: -20,
+              child: Image.asset(
+                'assets/Final_logo.png',
+                width: 300,
+                height: 300,
+              ),
+            ),
+            Positioned(
+              top: 15,
+              child: Text(
+                'Welcome to',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontFamily: 'MyFont',
+                  color: const Color(0xFF6D3200),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+Widget _buildAddTaskButton() {
+  // Check if jobId is available and if it's '1' or '2'
+  if (_jobId == '1' || _jobId == '2') {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 20.0), // Right padding for alignment
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end, // Align the button to the right
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.add, color: Color(0xFFEEC07B)), // "+" icon with light text color
+                label: const Text(
+                  'Create Task',
+                  style: TextStyle(color: Color(0xFFEEC07B)), // Light text color
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308), // Dark brown background color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0), // Rounded button
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Button padding
+                ),
+                onPressed: () async {
+                  if (_employeeId != null) {
+                    print('Assigned By ID: $_employeeId');
+                    bool updated = await showAddTaskDialog(context, _employeeId!); // Show the dialog to add a new task
+                    if (updated) {
+                      _refreshTasks(); // Refresh the task list after editing
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Employee ID is not available.')),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 5.0), // Add a constant SizedBox with a height of 5
+      ],
+    );
+  } else {
+    return const SizedBox(height: 5.0); // Return the SizedBox even if jobId is not '1' or '2'
+  }
 }
 
+
+Widget _buildTaskList() {
+  return Expanded(
+    flex: 2,
+    child: FutureBuilder<List<Task>>(
+      future: tasks,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No tasks available.'));
+        }
+
+        final taskList = snapshot.data!;
+
+        // Sort tasks by due date (nearest due date first)
+        taskList.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0), // Add bottom padding here
+          child: ListView.builder(
+            itemCount: taskList.length,
+            itemBuilder: (context, index) {
+              final task = taskList[index];
+              return _buildTaskCard(task);
+            },
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+
+Widget _buildTaskCard(Task task) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF6D3200), // Dark brown background
+      borderRadius: BorderRadius.circular(15),
+    ),
+    child: GestureDetector(
+      onTap: () {
+        showTaskDetailsDialog(context, task);
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  task.description,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFFEEC07B), // Light text color
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Due: ${task.dueDate.toLocal().toString().split(' ')[0]}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFEEC07B), // Light text color
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Edit and Delete buttons
+          Row(
+            children: [
+              if (_jobId == '1' || _jobId == '2') // Conditional rendering for Edit button
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Color(0xFFEEC07B)),
+                  onPressed: () async {
+                    bool updated = await handleEditTask(context, task);
+                    if (updated) {
+                      _refreshTasks(); // Refresh the task list after editing
+                    }
+                  },
+                ),
+              IconButton(
+                icon: const Icon(Icons.clear, color: Color(0xFFEEC07B)),
+                onPressed: () {
+                  showDeleteTaskDialog(context, task.taskId, () {
+                    _refreshTasks(); // Refresh the task list after deletion
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+}
 
 
 // Options Page for handling User Options and Logout
