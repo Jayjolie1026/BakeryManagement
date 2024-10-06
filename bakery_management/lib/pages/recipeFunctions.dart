@@ -226,8 +226,7 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
                   onRecipeAdded(); // Callback to refresh or update the UI
                   Navigator.of(context).pop(); // Close the dialog
                 } catch (e) {
-                  // Handle error (optional)
-                  print('Error adding recipe: $e');
+                  // error
                 }
               }
             },
@@ -242,7 +241,6 @@ void showAddRecipeDialog(BuildContext context, VoidCallback onRecipeAdded) {
     },
   );
 }
-
 
 
 class DetailedRecipePage extends StatefulWidget {
@@ -284,7 +282,7 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
         _isLoading = false; // Set loading to false after fetching
       });
     } catch (error) {
-      print('Error fetching recipe: $error');
+      // error
       setState(() {
         _isLoading = false; // Set loading to false even if there's an error
       });
@@ -308,7 +306,7 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
         _recipe = updatedRecipe; // Update state with the fetched recipe
       });
     } catch (error) {
-      print('Error fetching recipe: $error');
+      // error
     }
 
     if (widget.onRecipeUpdated != null) {
@@ -437,9 +435,6 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                       const SizedBox(width: 10), // Add some space between the arrows and the button
                       ElevatedButton(
                         onPressed: () {
-                          // You can place your future API call logic here
-                          // For example:
-                          print('Baking at $currYield yield...');
                           // Future API call to bake or process the recipe can be placed here
                         },
                         style: ElevatedButton.styleFrom(
@@ -573,10 +568,6 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
 }
 
 
-
-
-
-
 void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated)  {
   // Create a string representation of ingredients including measurement
   String ingredientsString = recipe.ingredients.map((ingredient) {
@@ -595,8 +586,9 @@ void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item
       return AlertDialog(
         backgroundColor: const Color(0xFFEEC07B), // Example color
         titleTextStyle: const TextStyle(color: Color(0xFF6D3200),
-            fontFamily: 'MyFont',
-            fontSize: 24.0), 
+          fontFamily: 'MyFont',
+          fontSize: 24.0
+        ),
         title: const Text('Update Recipe'),
         content: SingleChildScrollView(
           child: Column(
@@ -646,227 +638,127 @@ void showRecipeUpdateDialog(BuildContext context, Item recipe, ValueChanged<Item
                 ),
                 maxLines: 5, // Allow multiline for recipe steps
               ),
-               TextField(
-              controller: categoryController, // New category controller
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)),
-                ),
-              ),
-            ),
-            TextField(
-              controller: yieldController, // New yield controller
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Color(0xFF6D3200)),
-              decoration: const InputDecoration(
-                labelText: 'Yield',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)),
+              TextField(
+                controller: categoryController, // New category controller
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
                 ),
               ),
-               // Optional: limit input to numbers
-            ),
+              TextField(
+                controller: yieldController, // New yield controller
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Color(0xFF6D3200)),
+                decoration: const InputDecoration(
+                  labelText: 'Yield',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)),
+                  ),
+                ),
+                 // Optional: limit input to numbers
+              ),
             ],
           ),
         ),
         actions: [
-  TextButton(
-    onPressed: () {
-      Navigator.of(context).pop(); // Close dialog without changes
-    },
-    style: TextButton.styleFrom(
-      foregroundColor: const Color(0xFF6D3200), // Text color
-    ),
-    child: const Text('Cancel'),
-  ),
-  ElevatedButton(
-    onPressed: () async {
-      try {
-        // Update the recipe with new values
-        int yieldValue = int.tryParse(yieldController.text) ?? 0; // Default to 0 if parsing fails
-        print('Parsed yield value: $yieldValue');
-        print(recipe.productID);
-        // Create the updated recipe
-        final updatedRecipe = Item(
-          recipeID: recipe.recipeID,
-          name: nameController.text,
-          steps: stepsController.text,
-          productID: recipe.productID,
-          ingredients: ingredientsController.text.split(',').map((ingredientString) {
-            final parts = ingredientString.split(':');
-            if (parts.length == 4) {
-              return Ingredient(
-                ingredientID: int.parse(parts[0].trim()),
-                name: parts[1].trim(),
-                quantity: int.parse(parts[2].trim()),
-                measurement: parts[3].trim(),
-              );
-            } else {
-              throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
-            }
-          }).toList(),
-          category: categoryController.text,
-          yield2: yieldValue,
-        );
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog without changes
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF6D3200), // Text color
+            ),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // Update the recipe with new values
+                int yieldValue = int.tryParse(yieldController.text) ?? 0; // Default to 0 if parsing fails
+                // Create the updated recipe
+                final updatedRecipe = Item(
+                  recipeID: recipe.recipeID,
+                  name: nameController.text,
+                  steps: stepsController.text,
+                  productID: recipe.productID,
+                  ingredients: ingredientsController.text.split(',').map((ingredientString) {
+                    final parts = ingredientString.split(':');
+                    if (parts.length == 4) {
+                      return Ingredient(
+                        ingredientID: int.parse(parts[0].trim()),
+                        name: parts[1].trim(),
+                        quantity: int.parse(parts[2].trim()),
+                        measurement: parts[3].trim(),
+                      );
+                    } else {
+                      throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
+                    }
+                  }).toList(),
+                  category: categoryController.text,
+                  yield2: yieldValue,
+                );
 
-        // Log the updated recipe
-        print('Updated recipe: ${updatedRecipe.toString()}');
+                // Validate required fields
+                if (updatedRecipe.name.isEmpty ||
+                    updatedRecipe.steps.isEmpty ||
+                    updatedRecipe.productID == null ||
+                    updatedRecipe.category.isEmpty ||
+                    updatedRecipe.yield2 <= 0 ||
+                    updatedRecipe.ingredients.isEmpty) {
+                  throw Exception('Name, steps, product ID, category, yield, and ingredients are required');
+                }
 
-        // Validate required fields
-        if (updatedRecipe.name.isEmpty || 
-            updatedRecipe.steps.isEmpty || 
-            updatedRecipe.productID == null || 
-            updatedRecipe.category.isEmpty || 
-            updatedRecipe.yield2 <= 0 || 
-            updatedRecipe.ingredients.isEmpty) {
-          throw Exception('Name, steps, product ID, category, yield, and ingredients are required');
-        }
+                // Prepare ingredients for the API call
+                List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
+                  return {
+                    'IngredientID': ingredient.ingredientID,
+                    'Name': ingredient.name,
+                    'Quantity': ingredient.quantity,
+                    'Measurement': ingredient.measurement,
+                  };
+                }).toList();
 
-        // Prepare ingredients for the API call
-        List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
-          return {
-            'IngredientID': ingredient.ingredientID,
-            'Name': ingredient.name,
-            'Quantity': ingredient.quantity,
-            'Measurement': ingredient.measurement,
-          };
-        }).toList();
-        
-        print('Ingredients for API: $ingredientsForApi');
+                // Call the API to update the recipe
+                await RecipeApi().updateRecipe(
+                  updatedRecipe.recipeID,
+                  updatedRecipe.name,
+                  updatedRecipe.steps,
+                  ingredientsForApi,
+                  updatedRecipe.productID,
+                  updatedRecipe.category,
+                  updatedRecipe.yield2,
+                );
 
-        // Call the API to update the recipe
-        await RecipeApi().updateRecipe(
-          updatedRecipe.recipeID,
-          updatedRecipe.name,
-          updatedRecipe.steps,
-          ingredientsForApi,
-          updatedRecipe.productID,
-          updatedRecipe.category,
-          updatedRecipe.yield2,
-        );
+                // Call the update callback
 
-        // Call the update callback
-        
-          onRecipeUpdated(updatedRecipe);
-        
+                  onRecipeUpdated(updatedRecipe);
 
-        // Close the dialog
-        Navigator.pop(context, updatedRecipe);
-      } catch (error) {
-        print('Error updating recipe: $error');
-        // You might want to show an alert or a snackbar to the user here
-      }
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF6D3200),
-      foregroundColor: const Color(0xFFF0d1a0),
-    ),
-    child: const Text('Save Changes'),
-  ),
-],
 
+                // Close the dialog
+                Navigator.pop(context, updatedRecipe);
+              } catch (error) {
+                // error
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200),
+              foregroundColor: const Color(0xFFF0d1a0),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
       );
     },
   );
 }
-
-// // Create a widget to display the data
-// class RecipeListPage extends StatelessWidget {
-//   final String searchQuery;
-
-//   RecipeListPage({required this.searchQuery});
-//   /*
-//   final String recipeName;
-//   final int recipeID;
-
-//   const RecipeListPage({required this.recipeName, required this.recipeID, Key? key}) : super(key: key);
-//   */
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Recipe List'),
-//       ),
-//       body: FutureBuilder<List<Item>>(
-//         future: RecipeApi.getItems(searchQuery),
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return const Center(child: CircularProgressIndicator());
-//           } else if (snapshot.hasError) {
-//             return Center(child: Text('Error: ${snapshot.error}'));
-//           } else if (snapshot.hasData) {
-//             final items = snapshot.data!;
-
-//             return ListView.builder(
-//               itemCount: items.length,
-//               itemBuilder: (context, index) {
-//                 final item = items[index];
-
-//                 return Padding(
-//                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-//                   child: Container(
-//                     decoration: BoxDecoration(
-//                       border: Border.all(color: Colors.grey.shade300),
-//                       borderRadius: BorderRadius.circular(8),
-//                       color: Colors.white,
-//                     ),
-//                     child: Column(
-//                       children: [
-//                         ListTile(
-//                           title: Text(item.name, style: TextStyle(fontWeight: FontWeight.bold)),
-//                           subtitle: Column(
-//                             crossAxisAlignment: CrossAxisAlignment.start,
-//                             children: [
-//                               Text('Product ID: ${item.productID}'),
-//                               Text('Steps: ${item.steps}'),
-//                             ],
-//                           ),
-//                         ),
-//                         const Padding(
-//                           padding: const EdgeInsets.symmetric(horizontal: 16),
-//                           child: Divider(), // Adds a divider line between sections
-//                         ),
-//                         Padding(
-//                           padding: const EdgeInsets.all(16),
-//                           child: Column(
-//                             crossAxisAlignment: CrossAxisAlignment.start,
-//                             children: [
-//                               const Text(
-//                                 'Ingredients:',
-//                                 style: TextStyle(fontWeight: FontWeight.bold),
-//                               ),
-//                               const SizedBox(height: 8),
-//                               ...item.ingredients.map((ingredient) {
-//                                 return ListTile(
-//                                   contentPadding: EdgeInsets.zero,
-//                                   title: Text(ingredient.name),
-//                                   subtitle: Text('Quantity: ${ingredient.quantity}g'),
-//                                 );
-//                               }).toList(),
-//                             ],
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 );
-//               },
-//             );
-//           } else {
-//             return const Center(child: Text('No data found'));
-//           }
-//         },
-//       ),
-//     );
-//   }
-// }
