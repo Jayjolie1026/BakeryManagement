@@ -86,13 +86,14 @@ class _SignInPageState extends State<SignInPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
        await prefs.setString('username', _usernameController.text); 
       final responseBody = jsonDecode(response.body);
-      print('Decoded response body: $responseBody');
+
 
       final employeeId = responseBody['employee_id'];
       await prefs.setString('employeeId', employeeId);
-      print('Employee ID: $employeeId');
+
       final firstName = responseBody['first_name']; // Get first name from response
       final jobId = responseBody['job_id'];
+
 
       await prefs.setString('firstName', firstName); // Save first name
       await prefs.setInt('jobId', jobId); // Save job ID
@@ -696,6 +697,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       final jobId = 3;
       await prefs.setString('firstName', firstName); // Save first name
       await prefs.setInt('jobId', jobId); // Save job ID
+
 
       final responseBody = jsonDecode(response.body);
       print('Decoded response body: $responseBody');
