@@ -88,6 +88,7 @@ class _SignInPageState extends State<SignInPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
        await prefs.setString('username', _usernameController.text); 
       final responseBody = jsonDecode(response.body);
+      print('Decoded response body: $responseBody');
 
       final employeeId = responseBody['employee_id'];
       await prefs.setString('employeeId', employeeId);

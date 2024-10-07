@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:bakery_management/pages/recipeFunctions.dart';
+import 'package:bakery_management/pages/tasksAPI.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/sessions.dart';
 import 'package:bakery_management/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksFunctions.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
 
 
 const Map<int, String> productImages = {
@@ -691,35 +694,91 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     widget.onProductUpdated!(fetchedProduct); // Notify the parent about the updated product
   }
 }
+Future<List<Task>> checkTasks() async {
+   List<Task> existingTasks = await getTasks();
+   return existingTasks;
+       
+}
 
   Widget _buildQuantityWarning(Product product) {
-    if (product.quantity < product.minAmount) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'QUANTITY IS VERY LOW! REMAKE NOW!',
-          style: TextStyle(
-            fontSize: 20,
-            color: Color(0xFF6D3200),
-          ),
-          textAlign: TextAlign.left,
-        ),
-      );
-    } else if (product.quantity < product.remakeAmount) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'Quantity is getting low. Please remake!',
-          style: TextStyle(
-            fontSize: 20,
-            color: Color(0xFF6D3200),
-          ),
-          textAlign: TextAlign.left,
-        ),
-      );
-    }
-    return const SizedBox(); // Empty widget
-  }
+  return FutureBuilder<List<Task>>(
+    future: checkTasks(), // Call the async function to fetch tasks
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        // While the future is loading, show a loading indicator or placeholder
+        return const CircularProgressIndicator();
+      } else if (snapshot.hasError) {
+        // Handle any errors
+        return Text('Error: ${snapshot.error}');
+      } else if (snapshot.hasData) {
+        List<Task> existingTasks = snapshot.data!;
+
+        if (product.quantity < product.minAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 1));
+          final description = 'Need to remake ${product.name}, quantity below min amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+          existingTasks.forEach((task) {
+  print('Description: ${task.description}, Due Date: ${task.dueDate}');
+});
+          // Check if a task for this product already exists
+          bool taskExists = existingTasks.any((task) =>
+              task.description == description || // Exact match for the description
+  task.dueDate.toIso8601String() == dueDate.toIso8601String()); // Exact match for the due date
+
+          if (!taskExists) {
+            // If no such task exists, add the new task
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${product.name}, skipping task creation.');
+          }
+
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'QUANTITY IS VERY LOW! REMAKE NOW!',
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF6D3200),
+              ),
+              textAlign: TextAlign.left,
+            ),
+          );
+        } else if (product.quantity < product.remakeAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 5));
+          final description = 'Need to remake ${product.name}, quantity below remake amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Check if a task for this product already exists
+          bool taskExists = existingTasks.any((task) =>
+              task.description.contains(product.name) &&
+              task.description.contains(description) &&
+              task.dueDate == dueDate);
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${product.name}, skipping task creation.');
+          }
+
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Quantity is getting low. Please remake!',
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF6D3200),
+              ),
+              textAlign: TextAlign.left,
+            ),
+          );
+        }
+      }
+
+      return const SizedBox(); // Empty widget if no warning is needed
+    },
+  );
+}
+
 
 
   @override

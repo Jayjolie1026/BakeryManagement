@@ -21,7 +21,7 @@ class SessionService {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Session expired. Please sign in again.'),
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 1),
         ),
       );
 
