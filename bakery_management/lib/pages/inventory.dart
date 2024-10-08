@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bakery_management/pages/tasksAPI.dart';
+
 import 'vendorsItemClass.dart';
 import 'bakedgoods.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +10,11 @@ import 'inventoryFunctions.dart';
 import 'package:intl/intl.dart';
 import 'vendors.dart';
 import 'vendorsAPI.dart';
-import 'package:bakery_management/pages/sessions.dart';
+import 'sessions.dart';
 import 'package:bakery_management/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksFunctions.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
 
 
 class InventoryPage extends StatefulWidget {
@@ -37,35 +41,37 @@ class _InventoryPageState extends State<InventoryPage> {
     debouncer?.cancel();
     super.dispose();
   }
+  
+
   Future<void> navigateToDetailPage(Item item) async {
-  // Push to the detail page and wait for the result
-  final updatedItem = await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ItemDetailPage(item: item), // Replace with your actual detail page
-    ),
-  );
+    // Push to the detail page and wait for the result
+    final updatedItem = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemDetailPage(item: item), // Replace with your actual detail page
+      ),
+    );
 
-  // If updatedItem is returned (i.e., the item was updated), refresh the item in the list
-  if (updatedItem != null) {
-    setState(() {
-      // Find the index of the item and update it in the list
-      int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
-      if (index != -1) {
-        items[index] = updatedItem; // Update the specific item
-      }
-    });
-
-    // Re-apply the current query/filter after returning
-    if (query.isNotEmpty) {
-      searchItem(query);  // Re-apply the search/filter query
-    } else {
+    // If updatedItem is returned (i.e., the item was updated), refresh the item in the list
+    if (updatedItem != null) {
       setState(() {
-        items = allItems;  // Reset to full list if no filter is applied
+        // Find the index of the item and update it in the list
+        int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+        if (index != -1) {
+          items[index] = updatedItem; // Update the specific item
+        }
       });
+
+      // Re-apply the current query/filter after returning
+      if (query.isNotEmpty) {
+        searchItem(query);  // Re-apply the search/filter query
+      } else {
+        setState(() {
+          items = allItems;  // Reset to full list if no filter is applied
+        });
+      }
     }
   }
-}
 
 
   // Debounce for search bar
@@ -91,7 +97,7 @@ class _InventoryPageState extends State<InventoryPage> {
     backgroundColor: const Color(0xFFF0D1A0),
     body: Column(
       children: <Widget>[
-        SizedBox(height: 25.0),
+        const SizedBox(height: 25.0),
         // Search bar with filter
         buildSearchWithFilter(),
         Expanded(
@@ -101,26 +107,26 @@ class _InventoryPageState extends State<InventoryPage> {
               final item = items[index];
               return GestureDetector(
                 onTap: () async {
-                   SharedPreferences prefs = await SharedPreferences.getInstance();
+                  SharedPreferences prefs = await SharedPreferences.getInstance();
                   int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
                   if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+                    // Create an instance of SessionService
+                    SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+                    // Check the session status
+                    await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+                    // If the session is active, update it
+                    await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-                   navigateToDetailPage(item); // Call the navigateToDetailPage function
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignInPage()),
+                    );
+                  }
+                  navigateToDetailPage(item); // Call the navigateToDetailPage function
                 },
                 child: buildItem(item), // Your custom widget to display the item
               );
@@ -147,243 +153,196 @@ class _InventoryPageState extends State<InventoryPage> {
       backgroundColor: const Color(0xFF422308),  // Dark brown background
       foregroundColor: const Color.fromARGB(255, 243, 217, 162),
     ),
+    // Center at the bottom
     floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-
-
- // Center at the bottom
-
-    // --------------------temporary code to delete items------------------------------
-    //   floatingActionButton: Row(
-    //     mainAxisAlignment: MainAxisAlignment.center,
-    //     children: [
-    //       FloatingActionButton.extended(
-    //         heroTag: 'uniqueTag2',
-    //         onPressed: () => showAddIngredientAndInventoryDialog(context, () {
-    //           // Refresh the inventory list after adding new item
-    //           setState(() {
-    //             init();
-    //           });
-    //         }), // Open form for new ingredient
-    //         label: const Text('Add Ingredient'),
-    //         icon: const Icon(Icons.add),
-    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-    //       ),
-    //       const SizedBox(width: 16),
-    //       FloatingActionButton.extended(
-    //         heroTag: 'uniqueTag1',
-    //         onPressed: () {
-    //           showDeleteIngredientDialog(context, () {
-    //             setState(() {
-    //               init();
-    //             });
-    //           });
-    //         },
-    //         label: const Text('Delete Ingredient'),
-    //         icon: const Icon(Icons.delete),
-    //         backgroundColor: const Color(0xFF422308),  // Dark brown background
-    //         foregroundColor: const Color.fromARGB(255, 243, 217, 162),
-    //       ),
-    //     ],
-    //   ),
-    //   floatingActionButtonLocation:
-    //       FloatingActionButtonLocation.centerFloat, // Center at the bottom
   );
 
   
-// Search bar and filter button
-Widget buildSearchWithFilter() => Row(
-  children: [
-    Expanded(
-      // The search widget takes up the remaining space
-      child: SearchWidget(
-        text: query,
-        hintText: 'Search by Name',
-        onChanged: searchItem,
+  // Search bar and filter button
+  Widget buildSearchWithFilter() => Row(
+    children: [
+      Expanded(
+        // The search widget takes up the remaining space
+        child: SearchWidget(
+          text: query,
+          hintText: 'Search by Name',
+          onChanged: searchItem,
+        ),
       ),
-    ),
-    Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
-      alignment: Alignment.center, // Center the icon vertically
-      child: IconButton(
-        icon: Icon(Icons.filter_list),
-        color: Colors.brown,  // Adjust color to match your theme
-        onPressed: () async{
-           SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+      Container(
+        padding: const EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+        alignment: Alignment.center, // Center the icon vertically
+        child: IconButton(
+          icon: const Icon(Icons.filter_list),
+          color: Colors.brown,  // Adjust color to match your theme
+          onPressed: () async{
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+            if (sessionId != null) {
+              // Create an instance of SessionService
+              SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+              // Check the session status
+              await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+              // If the session is active, update it
+              await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-          // Open filter dialog or perform any filter action here
-          _showFilterOptions();
-        },
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const SignInPage()),
+              );
+            }
+            // Open filter dialog or perform any filter action here
+            _showFilterOptions();
+          },
+        ),
       ),
-    ),
-  ],
-);
+    ],
+  );
 
     
 
 
 
-void _showFilterOptions() {
-  final categories = _getCategories(); // Get unique categories from items
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
-        title: const Text(
-          'Filter by Category',
-          style: TextStyle(
-            color: const Color(0xFF6D3200), // Set the title text color
+  void _showFilterOptions() {
+    final categories = _getCategories(); // Get unique categories from items
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
+          title: const Text(
+            'Filter by Category',
+            style: TextStyle(
+              color: Color(0xFF6D3200), // Set the title text color
+            ),
           ),
-        ),
-        content: SingleChildScrollView( // Make content scrollable
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: categories.map((category) {
-              return ListTile(
-                title: Text(
-                  category,
-                  style: const TextStyle(
-                    color: const Color(0xFF6D3200), // Set the ListTile text color
+          content: SingleChildScrollView( // Make content scrollable
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: categories.map((category) {
+                return ListTile(
+                  title: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Color(0xFF6D3200), // Set the ListTile text color
+                    ),
                   ),
-                ),
-                onTap: () {
-                  Navigator.pop(context); // Close the dialog
-                  applyCategoryFilter(category); // Apply the category filter
-                },
-              );
-            }).toList(),
+                  onTap: () {
+                    Navigator.pop(context); // Close the dialog
+                    applyCategoryFilter(category); // Apply the category filter
+                  },
+                );
+              }).toList(),
+            ),
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.close, color: const Color(0xFF422308)), // Set the close button icon color
-            onPressed: () {
-              Navigator.pop(context); // Close the dialog
-              setState(() {
-                items = allItems; // Reset to show all items
-                query = ''; // Clear the query as well
-              });
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-
-
-
-
-
-// Helper function to check if the query is a category
-bool _isCategory(String query) {
-  // Assuming you have the categories already fetched from _getCategories
-  final categories = _getCategories();
-  return categories.contains(query);
-}
-
-
-// Get unique categories from the list of items
-List<String> _getCategories() {
-  final allCategories = items.map((item) => item.category).toSet();
-  //print(_getCategories());
-  
-   // Extract unique categories
-  return allCategories.toList(); // Convert Set back to List for easier manipulation
-}
-
-// Apply the selected category filter
-void applyCategoryFilter(String category) {
-  setState(() {
-    // Filter items based on the selected category from the full item list
-    items = allItems.where((item) => item.category == category).toList();
-    query = category; // Update the query to reflect the selected category
-  });
-}
-
-
-void searchItem(String query) {
-  List<Item> filteredItems;
-
-  if (query.isEmpty) {
-    // Reset items to the full list when search is cleared
-    filteredItems = allItems;
-  } else if (_isCategory(query)) {
-    // If query is a category, filter items by that category
-    filteredItems = allItems.where((item) => item.category == query).toList();
-  } else {
-    // Otherwise, filter items by name or other search criteria
-    filteredItems = allItems.where((item) =>
-        item.ingredientName.toLowerCase().contains(query.toLowerCase())).toList();
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close, color: Color(0xFF422308)), // Set the close button icon color
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                setState(() {
+                  items = allItems; // Reset to show all items
+                  query = ''; // Clear the query as well
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  setState(() {
-    items = filteredItems;
-    this.query = query; // Update query in state
-  });
-}
+  // Helper function to check if the query is a category
+  bool _isCategory(String query) {
+    // Assuming you have the categories already fetched from _getCategories
+    final categories = _getCategories();
+    return categories.contains(query);
+  }
+
+
+  // Get unique categories from the list of items
+  List<String> _getCategories() {
+    final allCategories = items.map((item) => item.category).toSet();
+
+     // Extract unique categories
+    return allCategories.toList(); // Convert Set back to List for easier manipulation
+  }
+
+  // Apply the selected category filter
+  void applyCategoryFilter(String category) {
+    setState(() {
+      // Filter items based on the selected category from the full item list
+      items = allItems.where((item) => item.category == category).toList();
+      query = category; // Update the query to reflect the selected category
+    });
+  }
+
+
+  void searchItem(String query) {
+    List<Item> filteredItems;
+
+    if (query.isEmpty) {
+      // Reset items to the full list when search is cleared
+      filteredItems = allItems;
+    } else if (_isCategory(query)) {
+      // If query is a category, filter items by that category
+      filteredItems = allItems.where((item) => item.category == query).toList();
+    } else {
+      // Otherwise, filter items by name or other search criteria
+      filteredItems = allItems.where((item) =>
+          item.ingredientName.toLowerCase().contains(query.toLowerCase())).toList();
+    }
+
+    setState(() {
+      items = filteredItems;
+      this.query = query; // Update query in state
+    });
+  }
 
   // Build list tile for each inventory item
   Widget buildItem(Item item) => GestureDetector(
     onTap: () async {
-      
-  final updatedItem = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ItemDetailPage(
-          item: item,
-          onItemUpdated: (updatedItem) {
-            int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
-            if (index != -1) {
-              setState(() {
-                items[index] = updatedItem; // Update the item list
-              });
-            }
-          },
+      final updatedItem = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemDetailPage(
+            item: item,
+            onItemUpdated: (updatedItem) {
+              int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+              if (index != -1) {
+                setState(() {
+                  items[index] = updatedItem; // Update the item list
+                });
+              }
+            },
+          ),
         ),
-      ),
-  );
-  if (updatedItem != null) {
+      );
+      if (updatedItem != null) {
+        setState(() {
+          // Find the index of the item to update
+          int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
+          if (index != -1) {
+            items[index] = updatedItem; // Update the existing item
+            allItems[index] = updatedItem; // Ensure allItems is also updated
+          }
+        });
+      }
+
+      // Re-apply the current query/filter after returning
       setState(() {
-        // Find the index of the item to update
-        int index = items.indexWhere((i) => i.ingredientID == updatedItem.ingredientID);
-        if (index != -1) {
-          items[index] = updatedItem; // Update the existing item
-          allItems[index] = updatedItem; // Ensure allItems is also updated
+        // Check if the query is still valid and reapply filtering
+        if (query.isNotEmpty) {
+          searchItem(query);  // Re-apply the search/filter query
+        } else {
+          items = allItems;  // Reset to full list if no filter is applied
         }
       });
-    }
-
-  // Re-apply the current query/filter after returning
-  setState(() {
-    // Check if the query is still valid and reapply filtering
-    if (query.isNotEmpty) {
-      searchItem(query);  // Re-apply the search/filter query
-    } else {
-      items = allItems;  // Reset to full list if no filter is applied
-    }
-  });
-},
+    },
 
     child: Card(
       color: const Color(0xFF6D3200),
@@ -400,7 +359,7 @@ void searchItem(String query) {
           child: Text(
             item.ingredientName,
             style: const TextStyle(
-              color: Color.fromARGB(255, 243, 217, 162),
+              color: Color(0xFFEEC07B),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -430,58 +389,112 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     _item = widget.item;
   }
 
- void _updateItem(Item updatedItem) async {
-  // Preserve the entryID before updating
-  final int preservedEntryID = _item.entryID!;
+  void _updateItem(Item updatedItem) async {
+    // Preserve the entryID before updating
+    final int preservedEntryID = _item.entryID!;
 
-  setState(() {
-    _item = updatedItem;
-    _item.entryID = preservedEntryID;  // Ensure entryID is not lost
-  });
-
-  // Optionally re-fetch the product from the database
-  try {
-    final fetchedItem = await InventoryApi.fetchItemById(preservedEntryID);
     setState(() {
-      _item = fetchedItem;  // Update state with the fetched product
+      _item = updatedItem;
+      _item.entryID = preservedEntryID;  // Ensure entryID is not lost
     });
-  } catch (error) {
-    print('Error fetching item: $error');
+
+    // Optionally re-fetch the product from the database
+    try {
+      final fetchedItem = await InventoryApi.fetchItemById(preservedEntryID);
+      setState(() {
+        _item = fetchedItem;  // Update state with the fetched product
+      });
+    } catch (error) {
+      // error
+    }
+
+    if (widget.onItemUpdated != null) {
+      widget.onItemUpdated!(_item);  // Notify parent widget with the updated item
+    }
   }
-
-  if (widget.onItemUpdated != null) {
-    widget.onItemUpdated!(_item);  // Notify parent widget with the updated item
-  }
-
-  
-}
-
-
-
 
   String formatDate(DateTime dateTime) {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     return formatter.format(dateTime);
   }
+  Future<List<Task>> checkTasks() async {
+   List<Task> existingTasks = await getTasks();
+   return existingTasks;
+       
+}
 
-  Widget _buildQuantityWarning(Item item) {
-    if (item.quantity < item.minAmount) {
-      return const Text(
-        'QUANTITY IS VERY LOW! REORDER NOW!',
-        style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-      );
-    } else if (item.quantity < item.reorderAmount) {
-      return const Text(
-        'Quantity is getting low. Please reorder!',
-        style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-      );
-    }
-    return const SizedBox(); // Return an empty widget if no warnings
-  }
+ Widget _buildQuantityWarning(Item item) {
+  return FutureBuilder<List<Task>>(
+    future: checkTasks(), // Fetch the existing tasks
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const CircularProgressIndicator();
+      } else if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      } else if (snapshot.hasData) {
+        List<Task> existingTasks = snapshot.data!;
+
+        // Check for quantity below minimum amount
+        if (item.quantity < item.minAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 1));
+          final description = 'Need to remake ${item.ingredientName}, quantity below min amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Log existing tasks for debugging
+          for (var task in existingTasks) {
+            print('Description: ${task.description}, Due Date: ${task.dueDate}');
+          }
+
+          // Check if a task for this item already exists
+          bool taskExists = existingTasks.any((task) =>
+            task.description == description ||
+            task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${item.ingredientName}, skipping task creation.');
+          }
+
+          return const Text(
+            'QUANTITY IS VERY LOW! REORDER NOW!',
+            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+          );
+        } 
+        
+        // Check for quantity below reorder amount
+        else if (item.quantity < item.reorderAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 5));
+          final description = 'Need to remake ${item.ingredientName}, quantity below reorder amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Check if a task for this item already exists
+          bool taskExists = existingTasks.any((task) =>
+            task.description == description && 
+            task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${item.ingredientName}, skipping task creation.');
+          }
+
+          return const Text(
+            'Quantity is getting low. Please reorder!',
+            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+          );
+        }
+      }
+
+      return const SizedBox(); // Return empty widget if no warnings
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
-  // Method to return the corresponding ingredient image for ingredient
+    // Method to return the corresponding ingredient image for ingredient
     String getIngredientImage(int ingredientID) {
     // Mapping ingredientID to image file names
       Map<int, String> ingredientImages = {
@@ -519,188 +532,188 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         76: 'assets/raspberryfilling.jpg', 
 
       };
-    return ingredientImages[ingredientID] ?? 'assets/bread2.png';
-  }
+      return ingredientImages[ingredientID] ?? 'assets/bread2.png';
+    }
 
-  return Scaffold(
-    backgroundColor: const Color(0xFFF0D1A0),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _item.ingredientName,
-            style: const TextStyle(
-              fontSize: 30,
-              color: Color(0xFF6D3200),
-              fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _item.ingredientName,
+              style: const TextStyle(
+                fontSize: 30,
+                color: Color(0xFF6D3200),
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.left,
             ),
-            textAlign: TextAlign.left,
-          ),
-          SizedBox(
-            width: double.infinity,
-            height: 250, // Set the height of the image
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(getIngredientImage(_item.ingredientID)),
-                  fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildDetailRow('IngredientID', (_item.ingredientID).toString()),
-              buildDetailRow('Notes', _item.notes),
-              buildDetailRow('Quantity', '${_item.quantity} ${_item.invMeasurement}'),
-              buildDetailRow('Max Amount', _item.maxAmount.toString()),
-              buildDetailRow('Reorder Amount', _item.reorderAmount.toString()),
-              buildDetailRow('Min Amount', _item.minAmount.toString()),
-              buildDetailRow('Cost', _item.cost.toString()),
-              buildDetailRow('Created', formatDate(_item.createDateTime)),
-              buildDetailRow('Expires', formatDate(_item.expireDateTime)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () async {
-                   SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
-
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
-
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
-
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
-
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-                  // Update action
-                  showInventoryAndIngredientUpdateDialog(
-                    context,
-                    _item,
-                    (updatedItem) {
-                      _updateItem(updatedItem);
-                      
-                    },
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0D1A0),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.add),
-                    SizedBox(width: 8), // Spacing between image and text
-                    Text('Update'),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    final Vendor vendor =
-                        await VendorsApi().fetchVendorDetails(_item.vendorID);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            VendorDetailsPage(vendor: vendor),
-                      ),
-                    );
-                  } catch (e) {
-                    print('Failed to load vendor details: $e');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D3200),
-                  foregroundColor: const Color(0xFFF0D1A0),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.business),
-                    SizedBox(width: 8), // Spacing between image and text
-                    Text('Vendor'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(0.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, true); // Close the page
-                },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(const Color(0xFF6D3200)),
-                  foregroundColor:
-                      MaterialStateProperty.all(const Color(0xFFEEC07B)),
-                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50.0),
-                  )),
-                ),
-                child: const Text(
-                  'Close',
-                  style: TextStyle(
-                    fontSize: 17, // Font size
-                    color: Color(0xFFEEC07B), // Light brown text
+            SizedBox(
+              width: double.infinity,
+              height: 250, // Set the height of the image
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(getIngredientImage(_item.ingredientID)),
+                    fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
+            const SizedBox(height: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildDetailRow('IngredientID', (_item.ingredientID).toString()),
+                buildDetailRow('Notes', _item.notes),
+                buildDetailRow('Quantity', '${_item.quantity} ${_item.invMeasurement}'),
+                buildDetailRow('Max Amount', _item.maxAmount.toString()),
+                buildDetailRow('Reorder Amount', _item.reorderAmount.toString()),
+                buildDetailRow('Min Amount', _item.minAmount.toString()),
+                buildDetailRow('Cost', _item.cost.toString()),
+                buildDetailRow('Created', formatDate(_item.createDateTime)),
+                buildDetailRow('Expires', formatDate(_item.expireDateTime)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                     SharedPreferences prefs = await SharedPreferences.getInstance();
+                    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
-Widget buildDetailRow(String label, String value) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-          color: Color(0xFF6D3200),
+                    if (sessionId != null) {
+                    // Create an instance of SessionService
+                    SessionService sessionService = SessionService(context);
+
+                    // Check the session status
+                    await sessionService.checkSession(sessionId); // Check if the session is active
+
+                    // If the session is active, update it
+                    await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignInPage()),
+                    );
+                  }
+                    // Update action
+                    showInventoryAndIngredientUpdateDialog(
+                      context,
+                      _item,
+                      (updatedItem) {
+                        _updateItem(updatedItem);
+
+                      },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6D3200),
+                    foregroundColor: const Color(0xFFF0D1A0),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add),
+                      SizedBox(width: 8), // Spacing between image and text
+                      Text('Update'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final Vendor vendor =
+                          await VendorsApi().fetchVendorDetails(_item.vendorID);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              VendorDetailsPage(vendor: vendor),
+                        ),
+                      );
+                    } catch (e) {
+                      // error
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6D3200),
+                    foregroundColor: const Color(0xFFF0D1A0),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.business),
+                      SizedBox(width: 8), // Spacing between image and text
+                      Text('Vendor'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(0.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true); // Close the page
+                  },
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(const Color(0xFF6D3200)),
+                    foregroundColor:
+                        WidgetStateProperty.all(const Color(0xFFEEC07B)),
+                    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0),
+                    )),
+                  ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      fontSize: 17, // Font size
+                      color: Color(0xFFEEC07B), // Light brown text
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 18,
-          color: Color(0xFF6D3200),
+    );
+  }
+
+  Widget buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Color(0xFF6D3200),
+          ),
         ),
-      ),
-      const SizedBox(height: 4), // Adjust the space between label and value
-    ],
-  );
-}
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            color: Color(0xFF6D3200),
+          ),
+        ),
+        const SizedBox(height: 4), // Adjust the space between label and value
+      ],
+    );
+  }
 }

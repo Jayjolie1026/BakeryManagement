@@ -1,3 +1,4 @@
+import 'package:bakery_management/pages/tasksFunctions.dart';
 import 'package:flutter/material.dart';
 import 'package:bakery_management/pages/inventory.dart';
 import 'package:bakery_management/pages/recipe.dart';
@@ -6,6 +7,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/bakedgoods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
+import 'package:bakery_management/pages/tasksAPI.dart';
+import 'package:bakery_management/pages/tasks.dart';
 import 'package:bakery_management/pages/sessions.dart';
 
 
@@ -79,8 +83,6 @@ class _SignInPageState extends State<SignInPage> {
         'password': _passwordController.text,
       }),
     );
-    print('Response status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -90,9 +92,10 @@ class _SignInPageState extends State<SignInPage> {
 
       final employeeId = responseBody['employee_id'];
       await prefs.setString('employeeId', employeeId);
-      print('Employee ID: $employeeId');
+
       final firstName = responseBody['first_name']; // Get first name from response
       final jobId = responseBody['job_id'];
+
 
       await prefs.setString('firstName', firstName); // Save first name
       await prefs.setInt('jobId', jobId); // Save job ID
@@ -104,14 +107,11 @@ class _SignInPageState extends State<SignInPage> {
         'employee_id': employeeId,
       }),
     );
-    print('Session response status code: ${sessionResponse.statusCode}');
-    print('Session response body: ${sessionResponse.body}');
 
     if (sessionResponse.statusCode == 201) {
       final sessionResponseBody = jsonDecode(sessionResponse.body);
       final sessionId = sessionResponseBody['session_id'];  
       await prefs.setInt('sessionId', sessionId);
-      print('Session ID: $sessionId');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BakeryHomePage()),
@@ -233,7 +233,6 @@ Widget build(BuildContext context) {
 }
 }
 
-
 class BakeryHomePage extends StatefulWidget {
   const BakeryHomePage({super.key});
 
@@ -294,6 +293,7 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
       firstName = prefs.getString('firstName') ?? "User"; // Default to "User" if not found
     });
   }
+  
   Future<void> _loadSessionID() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -305,47 +305,48 @@ class _BakeryHomePageState extends State<BakeryHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
-        title: null, // Remove the title to use FlexibleSpaceBar
-       flexibleSpace: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
-          child: _selectedIndex == 0 // Check if the selected index is 0 (Home Page)
-              ? Text(
-                  'Hi $firstName!', // Display the greeting
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: const Color.fromARGB(255, 243, 217, 162),
-                  ), // Customize the text style as needed
-                )
-              : Container(), // Show an empty container for other pages
+appBar: AppBar(
+  title: null, // Remove the title to use FlexibleSpaceBar
+  flexibleSpace: Center(
+    child: Padding(
+      padding: const EdgeInsets.only(top: 10.0), // Adjust this value to scoot the image up
+      child: _selectedIndex == 0 // Check if the selected index is 0 (Home Page)
+          ? Text(
+              'Hi $firstName!', // Display the greeting
+              style: TextStyle(
+                fontSize: 24,
+                color: const Color.fromARGB(255, 243, 217, 162),
+              ), // Customize the text style as needed
+            )
+          : Container(), // Show an empty container for other pages
+    ),
+  ),
+  centerTitle: true,
+  backgroundColor: const Color(0xFF422308),
+  leading: PopupMenuButton<String>(
+    icon: const Icon(Icons.menu),
+    onSelected: (value) {
+      if (value == 'logout') {
+        _logout(context);
+      } else if (value == 'userOptions') {
+        _navigateToUserOptions(context);
+      }
+    },
+    itemBuilder: (BuildContext context) {
+      return [
+        const PopupMenuItem<String>(
+          value: 'userOptions',
+          child: Text('User Options'),
         ),
-      ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF422308),
-         leading: PopupMenuButton<String>(
-          icon: const Icon(Icons.menu),
-          onSelected: (value) {
-            if (value == 'logout') {
-              _logout(context);
-            } else if (value == 'userOptions') {
-              _navigateToUserOptions(context);
-            }
-          },
-          itemBuilder: (BuildContext context) {
-            return [
-              const PopupMenuItem<String>(
-                value: 'userOptions',
-                child: Text('User Options'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ];
-          },
+        const PopupMenuItem<String>(
+          value: 'logout',
+          child: Text('Logout'),
         ),
-      ),
+      ];
+    },
+  ),
+),
+
       backgroundColor: const Color(0xFFF0D1A0),
       body: _pages[_selectedIndex], // Display the selected page
 
@@ -391,46 +392,255 @@ bottomNavigationBar: BottomNavigationBar(
   }
 }
 
-// Home Page widget
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-Widget build(BuildContext context) {
-  return Column(
-    children: [
-      // Directly stacking the image and text
-      Expanded(
-        child: Align(
-          alignment: Alignment.topCenter, // Aligns at the top center
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Image.asset(
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late Future<List<Task>> tasks;
+  String? _employeeId;
+  String? _jobId;
+
+  @override
+  void initState() {
+    super.initState();
+    tasks = getTasks(); // Fetch tasks on initialization
+    _loadEmployeeId();
+    _loadJobID(); // Load the job ID during initialization
+  }
+
+Future<void> _loadJobID() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  setState(() {
+    // Retrieve the jobId from SharedPreferences
+    int? jobId = prefs.getInt('jobId');
+    if (jobId != null) {
+      print('Loaded Job ID: $jobId');
+      _jobId = jobId.toString(); // Convert to string if necessary
+    } else {
+      print('No Job ID found in SharedPreferences');
+    }
+  });
+}
+
+
+
+  Future<void> _loadEmployeeId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _employeeId = prefs.getString('employeeId'); // Retrieve the stored employeeId
+      print('Employee ID: $_employeeId');
+    });
+  }
+
+  Future<void> _refreshTasks() async {
+    setState(() {
+      tasks = getTasks(); // Re-fetch the tasks
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0D1A0),
+      body: Column(
+        children: [
+          _buildHeader(),
+          _buildAddTaskButton(),
+          _buildTaskList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Expanded(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: -20,
+              child: Image.asset(
                 'assets/Final_logo.png',
                 width: 300,
                 height: 300,
               ),
-              Positioned(
-                top: 40, // Adjust this value to move text closer to the image
-                child: Text(
-                  'Welcome to',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: 'MyFont',
-                    color: Colors.brown[900],
-                  ),
-                  textAlign: TextAlign.center,
+            ),
+            Positioned(
+              top: 15,
+              child: Text(
+                'Welcome to',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontFamily: 'MyFont',
+                  color: const Color(0xFF6D3200),
                 ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+Widget _buildAddTaskButton() {
+  // Check if jobId is available and if it's '1' or '2'
+  if (_jobId == '1' || _jobId == '2') {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 20.0), // Right padding for alignment
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end, // Align the button to the right
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.add, color: Color(0xFFEEC07B)), // "+" icon with light text color
+                label: const Text(
+                  'Create Task',
+                  style: TextStyle(color: Color(0xFFEEC07B)), // Light text color
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF422308), // Dark brown background color
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0), // Rounded button
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0), // Button padding
+                ),
+                onPressed: () async {
+                  if (_employeeId != null) {
+                    print('Assigned By ID: $_employeeId');
+                    bool updated = await showAddTaskDialog(context, _employeeId!); // Show the dialog to add a new task
+                    if (updated) {
+                      _refreshTasks(); // Refresh the task list after editing
+                    }
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Employee ID is not available.')),
+                    );
+                  }
+                },
               ),
             ],
           ),
         ),
-      ),
-    ],
+        const SizedBox(height: 5.0), // Add a constant SizedBox with a height of 5
+      ],
+    );
+  } else {
+    return const SizedBox(height: 5.0); // Return the SizedBox even if jobId is not '1' or '2'
+  }
+}
+
+
+Widget _buildTaskList() {
+  return Expanded(
+    flex: 2,
+    child: FutureBuilder<List<Task>>(
+      future: tasks,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No tasks available.'));
+        }
+
+        final taskList = snapshot.data!;
+
+        // Sort tasks by due date (nearest due date first)
+        taskList.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10.0), // Add bottom padding here
+          child: ListView.builder(
+            itemCount: taskList.length,
+            itemBuilder: (context, index) {
+              final task = taskList[index];
+              return _buildTaskCard(task);
+            },
+          ),
+        );
+      },
+    ),
   );
 }
 
+
+
+Widget _buildTaskCard(Task task) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF6D3200), // Dark brown background
+      borderRadius: BorderRadius.circular(15),
+    ),
+    child: GestureDetector(
+      onTap: () {
+        showTaskDetailsDialog(context, task);
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  task.description,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFFEEC07B), // Light text color
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Due: ${task.dueDate.toLocal().toString().split(' ')[0]}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFEEC07B), // Light text color
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Edit and Delete buttons
+          Row(
+            children: [
+              if (_jobId == '1' || _jobId == '2') // Conditional rendering for Edit button
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Color(0xFFEEC07B)),
+                  onPressed: () async {
+                    bool updated = await handleEditTask(context, task);
+                    if (updated) {
+                      _refreshTasks(); // Refresh the task list after editing
+                    }
+                  },
+                ),
+              IconButton(
+                icon: const Icon(Icons.clear, color: Color(0xFFEEC07B)),
+                onPressed: () {
+                  showDeleteTaskDialog(context, task.taskId, () {
+                    _refreshTasks(); // Refresh the task list after deletion
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }
 
 
@@ -496,20 +706,20 @@ class OptionsPage extends StatelessWidget {
         children: [
           ElevatedButton(
             onPressed: () => _navigateToUserOptions(context),
-            child: const Text('User Options'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF422308), // Dark brown button
               foregroundColor: const Color(0xFFEEC07B), // Light brown text
             ),
+            child: const Text('User Options'),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => _logout(context),
-            child: const Text('Logout'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF422308), // Dark brown button
               foregroundColor: const Color(0xFFEEC07B), // Light brown text
             ),
+            child: const Text('Logout'),
           ),
         ],
       ),
@@ -528,8 +738,8 @@ class UserOptionssPage extends StatelessWidget {
         title: const Text('User Options'),
         backgroundColor: const Color(0xFF422308),
       ),
-      body: Center(
-        child: const Text('User Options Page Content'),
+      body: const Center(
+        child: Text('User Options Page Content'),
       ),
     );
   }
@@ -588,17 +798,12 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   }
 
   bool _isValidPhoneNumber(String areaCode, String number) {
-    print('Area Code: $areaCode');
-    print('Number: $number');
-    
     if (number.length < 7) {
-      print('Number is too short');
       return false;
     }
     
     final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
     final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
-    print('Formatted Number: $formattedNumber');
     return phoneNumberRegex.hasMatch(formattedNumber);
   }
 
@@ -686,19 +891,47 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       }
       }),
     );
-    print("Response status code: ${response.statusCode}");
-    print("Response body: ${response.body}");
 
     if (response.statusCode == 201) {
-       Navigator.pushReplacement(
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', _usernameController.text);
+      final firstName = _firstNameController.text; // Get first name from response
+      const jobId = 3;
+      await prefs.setString('firstName', firstName); // Save first name
+      await prefs.setInt('jobId', jobId); // Save job ID
+
+
+      final responseBody = jsonDecode(response.body);
+      final employeeId = responseBody['employee_id'];
+      await prefs.setString('employeeId', employeeId);
+
+      final sessionResponse = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/sessions/start'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'employee_id': employeeId,
+      }),
+    );
+     if (sessionResponse.statusCode == 201) {
+      final sessionResponseBody = jsonDecode(sessionResponse.body);
+      final sessionId = sessionResponseBody['session_id'];  
+      await prefs.setInt('sessionId', sessionId);
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const BakeryHomePage()),
       );
-    } else {
+       } else {
+      // Handle session creation failure
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create account: ${response.body}')),
+        const SnackBar(content: Text('Failed to create session')),
       );
     }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failure to create an account')),
+      );
+    }
+
   }
 
   @override
@@ -1082,14 +1315,13 @@ Future<void> _loadEmployeeId() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   setState(() {
     _employeeId = prefs.getString('employeeId'); // Retrieve the stored employeeId
-    print('Employee ID: $_employeeId');
   });
 
   // Call fetchContacts after loading the employeeId
   if (_employeeId != null) {
     await fetchContacts(_employeeId);
   } else {
-    print('Employee ID is null, cannot fetch contacts');
+    // error
   }
 }
 
@@ -1097,7 +1329,6 @@ Future<void> _loadUsername() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _username = prefs.getString('username'); // Retrieve the stored username
-      print(_username);
       // Optionally, you can set the username controller's text if you want to pre-fill it
       _usernameController.text = _username ?? '';
       });
@@ -1105,22 +1336,19 @@ Future<void> _loadUsername() async {
   }
 
   Future<void> fetchContacts(String? employeeId) async {
-  print('Fetching contacts for employee ID: $employeeId');
   final response = await http.get(
     Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/employee/$employeeId/contacts')
   );
   
-  print('Response status code: ${response.statusCode}');
-  
+
   if (response.statusCode == 200) {
-    print('Response body: ${response.body}');
     final data = jsonDecode(response.body);
     setState(() {
       emails = data['emails'] ?? [];
       phoneNumbers = data['phoneNumbers'] ?? [];
     });
   } else {
-    print('Failed to fetch contacts');
+    // error
   }
 }
 
@@ -1134,42 +1362,42 @@ Future<void> _loadUsername() async {
       );
       return;
     }
-final email = _emailController.text;
-final areaCode = _areaCodeController.text;
-final phoneNumber = _phoneNumberController.text;
-final postalCode = _postalCodeController.text;
-final password = _passwordController.text;
-// Email validation
- if (!_isValidEmail(email)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Invalid email format')),
-  );
-  return;
-}
+    final email = _emailController.text;
+    final areaCode = _areaCodeController.text;
+    final phoneNumber = _phoneNumberController.text;
+    final postalCode = _postalCodeController.text;
+    final password = _passwordController.text;
+    // Email validation
+     if (!_isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email format')),
+      );
+      return;
+    }
 
-// Phone number validation
-if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Invalid phone number format')),
-  );
-  return;
-}
+    // Phone number validation
+    if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid phone number format')),
+      );
+      return;
+    }
 
-// Postal code validation
-if (!isValidPostalCode(postalCode)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
-  );
-  return;
-}
+    // Postal code validation
+    if (!isValidPostalCode(postalCode)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid postal code. Please enter a 5-digit code.')),
+      );
+      return;
+    }
 
-// Password validation
-if (!isValidPassword(password)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
-  );
-  return;
-} 
+    // Password validation
+    if (!isValidPassword(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must contain at least one uppercase letter, one number, and one special character.')),
+      );
+      return;
+    }
     final response = await http.put(
       Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/users/$_username'),
       headers: {'Content-Type': 'application/json'},
@@ -1218,345 +1446,341 @@ if (!isValidPassword(password)) {
         child: Column(
           children: [
             TextField(
-                  controller: _firstNameController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'First Name', 
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
+              controller: _firstNameController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'First Name',
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+              focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+              ),
+              enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+              ),
+              ),
+            ),
+            TextField(
+              controller: _lastNameController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Last Name',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
+                ),
+                enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
+                ),
+              ),
+            ),
+            TextField(
+              controller: _usernameController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Username',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            TextField(
+              controller: _passwordController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            // Dropdown for selecting email
+            Container(
+              alignment: Alignment.centerLeft, // Align to the left
+              child: DropdownButton<String>(
+                value: selectedEmail,
+                hint: const Text(
+                  'Select Email',
+                  style: TextStyle(
+                    color: Color(0xFF6D3200), // Hint text color
+                    fontFamily: 'MyFont',
                   ),
                 ),
-                TextField(
-                  controller: _lastNameController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Last Name', 
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
-                ),
-                TextField(
-                  controller: _usernameController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Username',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
-                ),
-                TextField(
-                  controller: _passwordController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password', 
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
-                ),
-                // Dropdown for selecting email
-                Container(
-                  alignment: Alignment.centerLeft, // Align to the left
-                  child: DropdownButton<String>(
-                    value: selectedEmail,
-                    hint: const Text(
-                      'Select Email',
-                      style: TextStyle(
-                        color: Color(0xFF6D3200), // Hint text color
+                items: emails.map((email) {
+                  return DropdownMenuItem<String>(
+                    value: email['EmailAddress'], // Use EmailAddress as the unique value
+                    child: Text(
+                      email['EmailAddress'],
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dropdown item text color
                         fontFamily: 'MyFont',
                       ),
                     ),
-                    items: emails.map((email) {
-                      return DropdownMenuItem<String>(
-                        value: email['EmailAddress'], // Use EmailAddress as the unique value
-                        child: Text(
-                          email['EmailAddress'],
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200), // Dropdown item text color
-                            fontFamily: 'MyFont',
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedEmail = value!;
-                        _emailController.text = value;
-                      });
-                    },
-                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
-                    style: const TextStyle(
-                      color: Color(0xFF6D3200), // Text color of the selected item
-                      fontSize: 16, // Text size of the selected item
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedEmail = value!;
+                    _emailController.text = value;
+                  });
+                },
+                dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                style: const TextStyle(
+                  color: Color(0xFF6D3200), // Text color of the selected item
+                  fontSize: 16, // Text size of the selected item
+                ),
+                underline: Container(
+                  height: 2,
+                  color: const Color(0xFF6D3200), // Underline color
+                ),
+                icon: const Icon(
+                  Icons.arrow_drop_down,
+                  color: Color(0xFF6D3200), // Arrow color
+                ),
+              ),
+            ),
+
+            // Dropdown for selecting phone number
+            Container(
+              alignment: Alignment.centerLeft, // Align to the left
+              child: DropdownButton<String>(
+                value: selectedPhoneNumber,
+                hint: const Text(
+                  'Select Phone Number',
+                  style: TextStyle(
+                    color: Color(0xFF6D3200), // Hint text color
+                    fontFamily: 'MyFont',
+                  ),
+                ),
+                items: phoneNumbers.map((phone) {
+                  return DropdownMenuItem<String>(
+                    value: phone['Number'], // Use Number as the unique value
+                    child: Text(
+                      '${phone['AreaCode']} - ${phone['Number']}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dropdown item text color
+                        fontFamily: 'MyFont',
+                      ),
                     ),
-                    underline: Container(
-                      height: 2,
-                      color: const Color(0xFF6D3200), // Underline color
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedPhoneNumber = value!;
+                    final selectedPhone = phoneNumbers.firstWhere((phone) => phone['Number'] == value);
+                    _areaCodeController.text = selectedPhone['AreaCode'];
+                    _phoneNumberController.text = selectedPhone['Number'];
+                  });
+                },
+                dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                style: const TextStyle(
+                  color: Color(0xFF6D3200), // Text color of the selected item
+                  fontSize: 16, // Text size of the selected item
+                ),
+                underline: Container(
+                  height: 2,
+                  color: const Color(0xFF6D3200), // Underline color
+                ),
+                icon: const Icon(
+                  Icons.arrow_drop_down,
+                  color: Color(0xFF6D3200), // Arrow color
+                ),
+              ),
+            ),
+            // Email Address TextField
+            TextField(
+              controller: _emailController,
+              style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+              decoration: const InputDecoration(
+                labelText: 'Email Address',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            // Area Code TextField
+            TextField(
+              controller: _areaCodeController,
+              style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+              decoration: const InputDecoration(
+                labelText: 'Area Code',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            // Phone Number TextField
+            TextField(
+              controller: _phoneNumberController,
+              style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            TextField(
+              controller: _streetAddressController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Street Address',
+              labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            TextField(
+              controller: _cityController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'City',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
+              child: Theme(
+                data: ThemeData(
+                  hintColor: const Color(0xFFEEC07B),
+                ),
+                child: DropdownButton<String>(
+                  value: _selectedState,
+                  hint: const Text(
+                    'Select State',
+                    style: TextStyle(
+                      color: Color(0xFF6D3200), // Hint text color
+                      fontFamily: 'MyFont',
                     ),
+                  ),
+                  items: _states.map((state) {
+                    return DropdownMenuItem<String>(
+                      value: state,
+                      child: Text(
+                        state,
+                        style: const TextStyle(color: Color(0xFF6D3200),
+                        fontFamily: 'MyFont',), // Dropdown item text color
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedState = newValue;
+                       _stateController.text = newValue ?? '';
+                    });
+                  },
+                  dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
+                  style: const TextStyle(
+                    color: Color(0xFFEEC07B), // Text color of the selected item
+                    fontSize: 16, // Text size of the selected item
+                  ),
+                  underline: Container(
+                    height: 2,
+                    color: const Color(0xFF6D3200), // Underline color
+                  ),
                     icon: const Icon(
                       Icons.arrow_drop_down,
                       color: Color(0xFF6D3200), // Arrow color
                     ),
-                  ),
                 ),
-
-                // Dropdown for selecting phone number
-                Container(
-                  alignment: Alignment.centerLeft, // Align to the left
-                  child: DropdownButton<String>(
-                    value: selectedPhoneNumber,
-                    hint: const Text(
-                      'Select Phone Number',
-                      style: TextStyle(
-                        color: Color(0xFF6D3200), // Hint text color
-                        fontFamily: 'MyFont',
-                      ),
-                    ),
-                    items: phoneNumbers.map((phone) {
-                      return DropdownMenuItem<String>(
-                        value: phone['Number'], // Use Number as the unique value
-                        child: Text(
-                          '${phone['AreaCode']} - ${phone['Number']}',
-                          style: const TextStyle(
-                            color: Color(0xFF6D3200), // Dropdown item text color
-                            fontFamily: 'MyFont',
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPhoneNumber = value!;
-                        final selectedPhone = phoneNumbers.firstWhere((phone) => phone['Number'] == value);
-                        _areaCodeController.text = selectedPhone['AreaCode'];
-                        _phoneNumberController.text = selectedPhone['Number'];
-                      });
-                    },
-                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
-                    style: const TextStyle(
-                      color: Color(0xFF6D3200), // Text color of the selected item
-                      fontSize: 16, // Text size of the selected item
-                    ),
-                    underline: Container(
-                      height: 2,
-                      color: const Color(0xFF6D3200), // Underline color
-                    ),
-                    icon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: Color(0xFF6D3200), // Arrow color
-                    ),
-                  ),
+              ),
+            ),
+            TextField(
+              controller: _postalCodeController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Postal Code',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
                 ),
-
-                        // Email Address TextField
-                        TextField(
-                          controller: _emailController,
-                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
-                          decoration: const InputDecoration(
-                            labelText: 'Email Address',
-                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                            ),
-                          ),
-                        ),
-
-                        // Area Code TextField
-                        TextField(
-                          controller: _areaCodeController,
-                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
-                          decoration: const InputDecoration(
-                            labelText: 'Area Code',
-                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                            ),
-                          ),
-                        ),
-
-                        // Phone Number TextField
-                        TextField(
-                          controller: _phoneNumberController,
-                          style: const TextStyle(color: Color(0xFF6D3200)), // Text color
-                          decoration: const InputDecoration(
-                            labelText: 'Phone Number',
-                            labelStyle: TextStyle(color: Color(0xFF6D3200)), // Label text color
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                            ),
-                          ),
-                        ),
-
-                        TextField(
-                          controller: _streetAddressController,
-                          style: const TextStyle(color: Color(0xFF6D3200)),
-                          decoration: const InputDecoration(labelText: 'Street Address',
-                          labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                            focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                            ),
-                            enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                            ),
-                          ),
-                        ),
-              TextField(
-                  controller: _cityController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'City',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
+                enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
-              ),
-              const SizedBox(height: 20),
-              Align(
-                alignment: Alignment.centerLeft, // Aligns the DropdownButton to the left
-                child: Theme(
-                  data: ThemeData(
-                    hintColor: const Color(0xFFEEC07B), 
-                  ),
-                  child: DropdownButton<String>(
-                    value: _selectedState,
-                    hint: const Text(
-                      'Select State',
-                      style: TextStyle(
-                        color: Color(0xFF6D3200), // Hint text color
-                        fontFamily: 'MyFont',
-                      ),
-                    ),
-                    items: _states.map((state) {
-                      return DropdownMenuItem<String>(
-                        value: state,
-                        child: Text(
-                          state,
-                          style: const TextStyle(color: Color(0xFF6D3200),
-                          fontFamily: 'MyFont',), // Dropdown item text color
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedState = newValue;
-                         _stateController.text = newValue ?? '';
-                      });
-                    },
-                    dropdownColor: const Color(0xFFEEC07B), // Background color of the dropdown menu
-                    style: const TextStyle(
-                      color: Color(0xFFEEC07B), // Text color of the selected item
-                      fontSize: 16, // Text size of the selected item
-                    ),
-                    underline: Container(
-                      height: 2,
-                      color: const Color(0xFF6D3200), // Underline color
-                    ),
-                      icon: const Icon(
-                        Icons.arrow_drop_down,
-                        color: Color(0xFF6D3200), // Arrow color
-                      ),
-                  ),
                 ),
-              ),     
-              TextField(
-                  controller: _postalCodeController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Postal Code',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
               ),
-              TextField(
-                  controller: _countryController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'County',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
+            ),
+            TextField(
+              controller: _countryController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'County',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
+                ),
+                enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
+                ),
               ),
+            ),
             const SizedBox(height: 20),
             Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              // Cancel Button
-              ElevatedButton(
-                onPressed: () async{
-                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                // Cancel Button
+                ElevatedButton(
+                  onPressed: () async{
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+                    if (sessionId != null) {
+                      // Create an instance of SessionService
+                      SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+                      // Check the session status
+                      await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+                      // If the session is active, update it
+                      await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-                  Navigator.pop(context); // Go back to the previous page
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: const Color(0xFF6D3200),
-                      backgroundColor: Colors.transparent, // No background color
-                      shadowColor: Colors.transparent,
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignInPage()),
+                      );
+                    }
+                    Navigator.pop(context); // Go back to the previous page
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6D3200),
+                        backgroundColor: Colors.transparent, // No background color
+                        shadowColor: Colors.transparent,
+                  ),
+                  child: const Text('Cancel'),
                 ),
-                child: const Text('Cancel'),
-              ),
-              // Update User Button
-              ElevatedButton(
-                onPressed: _updateUser,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF422308), // Background color
-                  foregroundColor: const Color(0xFFEEC07B), // Text color
+                // Update User Button
+                ElevatedButton(
+                  onPressed: _updateUser,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF422308), // Background color
+                    foregroundColor: const Color(0xFFEEC07B), // Text color
+                  ),
+                  child: const Text('Update User'),
                 ),
-                child: const Text('Update User'),
-              ),
-            ],
+              ],
             ),
           ],
         ),
@@ -1564,6 +1788,7 @@ if (!isValidPassword(password)) {
     );
   }
 }
+
 class UserActionSelectionPage extends StatelessWidget {
   const UserActionSelectionPage({super.key});
 
@@ -1606,21 +1831,21 @@ class UserActionSelectionPage extends StatelessWidget {
                   int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
                   if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+                    // Create an instance of SessionService
+                    SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+                    // Check the session status
+                    await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+                    // If the session is active, update it
+                    await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignInPage()),
+                    );
+                  }
                   // Navigate to the add page
                   Navigator.push(
                     context,
@@ -1640,21 +1865,21 @@ class UserActionSelectionPage extends StatelessWidget {
                   int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
                   if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+                    // Create an instance of SessionService
+                    SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+                    // Check the session status
+                    await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+                    // If the session is active, update it
+                    await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignInPage()),
+                    );
+                  }
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
@@ -1671,8 +1896,6 @@ class UserActionSelectionPage extends StatelessWidget {
     );
   }
 }
-
-
 
 
 class AddInformationPage extends StatefulWidget {
@@ -1701,23 +1924,23 @@ class _AddInformationPageState extends State<AddInformationPage> {
     _loadEmployeeId(); // Load the employee ID when the page initializes
   }
 
- bool _isValidEmail(String? email) {
-  if (email == null || email.isEmpty) return true; // Skip validation if not provided
-  final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-  return emailRegex.hasMatch(email);
-}
-
-bool _isValidPhoneNumber(String? areaCode, String? number) {
-  if ((areaCode == null || areaCode.isEmpty) || (number == null || number.isEmpty)) return true; // Skip validation if not provided
-  
-  if (number.length < 7) {
-    return false; // Number must be at least 7 digits
+  bool _isValidEmail(String? email) {
+    if (email == null || email.isEmpty) return true; // Skip validation if not provided
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
   }
-  
-  final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
-  final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
-  return phoneNumberRegex.hasMatch(formattedNumber);
-}
+
+  bool _isValidPhoneNumber(String? areaCode, String? number) {
+    if ((areaCode == null || areaCode.isEmpty) || (number == null || number.isEmpty)) return true; // Skip validation if not provided
+
+    if (number.length < 7) {
+      return false; // Number must be at least 7 digits
+    }
+
+    final phoneNumberRegex = RegExp(r'^\d{3}-\d{3}-\d{4}$');
+    final formattedNumber = '$areaCode-${number.substring(0, 3)}-${number.substring(3)}';
+    return phoneNumberRegex.hasMatch(formattedNumber);
+  }
 
  
   Future<void> _loadEmployeeId() async {
@@ -1733,51 +1956,50 @@ bool _isValidPhoneNumber(String? areaCode, String? number) {
     final areaCode = _areaCodeController.text;
     final phoneNumber = _phoneController.text;
 
-// Email validation
-if (!_isValidEmail(email)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Invalid email format')),
-  );
-  return;
-}
-
-// Phone number validation
-if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Invalid phone number format')),
-  );
-  return;
-} 
-
-    // Prepare the data to send
-   final contactData = {
-  'emailAddress': _emailController.text.isNotEmpty ? _emailController.text : null,
-  'emailTypeID': _emailController.text.isNotEmpty ? _getEmailTypeID(_selectedEmailType) : null,
-  'employeeID': employeeId, // Replace with actual employeeID
-  'areaCode': _areaCodeController.text.isNotEmpty ? _areaCodeController.text : null,
-  'phoneNumber': _phoneController.text.isNotEmpty ? _phoneController.text : null,
-  'phoneTypeID': _phoneController.text.isNotEmpty ? _getPhoneTypeID(_selectedPhoneType) : null,
-};
-
-// Send the combined data to your new API endpoint
-final response = await http.post(
-  Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/contacts'),
-  headers: {'Content-Type': 'application/json'},
-  body: jsonEncode(contactData),
-);
-
-// Handle the response
-if (response.statusCode == 200) {
- ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Information added successfully!')),
+    // Email validation
+    if (!_isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email format')),
       );
-} else {
-  // Error handling
-  ScaffoldMessenger.of(context).showSnackBar(
+      return;
+    }
+
+    // Phone number validation
+    if (!_isValidPhoneNumber(areaCode, phoneNumber)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid phone number format')),
+      );
+      return;
+    }
+
+      // Prepare the data to send
+    final contactData = {
+      'emailAddress': _emailController.text.isNotEmpty ? _emailController.text : null,
+      'emailTypeID': _emailController.text.isNotEmpty ? _getEmailTypeID(_selectedEmailType) : null,
+      'employeeID': employeeId, // Replace with actual employeeID
+      'areaCode': _areaCodeController.text.isNotEmpty ? _areaCodeController.text : null,
+      'phoneNumber': _phoneController.text.isNotEmpty ? _phoneController.text : null,
+      'phoneTypeID': _phoneController.text.isNotEmpty ? _getPhoneTypeID(_selectedPhoneType) : null,
+    };
+
+    // Send the combined data to your new API endpoint
+    final response = await http.post(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/contacts'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(contactData),
+    );
+
+    // Handle the response
+    if (response.statusCode == 200) {
+     ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Information added successfully!')),
+          );
+    } else {
+      // Error handling
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error occured')),
       );
-}
-
+    }
   }
 
   int _getEmailTypeID(String? type) {
@@ -1823,22 +2045,21 @@ if (response.statusCode == 200) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Email field
-           TextField(
-                  controller: _emailController,
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(labelText: 'Email', 
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
+            TextField(
+              controller: _emailController,
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(labelText: 'Email',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                  ),
-                  ),
                 ),
-            // Email type dropdown
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+            ),
 
-            
+            // Email type dropdown
             DropdownButton<String>(
               value: _selectedEmailType,
               hint: const Text(
@@ -1883,36 +2104,35 @@ if (response.statusCode == 200) {
             const SizedBox(height: 20),
             // Phone area code field
             TextField(
-                  controller: _areaCodeController,  // Controller for the area code
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(
-                    labelText: 'Area Code',
-                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                    ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,  // Set input type to number for area code
+              controller: _areaCodeController,  // Controller for the area code
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Area Code',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
                 ),
-
-                TextField(
-                  controller: _phoneController,  // Controller for the remaining phone number
-                  style: const TextStyle(color: Color(0xFF6D3200)),
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
-                    ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
-                    ),
-                  ),
-                  keyboardType: TextInputType.phone,  // Set input type to phone for phone number
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
                 ),
+              ),
+              keyboardType: TextInputType.number,  // Set input type to number for area code
+            ),
+            TextField(
+              controller: _phoneController,  // Controller for the remaining phone number
+              style: const TextStyle(color: Color(0xFF6D3200)),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                labelStyle: TextStyle(color: Color(0xFF6D3200)),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Focused border color
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Enabled border color
+                ),
+              ),
+              keyboardType: TextInputType.phone,  // Set input type to phone for phone number
+            ),
             // Phone type dropdown
             DropdownButton<String>(
               value: _selectedPhoneType,
@@ -1957,33 +2177,33 @@ if (response.statusCode == 200) {
 
             const SizedBox(height: 20),
             // Add Information button
-             Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
-                children: [
-                  // Add Information button
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: const Color(0xFF6D3200),
-                      backgroundColor: Colors.transparent, // No background color
-                      shadowColor: Colors.transparent,
-                    ),
-                    child: const Text('Cancel'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Center the buttons horizontally
+              children: [
+                // Add Information button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6D3200),
+                    backgroundColor: Colors.transparent, // No background color
+                    shadowColor: Colors.transparent,
                   ),
-                  const SizedBox(width: 20), // Space between buttons
-                  // Cancel button
-                  ElevatedButton(
-                    onPressed: _addInformation,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: const Color(0xFFEEC07B),
-                      backgroundColor: const Color(0xFF422308),
-                    ),
-                    child: const Text('Add Information'),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 20), // Space between buttons
+                // Cancel button
+                ElevatedButton(
+                  onPressed: _addInformation,
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: const Color(0xFFEEC07B),
+                    backgroundColor: const Color(0xFF422308),
                   ),
-                ],
-              ),
+                  child: const Text('Add Information'),
+                ),
+              ],
+            ),
           ],
         ),
       ),

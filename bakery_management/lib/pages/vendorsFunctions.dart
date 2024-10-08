@@ -9,19 +9,13 @@ Future<Vendor> fetchVendorDetails(int id) async {
   try {
     final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/$id'));
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> json = jsonDecode(response.body);
-      print('Vendor Details JSON: $json'); // Debugging line
       return Vendor.fromJson(json);
     } else {
-      print('Failed to load vendor details. Status code: ${response.statusCode}');
       throw Exception('Failed to load vendor details');
     }
   } catch (e) {
-    print('Error: $e');
     throw Exception('Failed to load vendor details');
   }
 }
@@ -53,8 +47,6 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            
-
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'Name',
@@ -72,23 +64,23 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                 },
               ),
 
-             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Area Code',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Area Code',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
-                ),
+                keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                onChanged: (value) {
+                  vendorAreaCode = value;
+                },
               ),
-              keyboardType: TextInputType.phone, // Ensures the correct keyboard is displayed for phone numbers
-              style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
-              onChanged: (value) {
-                vendorAreaCode = value;
-              },
-            ),
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'Phone Number',
@@ -106,26 +98,24 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                   vendorPhoneNum = value;
                 },
               ),
-
-             TextField(
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when focused
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
+                  ),
                 ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF6D3200)), // Color of the underline when not focused
-                ),
+                keyboardType: TextInputType.emailAddress, // Ensures the correct keyboard is displayed for email addresses
+                style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
+                onChanged: (value) {
+                  vendorEmail = value;
+                },
               ),
-              keyboardType: TextInputType.emailAddress, // Ensures the correct keyboard is displayed for email addresses
-              style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
-              onChanged: (value) {
-                vendorEmail = value;
-              },
-            ),
-
-             TextField(
+              TextField(
                 decoration: const InputDecoration(
                   labelText: 'Street Address',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
@@ -157,8 +147,7 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                   city = value;
                 },
               ),
-
-             TextField(
+              TextField(
                 decoration: const InputDecoration(
                   labelText: 'State',
                   labelStyle: TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
@@ -190,7 +179,6 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                   postalCode = value;
                 },
               ),
-
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'Country',
@@ -207,7 +195,6 @@ Future<void> showAddVendorDialog(BuildContext context, VoidCallback onVendorAdde
                   country = value;
                 },
               ),
-
             ],
           ),
         ),

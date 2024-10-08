@@ -17,24 +17,22 @@ class SessionService {
 
     if (response.statusCode == 200) {
       // Session is active
-      print('Session is active');
     } else if (response.statusCode == 401) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Session expired. Please sign in again.'),
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 1),
         ),
       );
 
       // Delay to allow the SnackBar to be displayed before navigating
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
       Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const SignInPage()),
-    );
+        context,
+        MaterialPageRoute(builder: (context) => const SignInPage()),
+      );
     } else {
-      // Handle other error cases
-      print('Error: ${response.body}');
+      // error
     }
   }
 
@@ -48,10 +46,8 @@ class SessionService {
 
     if (response.statusCode == 200) {
       // Session updated successfully
-      print('Session updated');
     } else {
-      // Handle error cases
-      print('Error: ${response.body}');
+      // error
     }
   }
 }

@@ -32,8 +32,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-console.log('Server is starting.');
-
 
 //Tasks
 // Create a Task
@@ -41,19 +39,35 @@ app.post('/tasks', async (req, res) => {
     const { Description, CreateDate, DueDate, AssignedBy } = req.body;
 
     try {
+
         const pool = await sql.connect(dbConfig);
+
+        // Use OUTPUT to return the inserted TaskID
         const result = await pool.request()
             .input('Description', sql.VarChar(100), Description)
             .input('CreateDate', sql.Date, CreateDate)
             .input('DueDate', sql.Date, DueDate)
             .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
-            .query('INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)');
+            .query(`
+                INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) 
+                OUTPUT INSERTED.TaskID 
+                VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)
+            `);
 
-        res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+        // Check if the result has any records
+        if (result.recordset.length > 0) {
+            res.status(201).json({ 
+                message: 'Task created successfully', 
+                taskId: result.recordset[0].TaskID 
+            });
+        } else {
+            res.status(400).json({ message: 'Task created but no TaskID returned' });
+        }
     } catch (error) {
         res.status(500).json({ message: 'Error creating task', error: error.message });
     }
 });
+
 
 // Get All Tasks
 app.get('/tasks', async (req, res) => {
@@ -485,7 +499,6 @@ app.get('/vendors/:id', async (req, res) => {
 
 // POST /users: Add a new user
 app.post('/users', async (req, res) => {
-    console.log('Request body:', req.body);
     const { firstName, lastName, username, password, email, phoneNumber, address } = req.body;
 
     const newEmployeeID = uuidv4(); // Generate a GUID for the EmployeeID
@@ -495,12 +508,6 @@ app.post('/users', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const pool = await sql.connect(dbConfig);
-        console.log('Inserting into tblUsers:', {
-            employeeID: newEmployeeID,
-            firstName,
-            lastName,
-            username,
-        });
 
         await pool.request()
             .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
@@ -513,7 +520,6 @@ app.post('/users', async (req, res) => {
 
         // Add email, phone number, and address to their respective tables
         if (email) {
-            console.log('Inserting into tblEmails:', { email, employeeID: newEmployeeID });
             await pool.request()
                 .input('emailAddress', sql.VarChar, email.emailAddress)
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
@@ -523,7 +529,6 @@ app.post('/users', async (req, res) => {
         }
 
         if (phoneNumber) {
-            console.log('Inserting into tblPhoneNumbers:', { phoneNumber, employeeID: newEmployeeID });
             await pool.request()
                 .input('phoneNumber', sql.VarChar, phoneNumber.number)
                 .input('areaCode', sql.VarChar, phoneNumber.areaCode)
@@ -534,16 +539,7 @@ app.post('/users', async (req, res) => {
         }
 
         if (address) {
-            console.log('Inserting into tblAddresses:', {
-                streetAddress: address.streetAddress,
-                city: address.city,
-                state: address.state,
-                postalCode: address.postalCode,
-                country: address.country,
-                addressTypeID: address.addressTypeID,
-                employeeID: newEmployeeID,
-            });
-            
+
             await pool.request()
                 .input('streetAddress', sql.VarChar, address.streetAddress)
                 .input('city', sql.VarChar, address.city)
@@ -554,30 +550,28 @@ app.post('/users', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, newEmployeeID)
                 .query('INSERT INTO tblAddresses (StreetAddress, City, State, PostalCode, Country, AddressTypeID, EmployeeID) VALUES (@streetAddress, @city, @state, @postalCode, @country, @addressTypeID, @employeeID)');
         }
-        console.log('User added successfully');
-        res.status(201).send('User added successfully');
+
+        // Return the employeeID in the response
+        res.status(201).json({ message: 'User added successfully', employee_id: newEmployeeID });
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
+
 // Endpoint to get emails and phone numbers for a specific employee
 app.get('/employee/:id/contacts', async (req, res) => {
     const employeeID = req.params.id;
-    console.log(`Fetching contacts for employee ID: ${employeeID}`); // Debug statement
     try {
         const pool = await sql.connect(dbConfig);
         const emails = await pool.request()
             .input('employeeID', sql.UniqueIdentifier, employeeID)
             .query('SELECT EmailAddress, TypeID, Valid FROM tblEmails WHERE EmployeeID = @employeeID');
-        console.log('Fetched emails:', emails.recordset);
         const phoneNumbers = await pool.request()
             .input('employeeID', sql.UniqueIdentifier, employeeID)
             .query('SELECT Number, AreaCode, TypeID, Valid FROM tblPhoneNumbers WHERE EmployeeID = @employeeID');
-            console.log('Fetched phone numbers:', phoneNumbers.recordset);
         res.json({ emails: emails.recordset, phoneNumbers: phoneNumbers.recordset });
     } catch (error) {
-        console.error('Error fetching contacts:', error);
         res.status(500).send('Internal Server Error');
     }
 });
@@ -615,10 +609,8 @@ app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
     const { firstName, lastName, newUsername, password, email, phoneNumber, address } = req.body;
 
-    console.log(`Updating user: ${username}`);
 
     if (!username) {
-        console.log('Validation failed: Username is required');
         return res.status(400).send('Username is required');
     }
 
@@ -626,7 +618,6 @@ app.put('/users/:username', async (req, res) => {
         const pool = await sql.connect(dbConfig);
         const transaction = new sql.Transaction(pool);
         await transaction.begin();
-        console.log('Transaction started');
 
         // Fetch EmployeeID based on username
         const employeeIdResult = await pool.request()
@@ -634,7 +625,6 @@ app.put('/users/:username', async (req, res) => {
             .query('SELECT EmployeeID FROM tblUsers WHERE Username = @username');
         
         if (employeeIdResult.recordset.length === 0) {
-            console.log('User not found');
             return res.status(404).send('User not found');
         }
         
@@ -647,23 +637,19 @@ app.put('/users/:username', async (req, res) => {
         if (firstName) {
             updates.push('FirstName = @firstName');
             request.input('firstName', sql.VarChar, firstName);
-            console.log(`Updating firstName: ${firstName}`);
         }
         if (lastName) {
             updates.push('LastName = @lastName');
             request.input('lastName', sql.VarChar, lastName);
-            console.log(`Updating lastName: ${lastName}`);
         }
         if (newUsername) {
             updates.push('Username = @newUsername');
             request.input('newUsername', sql.VarChar, newUsername);
-            console.log(`Updating newUsername: ${newUsername}`);
         }
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             updates.push('Password = @password');
             request.input('password', sql.VarChar, hashedPassword);
-            console.log('Updating password');
         }
 
         // Complete the update query for tblUsers
@@ -671,7 +657,6 @@ app.put('/users/:username', async (req, res) => {
             const userUpdateQuery = `UPDATE tblUsers SET ${updates.join(', ')} WHERE Username = @username`;
             request.input('username', sql.VarChar, username);
             await request.query(userUpdateQuery);
-            console.log('Executed user update query');
         }
 
         // Handle email updates
@@ -691,7 +676,6 @@ app.put('/users/:username', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
                 .input('typeID', sql.Int, email.emailTypeID)
                 .query(emailQuery);
-            console.log(`Updated email: ${email.emailAddress}`);
         }
 
         // Handle phone number updates
@@ -712,7 +696,6 @@ app.put('/users/:username', async (req, res) => {
                 .input('employeeID', sql.UniqueIdentifier, employeeID) // Use the fetched employeeID
                 .input('typeID', sql.Int, phoneNumber.phoneTypeID)
                 .query(phoneQuery);
-            console.log(`Updated phone number: ${phoneNumber.number}`);
         }
         if (address) {
             // Start building the update query
@@ -759,9 +742,7 @@ app.put('/users/:username', async (req, res) => {
         
                 const updateResult = await request.query(updateAddrQuery);
         
-                console.log(`Updated address for employee ID ${employeeID}: ${JSON.stringify(address)}`);
             } else {
-                console.log('No address fields to update.');
             }
         }
         
@@ -769,10 +750,8 @@ app.put('/users/:username', async (req, res) => {
 
         // Commit the transaction
         await transaction.commit();
-        console.log('Transaction committed');
         res.status(200).send('User updated successfully');
     } catch (error) {
-        console.error('Error updating user:', error);
         await transaction.rollback();
         res.status(500).send('Internal Server Error');
     }
@@ -797,7 +776,6 @@ app.post('/contacts', async (req, res) => {
                 VALUES (@EmailAddress, @TypeID, @EmployeeID, 1);
             `;
             await emailRequest.query(emailQuery);
-            console.log('Email added successfully');
         }
 
         // If phone data is present, insert it
@@ -813,12 +791,10 @@ app.post('/contacts', async (req, res) => {
                 VALUES (@AreaCode, @Number, @TypeID, @EmployeeID, 1);
             `;
             await phoneRequest.query(phoneQuery);
-            console.log('Phone number added successfully');
         }
 
         res.status(200).json({ message: 'Contacts added successfully' });
     } catch (error) {
-        console.error('Error adding contacts:', error);
         res.status(500).json({ error: 'An error occurred while adding contacts' });
     }
 });
@@ -852,7 +828,6 @@ app.post('/emails', async (req, res) => {
 
         res.status(200).json({ message: 'Email added successfully' });
     } catch (error) {
-        console.error('Error adding email:', error);
         res.status(500).json({ error: 'An error occurred while adding the email' });
     }
 });
@@ -886,7 +861,6 @@ app.post('/phonenumbers', async (req, res) => {
 
         res.status(200).json({ message: 'Phone number added successfully' });
     } catch (error) {
-        console.error('Error adding phone number:', error);
         res.status(500).json({ error: 'An error occurred while adding the phone number' });
     }
 });
@@ -932,13 +906,11 @@ app.get('/users/employeeid/:id', async (req, res) => {
 
 // POST /login: Authenticate user without hashing (for testing purposes only)
 // app.post('/login', async (req, res) => {
-//     console.log('Request Body:', req.body);
 //     const { username, password } = req.body;
 
 //     try {
 //         const pool = await sql.connect(dbConfig);
 //         if (pool.connected) {
-//             console.log('Connected to Azure SQL Server');
 //         }
 
 //         const request = new sql.Request();
@@ -947,11 +919,9 @@ app.get('/users/employeeid/:id', async (req, res) => {
 //             .input('username', sql.VarChar, username)
 //             .query('SELECT password, EmployeeID FROM tblUsers WHERE username = @username'); // Adjusted query
 
-//         console.log('testing');
 //         if (result.recordset.length > 0) {
 //             const dbPassword = result.recordset[0].password; // Correctly access password_hash
 //             const employeeID = result.recordset[0].EmployeeID;
-//             console.log(`Password from DB: ${dbPassword}`); // Log password from DB for verification
 
 //             // Direct comparison of plain-text passwords (for testing purposes)
 //             if (password === dbPassword) {
@@ -972,14 +942,10 @@ app.get('/users/employeeid/:id', async (req, res) => {
 
  // POST /login: Authenticate user with hashed passwords
 app.post('/login', async (req, res) => {
-    console.log('Request Body:', req.body);
     const { username, password } = req.body;
 
     try {
         const pool = await sql.connect(dbConfig);
-        if (pool.connected) {
-            console.log('Connected to Azure SQL Server');
-        }
 
         const request = new sql.Request();
         // Query to select Password, EmployeeID, FirstName, and JobID
@@ -987,14 +953,12 @@ app.post('/login', async (req, res) => {
             .input('username', sql.VarChar, username)
             .query('SELECT Password, EmployeeID, FirstName, JobID FROM tblUsers WHERE Username = @username');
 
-        console.log('Testing');
         if (result.recordset.length > 0) {
             const dbPassword = result.recordset[0].Password;
             const employeeID = result.recordset[0].EmployeeID;
             const firstName = result.recordset[0].FirstName; // Get FirstName
             const jobID = result.recordset[0].JobID;         // Get JobID
 
-            console.log(`Password hash from DB: ${dbPassword}`);
 
             // Compare provided password with hashed password from the database
             const match = await bcrypt.compare(password, dbPassword);
@@ -1069,7 +1033,6 @@ app.post('/login', async (req, res) => {
       // Respond with success
       res.status(200).send({ message: 'Password reset link has been sent to your email' });
     } catch (err) {
-      console.error('Error processing password reset:', err);
       res.status(500).send({ message: 'An error occurred while processing your request' });
     }
   }); */
@@ -1234,11 +1197,8 @@ app.get('/api/attendance/:employee_id', async (req, res) => {
 // GET /ingredients: Retrieve all ingredients
 app.get('/ingredients', async (req, res) => {
     try {
-        console.log("hello");
         const pool = await sql.connect(dbConfig);
-        console.log("b");
         const result = await pool.request().query('SELECT * FROM dbo.tblIngredients'); // Correct table name
-        console.log("c");
         res.json(result.recordset);
     } catch (error) {
         res.status(500).send(error.message);
@@ -1288,7 +1248,6 @@ const checkVendorExists = async (vendorID) => {
 
 // POST /ingredients: Add a new ingredient
 app.post('/ingredients', async (req, res) => {
-    console.log(req.body);
     const { name, description, category, measurement, maxAmount, reorderAmount, minAmount, vendorID } = req.body;
 
     try {
@@ -1534,7 +1493,6 @@ app.get('/recipes/:recipe_id', async (req, res) => {
 app.get('/recipes/product/:productID', async (req, res) => {
     try {
         const productID = req.params.productID;
-        console.log('Received productID:', productID); // Log the received productID
 
         const pool = await sql.connect(dbConfig);
         const query = 'SELECT RecipeID, Name FROM dbo.tblRecipes WHERE ProductID = @ProductID';
@@ -1542,7 +1500,6 @@ app.get('/recipes/product/:productID', async (req, res) => {
         const request = pool.request();
         request.input('ProductID', sql.Int, productID);
         
-        console.log('Executing SQL with parameters:', request); // Log the SQL request
 
         const result = await request.query(query);
         
@@ -1559,7 +1516,6 @@ app.get('/recipes/product/:productID', async (req, res) => {
 
         res.json(recipes); // Return the structured recipe data
     } catch (error) {
-        console.error('SQL Error:', error); // Log SQL error
         res.status(500).send('Error retrieving recipes: ' + error.message); // Send error message as response
     }
 });
@@ -1892,7 +1848,6 @@ app.get('/inventory', async (req, res) => {
         
         res.json(result.recordset);
     } catch (error) {
-        console.error('Error retrieving inventory items:', error); // Log any errors
         res.status(500).send('Error retrieving inventory items: ' + error.message);
     }
 });
@@ -1916,14 +1871,12 @@ app.get('/inventory/:id', async (req, res) => {
             `);
         
         if (result.recordset.length > 0) {
-            console.log('Fetched EntryID:', result.recordset[0].EntryID);
 
             res.json(result.recordset[0]);
         } else {
             res.status(404).send('Inventory item not found');
         }
     } catch (error) {
-        console.error('Error retrieving inventory item:', error); // Log any errors
         res.status(500).send('Error retrieving inventory item: ' + error.message);
     }
 });
@@ -2086,7 +2039,80 @@ app.put('/inventory/:item_id', async (req, res) => {
     }
 });
 
+// PUT /inventory/:ingredient_id: Update an inventory item by IngredientID
+app.put('/inventory/:ingredient_id', async (req, res) => {
+    const { ingredient_id } = req.params;
+    const { quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
+    // Validate input
+    if (quantity === undefined && cost === undefined && !create_datetime && !expire_datetime && measurement === undefined) {
+        return res.status(400).send('At least one field (quantity, cost, create_datetime, expire_datetime, or measurement) is required for update');
+    }
+
+    try {
+        const pool = await sql.connect(dbConfig);
+
+        // Prepare update query
+        let updateQuery = 'UPDATE tblInventory SET ';
+        const updateParams = [];
+
+        if (quantity !== undefined) {
+            updateQuery += 'Quantity = @quantity, ';
+            updateParams.push({ name: 'quantity', value: quantity, type: sql.Decimal });
+        }
+        if (notes !== undefined) {
+            updateQuery += 'Notes = @notes, ';
+            updateParams.push({ name: 'notes', value: notes, type: sql.VarChar });
+        }
+        if (cost !== undefined) {
+            updateQuery += 'Cost = @cost, ';
+            updateParams.push({ name: 'cost', value: cost, type: sql.Decimal });
+        }
+        if (create_datetime !== undefined) {
+            updateQuery += 'CreateDateTime = @create_datetime, ';
+            updateParams.push({ name: 'create_datetime', value: new Date(create_datetime), type: sql.DateTime });
+        }
+        if (expire_datetime !== undefined) {
+            updateQuery += 'ExpireDateTime = @expire_datetime, ';
+            updateParams.push({ name: 'expire_datetime', value: new Date(expire_datetime), type: sql.DateTime });
+        }
+        if (measurement !== undefined) {
+            updateQuery += 'Measurement = @measurement, ';
+            updateParams.push({ name: 'measurement', value: measurement, type: sql.VarChar });
+        }
+
+        // Remove trailing comma and space
+        updateQuery = updateQuery.slice(0, -2);
+        updateQuery += ' WHERE IngredientID = @ingredient_id';
+
+        // Execute update query
+        const request = pool.request();
+        request.input('ingredient_id', sql.Int, ingredient_id);
+
+        updateParams.forEach(param => {
+            request.input(param.name, param.type, param.value);
+        });
+
+        const result = await request.query(updateQuery);
+
+        if (result.rowsAffected[0] > 0) {
+            // Fetch the updated item and return it with the IngredientID
+            const updatedItemResult = await pool.request()
+                .input('ingredient_id', sql.Int, ingredient_id)
+                .query(`SELECT * FROM dbo.tblInventory WHERE IngredientID = @ingredient_id`);
+
+            if (updatedItemResult.recordset.length > 0) {
+                res.json(updatedItemResult.recordset[0]);  // Return the updated item including IngredientID
+            } else {
+                res.status(404).send('Inventory item not found after update');
+            }
+        } else {
+            res.status(404).send('Inventory item not found');
+        }
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 // DELETE /inventory/name/:item_name: Remove an item by name
@@ -2125,8 +2151,6 @@ app.delete('/inventory/name/:item_name', async (req, res) => {
 
 // POST /sessions/start: Create a new session for a user
 app.post('/sessions/start', async (req, res) => {
-    console.log('Received /sessions/start request');
-    console.log('Request body:', req.body);
     const { employee_id } = req.body;
 
     // Validate input
@@ -2136,9 +2160,7 @@ app.post('/sessions/start', async (req, res) => {
 
     try {
         const pool = await sql.connect(dbConfig);
-        console.log('Employee ID:', employee_id);
         const createDateTime = new Date();
-        console.log('CreateDateTime:', new Date());
         const result = await pool.request()
             .input('employee_id', sql.UniqueIdentifier, employee_id)
             .input('create_datetime', sql.DateTime, createDateTime)
@@ -2148,8 +2170,6 @@ app.post('/sessions/start', async (req, res) => {
                 OUTPUT INSERTED.SessionID -- Add this line to return the newly inserted SessionID
                 VALUES (@employee_id, @create_datetime, @last_activity_datetime)
             `);
-        console.log('Session created successfully'); // Log successful session creation
-        console.log('Result:', result); // Log the result of the query
         if (result.recordset.length > 0) {
             const sessionId = result.recordset[0].SessionID; // This should now work
             res.status(201).json({
@@ -2356,7 +2376,6 @@ app.post('/finalproducts', async (req, res) => {
 
         res.status(201).send('Final product created');
     } catch (error) {
-        console.error('Detailed error:', error);
         res.status(500).send('Error creating final product: ' + error.message);
     }
 });
@@ -2365,7 +2384,6 @@ app.post('/finalproducts', async (req, res) => {
 // PUT /finalproducts/:id: Update a specific final product by ProductID
 app.put('/finalproducts/:id', async (req, res) => {
     const { id } = req.params;
-    console.log(req.body);
     const { Name, Description, MaxAmount, RemakeAmount, MinAmount, Quantity, Price, Category } = req.body; // Include Category
 
     try {
@@ -2498,8 +2516,6 @@ app.get('/finalproducts/:id', async (req, res) => {
         res.status(500).send('Error retrieving final product: ' + error.message);
     }
 });
-
-
 
 
 

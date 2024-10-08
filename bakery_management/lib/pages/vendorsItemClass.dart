@@ -93,7 +93,6 @@ class Vendor {
   });
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
-    print('Vendor JSON: $json');
     return Vendor(
       vendorID: json['VendorID'] ?? 0,
       vendorName: json['VendorName'] ?? '',

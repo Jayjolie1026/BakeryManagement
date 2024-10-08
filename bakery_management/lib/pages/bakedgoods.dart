@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:bakery_management/pages/recipeFunctions.dart';
+import 'package:bakery_management/pages/tasksAPI.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bakery_management/pages/sessions.dart';
 import 'package:bakery_management/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksFunctions.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
 
 
 const Map<int, String> productImages = {
@@ -120,103 +123,83 @@ class ProductApi {
     final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts');
 
     final body = jsonEncode({
-   "name": product.name,
-    "description": product.description,
-    "maxAmount": product.maxAmount,
-    "remakeAmount": product.remakeAmount,
-    "minAmount": product.minAmount,
-    "quantity": product.quantity,
-    "price": product.price,
-    "category": product.category,
-  });
-    print('Request body: $body');
+      "name": product.name,
+      "description": product.description,
+      "maxAmount": product.maxAmount,
+      "remakeAmount": product.remakeAmount,
+      "minAmount": product.minAmount,
+      "quantity": product.quantity,
+      "price": product.price,
+      "category": product.category,
+    });
 
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
 
-    if (response.statusCode == 201) {
-      print('Final product created successfully');
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      product.productID = responseData['ProductID'];
+      if (response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        product.productID = responseData['ProductID'];
 
-      print('Final product created successfully with ProductID: ${product.productID}');
-    } else {
-      print('Failed to create final product: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      // error
     }
-  } catch (e) {
-    print('Error occurred: $e');
-  }
 
   }
 
 
   static Future<void> deleteProduct(int productID) async {
-  final response = await http.delete(
-    Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/$productID'),
-  );
+    final response = await http.delete(
+      Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/$productID'),
+    );
 
-  if (response.statusCode != 200) {
-    throw Exception('Failed to delete product');
-  }
-}
-
-
- static Future<void> updateProduct(Product product) async {
-  final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}');
-  final response = await http.put(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(product.toJson()),
-  );
-  print('Response status: ${response.statusCode}');
-  print('Update request body: ${jsonEncode(product.toJson())}');
-
-  
-
-  if (response.statusCode != 200) {
-    throw Exception('Failed to update product');
-  }
-}
-
-static Future<List<Map<String, dynamic>>?> fetchRecipeByProductID(int productID) async {
-  final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/product/${productID}'));
-  print('Product ID: $productID');
-
-  if (response.statusCode == 200) {
-    // Log the response body to understand its structure
-    print('Response body: ${response.body}');
-
-    // Decode the response body as a List
-    final List<dynamic> data = json.decode(response.body);
-
-    // Check if the response contains data
-    if (data.isNotEmpty) {
-      // Map the data to a list of maps containing RecipeID and Name
-      return data.map((recipe) {
-        return {
-          'recipeID': recipe['RecipeID'], // Use correct key casing from API
-          'name': recipe['Name'] // Use correct key casing from API
-        };
-      }).toList();
-    } else {
-      return null; // No recipes found
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete product');
     }
-  } else {
-    throw Exception('Failed to load recipes: ${response.statusCode}');
   }
-}
 
 
+  static Future<void> updateProduct(Product product) async {
+    final url = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}');
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(product.toJson()),
+    );
 
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update product');
+    }
+  }
 
+  static Future<List<Map<String, dynamic>>?> fetchRecipeByProductID(int productID) async {
+    final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/product/$productID'));
 
+    if (response.statusCode == 200) {
+      // Decode the response body as a List
+      final List<dynamic> data = json.decode(response.body);
 
+      // Check if the response contains data
+      if (data.isNotEmpty) {
+        // Map the data to a list of maps containing RecipeID and Name
+        return data.map((recipe) {
+          return {
+            'recipeID': recipe['RecipeID'], // Use correct key casing from API
+            'name': recipe['Name'] // Use correct key casing from API
+          };
+        }).toList();
+      } else {
+        return null; // No recipes found
+      }
+    } else {
+      throw Exception('Failed to load recipes: ${response.statusCode}');
+    }
+  }
 }
 
 
@@ -231,7 +214,7 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   List<Product> products = [];
-   List<Product> allItems = [];
+  List<Product> allItems = [];
   String query = '';
   Timer? debouncer;
 
@@ -255,8 +238,6 @@ class _ProductsPageState extends State<ProductsPage> {
     debouncer = Timer(duration, callback);
   }
 
-  
-
   // Initialize and load products
   Future init() async {
     try {
@@ -264,122 +245,121 @@ class _ProductsPageState extends State<ProductsPage> {
       // Check if the widget is still mounted
         setState(() {
       this.products = products;
-      this.allItems = products; // Store all items for future reference
+      allItems = products; // Store all items for future reference
     });
       
     } catch (e) {
       // Handle the error if needed
-      print('Failed to load products: $e');
     }
   }
 
  @override
-Widget build(BuildContext context) => Scaffold(
-  backgroundColor: const Color(0xFFF0D1A0),
-  body: Column(
-    children: <Widget>[
-      SizedBox(height: 25.0),
-      buildSearchWithFilter(),
-      Expanded(
-        child: ListView.builder(
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return GestureDetector(
-              onTap: () async {
-                 SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF0D1A0),
+    body: Column(
+      children: <Widget>[
+        const SizedBox(height: 25.0),
+        buildSearchWithFilter(),
+        Expanded(
+          child: ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return GestureDetector(
+                onTap: () async {
+                   SharedPreferences prefs = await SharedPreferences.getInstance();
+                    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+                    if (sessionId != null) {
+                    // Create an instance of SessionService
+                    SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+                    // Check the session status
+                    await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+                    // If the session is active, update it
+                    await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SignInPage()),
+                    );
+                  }
+                  init();
+                  // Navigate to the item details page
+                 final updatedProduct = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetailPage(product: product),
+                    ),
                   );
-                }
-                init();
-                // Navigate to the item details page
-               final updatedProduct = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailPage(product: product),
-                  ),
-                );
 
-                if (updatedProduct != null) {
-                  setState(() {
-                    int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-                    if (index != -1) {
-                      products[index] = updatedProduct; // Update the specific product
-                    }
-                  });
-                }
+                  if (updatedProduct != null) {
+                    setState(() {
+                      int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+                      if (index != -1) {
+                        products[index] = updatedProduct; // Update the specific product
+                      }
+                    });
+                  }
 
-                // Re-apply the current query/filter after returning
-                if (query.isNotEmpty) {
-                  searchItem(query);  // Re-apply the search/filter query
-                } else {
-                  setState(() {
-                    products = allItems;  // Reset to full list if no filter is applied
-                  });
-                }
-              },
-              child: buildProduct(product), // Your custom widget to display the item
-            );
-          },
+                  // Re-apply the current query/filter after returning
+                  if (query.isNotEmpty) {
+                    searchItem(query);  // Re-apply the search/filter query
+                  } else {
+                    setState(() {
+                      products = allItems;  // Reset to full list if no filter is applied
+                    });
+                  }
+                },
+                child: buildProduct(product), // Your custom widget to display the item
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 80)
+      ],
+    ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () => showAddProductDialog(context, () async {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+        if (sessionId != null) {
+        // Create an instance of SessionService
+        SessionService sessionService = SessionService(context);
+
+        // Check the session status
+        await sessionService.checkSession(sessionId); // Check if the session is active
+
+        // If the session is active, update it
+        await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SignInPage()),
+          );
+        }
+        // Refresh the product list after adding a new product
+        init(); // Call init to reload products
+      }),
+      label: const Text(
+        'Add Product',
+        style: TextStyle(
+          color: Color(0xFFEEC07B),  // Light brown text color
+          fontSize: 17,
         ),
       ),
-      const SizedBox(height: 80)
-    ],
-  ),
-  floatingActionButton: FloatingActionButton.extended(
-    onPressed: () => showAddProductDialog(context, () async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
-
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
-
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
-
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
-
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-      // Refresh the product list after adding a new product
-      init(); // Call init to reload products
-    }),
-    label: const Text(
-      'Add Product',
-      style: TextStyle(
-        color: Color(0xFFEEC07B),  // Light brown text color
-        fontSize: 17,
+      icon: const Icon(
+        Icons.add,
+        color: Color(0xFFEEC07B),  // Light brown icon color
       ),
+      backgroundColor: const Color(0xFF422308),  // Dark brown background
     ),
-    icon: const Icon(
-      Icons.add,
-      color: Color(0xFFEEC07B),  // Light brown icon color
-    ),
-    backgroundColor: const Color(0xFF422308),  // Dark brown background
-  ),
-  floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-);
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+  );
 
 
   // Search bar widget
@@ -394,10 +374,10 @@ Widget build(BuildContext context) => Scaffold(
         ),
       ),
       Container(
-        padding: EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
+        padding: const EdgeInsets.fromLTRB(0, 0, 25, 15), // Add some padding if needed
         alignment: Alignment.center, // Center the icon vertically
         child: IconButton(
-          icon: Icon(Icons.filter_list),
+          icon: const Icon(Icons.filter_list),
           color: Colors.brown,  // Adjust color to match your theme
           onPressed: () async{
              SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -434,10 +414,10 @@ Widget build(BuildContext context) => Scaffold(
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: const Color.fromARGB(255, 243, 217, 162), // Set the background color of the AlertDialog
-        title: Text(
+        title: const Text(
           'Filter by Category',
           style: TextStyle(
-            color: const Color(0xFF6D3200), // Set the title text color
+            color: Color(0xFF6D3200), // Set the title text color
           ),
         ),
         content: SingleChildScrollView( // Make content scrollable
@@ -447,8 +427,8 @@ Widget build(BuildContext context) => Scaffold(
               return ListTile(
                 title: Text(
                   category,
-                  style: TextStyle(
-                    color: const Color(0xFF6D3200), // Set the ListTile text color
+                  style: const TextStyle(
+                    color: Color(0xFF6D3200), // Set the ListTile text color
                   ),
                 ),
                 onTap: () {
@@ -461,7 +441,7 @@ Widget build(BuildContext context) => Scaffold(
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.close, color: const Color(0xFF422308)), // Set the close button icon color
+            icon: const Icon(Icons.close, color: Color(0xFF422308)), // Set the close button icon color
             onPressed: () {
               Navigator.pop(context); // Close the dialog
               setState(() {
@@ -475,6 +455,7 @@ Widget build(BuildContext context) => Scaffold(
     },
   );
 }
+
 // Helper function to check if the query is a category
 bool _isCategory(String query) {
   // Assuming you have the categories already fetched from _getCategories
@@ -486,8 +467,7 @@ bool _isCategory(String query) {
 // Get unique categories from the list of items
 List<String> _getCategories() {
   final allCategories = products.map((product) => product.category).toSet();
-  //print(_getCategories());
-  
+
    // Extract unique categories
   return allCategories.toList(); // Convert Set back to List for easier manipulation
 }
@@ -525,63 +505,60 @@ void applyCategoryFilter(String category) {
   // Build list tile for each product
   Widget buildProduct(Product product) => GestureDetector(
     onTap: () async {
-       SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
 
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
+      if (sessionId != null) {
+        // Create an instance of SessionService
+        SessionService sessionService = SessionService(context);
 
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
+        // Check the session status
+        await sessionService.checkSession(sessionId); // Check if the session is active
 
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
+        // If the session is active, update it
+        await sessionService.updateSession(sessionId); // Update the session to keep it alive
 
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const SignInPage()),
+        );
+      }
       // Navigate to product detail page on tap and wait for result
-       final updatedProduct = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailPage(
-          product: product,
-      onProductUpdated: (updatedProduct) {
-        int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-        if (index != -1) {
-          setState(() {
-            products[index] = updatedProduct; // Update the product list
-          });
-        }
-      },
-    ),
-  ),
-    );
-    if (updatedProduct != null) {
-      setState(() {
-        // Find the index of the product to update
-        int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
-        if (index != -1) {
+      final updatedProduct = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductDetailPage(
+            product: product,
+            onProductUpdated: (updatedProduct) {
+              int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+              if (index != -1) {
+                setState(() {
+                  products[index] = updatedProduct; // Update the product list
+                });
+              }
+            },
+          ),
+        ),
+      );
+      if (updatedProduct != null) {
+        setState(() {
+          // Find the index of the product to update
+          int index = products.indexWhere((p) => p.productID == updatedProduct.productID);
+          if (index != -1) {
             products[index] = updatedProduct; // Update the existing product
             allItems[index] = updatedProduct;
+          }
+        });
+      }
+      setState(() {
+        // Check if the query is still valid and reapply filtering
+        if (query.isNotEmpty) {
+          searchItem(query);  // Re-apply the search/filter query
+        } else {
+          products = allItems;  // Reset to full list if no filter is applied
         }
       });
-    }
-      setState(() {
-    // Check if the query is still valid and reapply filtering
-    if (query.isNotEmpty) {
-      searchItem(query);  // Re-apply the search/filter query
-    } else {
-      products = allItems;  // Reset to full list if no filter is applied
-    }
-  });
-
-      // If the result is true, refresh the product list
-      
     },
     child: Card(
       color: const Color(0xFF6D3200),
@@ -717,38 +694,94 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     widget.onProductUpdated!(fetchedProduct); // Notify the parent about the updated product
   }
 }
+Future<List<Task>> checkTasks() async {
+   List<Task> existingTasks = await getTasks();
+   return existingTasks;
+       
+}
 
   Widget _buildQuantityWarning(Product product) {
-    if (product.quantity < product.minAmount) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'QUANTITY IS VERY LOW! REMAKE NOW!',
-          style: TextStyle(
-            fontSize: 20,
-            color: Color(0xFF6D3200),
-          ),
-          textAlign: TextAlign.left,
-        ),
-      );
-    } else if (product.quantity < product.remakeAmount) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(
-          'Quantity is getting low. Please remake!',
-          style: TextStyle(
-            fontSize: 20,
-            color: Color(0xFF6D3200),
-          ),
-          textAlign: TextAlign.left,
-        ),
-      );
-    }
-    return const SizedBox(); // Empty widget
-  }
+  return FutureBuilder<List<Task>>(
+    future: checkTasks(), // Call the async function to fetch tasks
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        // While the future is loading, show a loading indicator or placeholder
+        return const CircularProgressIndicator();
+      } else if (snapshot.hasError) {
+        // Handle any errors
+        return Text('Error: ${snapshot.error}');
+      } else if (snapshot.hasData) {
+        List<Task> existingTasks = snapshot.data!;
+
+        if (product.quantity < product.minAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 1));
+          final description = 'Need to remake ${product.name}, quantity below min amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+          existingTasks.forEach((task) {
+  print('Description: ${task.description}, Due Date: ${task.dueDate}');
+});
+          // Check if a task for this product already exists
+          bool taskExists = existingTasks.any((task) =>
+              task.description == description || // Exact match for the description
+  task.dueDate.toIso8601String() == dueDate.toIso8601String()); // Exact match for the due date
+
+          if (!taskExists) {
+            // If no such task exists, add the new task
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${product.name}, skipping task creation.');
+          }
+
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'QUANTITY IS VERY LOW! REMAKE NOW!',
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF6D3200),
+              ),
+              textAlign: TextAlign.left,
+            ),
+          );
+        } else if (product.quantity < product.remakeAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 5));
+          final description = 'Need to remake ${product.name}, quantity below remake amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Check if a task for this product already exists
+          bool taskExists = existingTasks.any((task) =>
+              task.description.contains(product.name) &&
+              task.description.contains(description) &&
+              task.dueDate == dueDate);
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${product.name}, skipping task creation.');
+          }
+
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Quantity is getting low. Please remake!',
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFF6D3200),
+              ),
+              textAlign: TextAlign.left,
+            ),
+          );
+        }
+      }
+
+      return const SizedBox(); // Empty widget if no warning is needed
+    },
+  );
+}
 
 
- @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF0D1A0),
@@ -758,15 +791,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product name as a header
-              Text(
-                _product.name,
-                style: const TextStyle(
-                  fontSize: 30,
-                  color: Color(0xFF6D3200),
-                  fontWeight: FontWeight.bold,
-                  height: 1.2
-                ),
-                textAlign: TextAlign.left,
+            Text(
+              _product.name,
+              style: const TextStyle(
+                fontSize: 30,
+                color: Color(0xFF6D3200),
+                fontWeight: FontWeight.bold,
+                height: 1.2
+              ),
+              textAlign: TextAlign.left,
             ),
             // Product image
             SizedBox(
@@ -777,330 +810,325 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 fit: BoxFit.cover, // Cover the area while maintaining aspect ratio
               ),
             ),
-              const SizedBox(height: 10),
-               Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Product ID:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.productID}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-               ),
-
-                Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: '${_product.description}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.5
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-                Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Category:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.category}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-               
-               Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Max Amount:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.maxAmount}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-           
-              const SizedBox(height: 10),
-                 Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Remake Amount:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.remakeAmount}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-
-              const SizedBox(height: 10),
-               Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Min Amount:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.minAmount}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-              
-              const SizedBox(height: 10),
-               Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Quantity:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.quantity}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-              
-              const SizedBox(height: 10),
-               Text.rich(
-                  TextSpan(
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: 'Price:\n',
-                        style: TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold, // Bold heading
-                          height: 1.2
-                        ),
-                      ),
-                      TextSpan(
-                        text: '${_product.price}',
-                        style: const TextStyle(
-                          color: Color(0xFF6D3200), // Dark brown
-                          fontSize: 20,
-                          height: 1.2
-                        ),
-                      ),
-                    ],
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-              
-
-              const SizedBox(height: 10),
-              _buildQuantityWarning(_product),
-              // Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                       SharedPreferences prefs = await SharedPreferences.getInstance();
-                  int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
-
-                  if (sessionId != null) {
-                  // Create an instance of SessionService
-                  SessionService sessionService = SessionService(context);
-
-                  // Check the session status
-                  await sessionService.checkSession(sessionId); // Check if the session is active
-
-                  // If the session is active, update it
-                  await sessionService.updateSession(sessionId); // Update the session to keep it alive
-
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignInPage()),
-                  );
-                }
-                        showProductUpdateDialog(
-                          context,
-                          _product, // Pass the product you want to update
-                          (updatedProduct) {
-                            _updateProduct(updatedProduct);
-                            // Optionally, re-fetch the product from the database if necessary
-                          },
-                        );
-
-                    
-
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D3200),
-                      foregroundColor: const Color(0xFFF0D1A0),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.add),
-                        SizedBox(width: 8), // Spacing between icon and text
-                        Text('Update'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      
-                        List<Map<String, dynamic>>? recipeData = await ProductApi.fetchRecipeByProductID(_product.productID!);
-                      
-                      if (recipeData != null && recipeData.isNotEmpty) {
-                        for (var recipe in recipeData) {
-                          int recipeID = recipe['recipeID'];
-                          String recipeName = recipe['name'];
-                          // Navigate to the DetailedRecipePage with the fetched recipeID
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetailedRecipePage(
-                                recipeName: recipeName,  // Assuming _product.name is non-null
-                                recipeID: recipeID,          // Use the fetched recipeID
-                              ),
-                            ),
-                          );
-                        }
-                        } else {
-                          // Handle the case when the recipeID is null
-                          // For example, show a snackbar or dialog
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Recipe not found for this product.')),
-                          );
-                        }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6D3200),
-                      foregroundColor: const Color(0xFFF0D1A0),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/recipe.png', // Replace with your icon asset
-                          height: 20, // Adjust height as needed
-                          width: 20,  // Adjust width as needed
-                        ),
-                        const SizedBox(width: 8), // Spacing between icon and text
-                        const Text('Recipe'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context, true); // Close the page
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-                      foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
-                      shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      )),
-                    ),
-                    child: const Text(
-                      'Close',
+            const SizedBox(height: 10),
+             Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Product ID:\n',
                       style: TextStyle(
-                        fontSize: 17, // Font size
-                        color: Color(0xFFEEC07B), // Light brown text
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
                       ),
+                    ),
+                    TextSpan(
+                      text: '${_product.productID}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+             ),
+
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: _product.description,
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.5
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+              Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Category:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
+                      ),
+                    ),
+                    TextSpan(
+                      text: _product.category,
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+             Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Max Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.maxAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+            const SizedBox(height: 10),
+               Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Remake Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.remakeAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+            const SizedBox(height: 10),
+             Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Min Amount:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.minAmount}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+            const SizedBox(height: 10),
+             Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Quantity:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+            const SizedBox(height: 10),
+             Text.rich(
+                TextSpan(
+                  children: <TextSpan>[
+                    const TextSpan(
+                      text: 'Price:\n',
+                      style: TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold, // Bold heading
+                        height: 1.2
+                      ),
+                    ),
+                    TextSpan(
+                      text: '${_product.price}',
+                      style: const TextStyle(
+                        color: Color(0xFF6D3200), // Dark brown
+                        fontSize: 20,
+                        height: 1.2
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.left,
+              ),
+
+
+            const SizedBox(height: 10),
+            _buildQuantityWarning(_product),
+            // Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    int? sessionId = prefs.getInt('sessionId'); // Get the sessionId as an int
+
+                    if (sessionId != null) {
+                      // Create an instance of SessionService
+                      SessionService sessionService = SessionService(context);
+
+                      // Check the session status
+                      await sessionService.checkSession(sessionId); // Check if the session is active
+
+                      // If the session is active, update it
+                      await sessionService.updateSession(sessionId); // Update the session to keep it alive
+
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignInPage()),
+                      );
+                    }
+                    showProductUpdateDialog(
+                      context,
+                      _product, // Pass the product you want to update
+                      (updatedProduct) {
+                        _updateProduct(updatedProduct);
+                        // Optionally, re-fetch the product from the database if necessary
+                      },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6D3200),
+                    foregroundColor: const Color(0xFFF0D1A0),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add),
+                      SizedBox(width: 8), // Spacing between icon and text
+                      Text('Update'),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                ElevatedButton(
+                  onPressed: () async {
+
+                    List<Map<String, dynamic>>? recipeData = await ProductApi.fetchRecipeByProductID(_product.productID!);
+
+                    if (recipeData != null && recipeData.isNotEmpty) {
+                      for (var recipe in recipeData) {
+                        int recipeID = recipe['recipeID'];
+                        String recipeName = recipe['name'];
+                        // Navigate to the DetailedRecipePage with the fetched recipeID
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailedRecipePage(
+                              recipeName: recipeName,  // Assuming _product.name is non-null
+                              recipeID: recipeID,          // Use the fetched recipeID
+                            ),
+                          ),
+                        );
+                      }
+                    } else {
+                      // Handle the case when the recipeID is null
+                      // For example, show a snackbar or dialog
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Recipe not found for this product.')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6D3200),
+                    foregroundColor: const Color(0xFFF0D1A0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/recipe.png', // Replace with your icon asset
+                        height: 20, // Adjust height as needed
+                        width: 20,  // Adjust width as needed
+                      ),
+                      const SizedBox(width: 8), // Spacing between icon and text
+                      const Text('Recipe'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context, true); // Close the page
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+                    foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+                    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    )),
+                  ),
+                  child: const Text(
+                    'Close',
+                    style: TextStyle(
+                      fontSize: 17, // Font size
+                      color: Color(0xFFEEC07B), // Light brown text
                     ),
                   ),
                 ),
-              )
-
-            ],
-          ),
+              ),
+            )
+          ],
         ),
-
+      ),
     );
   }
 }
@@ -1257,7 +1285,6 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
               Navigator.of(context).pop();
             },
             style: TextButton.styleFrom(
-              
               foregroundColor: const Color(0xFF6D3200), // Text color
             ),
             child: const Text('Cancel'),
@@ -1279,7 +1306,7 @@ void showProductUpdateDialog(BuildContext context, Product product, ValueChanged
 
               await ProductApi.updateProduct(updatedProduct);
               onProductUpdated(updatedProduct);
-              
+
 
               Navigator.pop(context, updatedProduct);
               
