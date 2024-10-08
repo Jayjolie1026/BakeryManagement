@@ -1,5 +1,5 @@
 // Item model for inventory items
-class Item {
+class InventoryItem {
   int? entryID;
   final int quantity;
   final double cost;
@@ -19,7 +19,7 @@ class Item {
   final String description;
 
   // Constructor
-  Item({
+  InventoryItem({
     this.entryID,
     required this.quantity,
     required this.cost,
@@ -40,8 +40,8 @@ class Item {
   });
 
   // Factory constructor to create an Item from a JSON object
-  factory Item.fromJson(Map<String, dynamic> json) {
-    return Item(
+  factory InventoryItem.fromJson(Map<String, dynamic> json) {
+    return InventoryItem(
       entryID: json['EntryID'].toInt(),
       quantity: json['Quantity'].toInt(),
       cost: json['Cost'] != null ? json['Cost'].toDouble() : 0.0,

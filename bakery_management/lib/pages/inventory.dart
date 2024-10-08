@@ -25,8 +25,8 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  List<Item> items = [];
-  List<Item> allItems = [];  // This holds all items
+  List<InventoryItem> items = [];
+  List<InventoryItem> allItems = [];  // This holds all items
   String query = '';
   Timer? debouncer;
 
@@ -43,7 +43,7 @@ class _InventoryPageState extends State<InventoryPage> {
   }
   
 
-  Future<void> navigateToDetailPage(Item item) async {
+  Future<void> navigateToDetailPage(InventoryItem item) async {
     // Push to the detail page and wait for the result
     final updatedItem = await Navigator.push(
       context,
@@ -283,7 +283,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
 
   void searchItem(String query) {
-    List<Item> filteredItems;
+    List<InventoryItem> filteredItems;
 
     if (query.isEmpty) {
       // Reset items to the full list when search is cleared
@@ -304,7 +304,7 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   // Build list tile for each inventory item
-  Widget buildItem(Item item) => GestureDetector(
+  Widget buildItem(InventoryItem item) => GestureDetector(
     onTap: () async {
       final updatedItem = await Navigator.push(
         context,
@@ -372,8 +372,8 @@ class _InventoryPageState extends State<InventoryPage> {
 
 // Item Detail Page
 class ItemDetailPage extends StatefulWidget {
-  final Item item;
-  final Function(Item)? onItemUpdated;
+  final InventoryItem item;
+  final Function(InventoryItem)? onItemUpdated;
   const ItemDetailPage({super.key, required this.item,this.onItemUpdated});
 
   @override
@@ -381,7 +381,7 @@ class ItemDetailPage extends StatefulWidget {
 }
 
 class _ItemDetailPageState extends State<ItemDetailPage> {
-  late Item _item;
+  late InventoryItem _item;
 
   @override
   void initState() {
@@ -389,7 +389,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     _item = widget.item;
   }
 
-  void _updateItem(Item updatedItem) async {
+  void _updateItem(InventoryItem updatedItem) async {
     // Preserve the entryID before updating
     final int preservedEntryID = _item.entryID!;
 
@@ -423,7 +423,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
        
 }
 
- Widget _buildQuantityWarning(Item item) {
+ Widget _buildQuantityWarning(InventoryItem item) {
   return FutureBuilder<List<Task>>(
     future: checkTasks(), // Fetch the existing tasks
     builder: (context, snapshot) {

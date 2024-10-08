@@ -379,12 +379,15 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFFF0d1a0), // Background color of the dialog
-          title: const Text('Insufficient Stock', style: TextStyle(fontSize: 30, color: Color(0xFF6D3200))),
+          backgroundColor:
+              const Color(0xFFF0d1a0), // Background color of the dialog
+          title: const Text('Insufficient Stock',
+              style: TextStyle(fontSize: 30, color: Color(0xFF6D3200))),
           content: Text(message),
           actions: [
             TextButton(
-              child: const Text('OK', style: TextStyle(fontSize:16, color: Color(0xFF6D3200))),
+              child: const Text('OK',
+                  style: TextStyle(fontSize: 16, color: Color(0xFF6D3200))),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
@@ -522,7 +525,9 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                                     10), // Add some space between the arrows and the button
                             ElevatedButton(
                               onPressed: () {
-                                // Future API call to bake or process the recipe can be placed here
+                                // API call to update product quantity and inventoryQuantity
+                                print('Recipe: $_recipe');
+                                bake(_recipe, currYield);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(

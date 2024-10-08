@@ -4,14 +4,14 @@ import 'inventoryItemClass.dart';
 
 // API class for inventory items
 class InventoryApi {
-  static Future<List<Item>> getItems(String query) async {
+  static Future<List<InventoryItem>> getItems(String query) async {
     final apiUrl = Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
     final response = await http.get(apiUrl);
 
     if (response.statusCode == 200) {
       final List items = json.decode(response.body);
 
-      return items.map((json) => Item.fromJson(json)).where((item) {
+      return items.map((json) => InventoryItem.fromJson(json)).where((item) {
         final ingredientNameLower = item.ingredientName.toLowerCase(); // Add ingredient name for filtering
         final searchLower = query.toLowerCase();
 
@@ -24,11 +24,11 @@ class InventoryApi {
 
   static const String baseUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory';
 
-  static Future<Item> fetchItemById(int itemId) async {
+  static Future<InventoryItem> fetchItemById(int itemId) async {
     final response = await http.get(Uri.parse('$baseUrl/$itemId'));
 
     if (response.statusCode == 200) {
-      final item = Item.fromJson(json.decode(response.body));
+      final item = InventoryItem.fromJson(json.decode(response.body));
       return item;
     } else {
       throw Exception('Failed to load item');
