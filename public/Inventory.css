@@ -1,161 +1,191 @@
+/* General Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Playwrite DE Grund', cursive;
+  font-weight: 400;
+}
+
 body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: 'Playwrite DE Grund', cursive;
+  background-color: bisque;
 }
 
-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #6A381F;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    padding: 0 40px;
-    font-size: 1.2rem;
+/* Basic styles for the navbar */
+.navbar {
+  background-color: #794500;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;  /* Space between logo and menu */
+  padding: 0 20px;
+  height: 140px;
+  align-items: center;             /* Vertically aligns content */
 }
-    /*Logo*/
+
+/* Logo container */
 .logo-container {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  padding-top: 40px; 
 }
 
-.logo-container img {
-    height: 100px;
-    width: auto;
-    cursor: pointer;
+/* Adjust logo size */
+.navbar-logo {
+  height: 250px;  /* Adjust this value as needed */
+  width: 230px;   /* Adjust this value as needed */
 }
 
-.logo-container img :hover {
-    background-color: #DCAB6B;
-}
-.menu-container {
-    display: sticky;
-    align-items: center;
-    gap: 10px;
-    margin-left: 750px;
-}
-
-
-/*Navigation Bar*/
-.menu-container a {
-    text-decoration: none;
-    font-size: 24px;
-    color: #DCAB6B;
-    padding: 16px 20px;
-    background-color: #6A381F;
-    transition: background-color 0.3s ease;
-    font-family: "Times New Roman";
+/* Style the unordered list (<ul>) */
+.navbar-menu {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;  /* Pushes the menu to the right */
+  align-items: center;        /* Vertically centers the buttons in the navbar */
 }
 
-.menu-container a:hover {
-    background-color: #DCAB6B;
-    color: #6A381F;
-    transition-delay: 10ms;
+/* Style each list item (<li>) */
+.navbar-menu li {
+  margin-left: 10px;
 }
 
-.employee-id-btn {
-    text-decoration: none;
-    font-size: 14px;
-    color: #DCAB6B;
-    padding: 8px 50px;
-    background-color: #6A381F;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    margin-right: 50px;
+/* Style the anchor (<a>) inside each list item */
+.navbar-menu li a {
+  display: inline-block;
+  background-color: #794500;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 5px;
 }
 
-.employee-id-btn:hover {
-    background-color: #DCAB6B;
-    color: #6A381F;
-
+/* Hover effect for all navbar buttons */
+.navbar-menu li a:hover {
+  background-color: #DCAB6B; /* Change background color on hover */
+  color: #794500;            /* Change text color on hover */
 }
 
-.right-section {
-    display: flex;
-    align-items: center;
+/* Specific style for the Logout button */
+.navbar-menu li a.logout-button {
+  border: 2px solid white;  /* Add border */
+  padding: 12px 24px;      /* Slightly bigger padding for larger button */
+  font-size: 1.1em;        /* Increase font size slightly */
+}
+
+/* Hover effect specifically for the Logout button */
+.navbar-menu li a.logout-button:hover {
+  background-color: white; /* Change to white background on hover */
+  color: #794500;          /* Change text color to match navbar background */
 }
 
 /* Search Section */
 .search-section {
-    display: flex;
-    margin-top: 120px;
-    margin-left: 100px;
-    padding: 10px;
-    gap: 10px;
+  display: flex;
+  margin-top: 20px;
+  margin-left: 100px;
+  padding: 10px;
+  gap: 10px;
 }
 
 .search-bar {
-    display: flex;
-    align-items: center;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    overflow: hidden;
-    width: 40%; /* Adjust width to stop midway */
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 40%;
 }
 
 #searchInput {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    outline: none;
-    font-size: 16px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  font-size: 16px;
 }
 
 .search-btn {
-    padding: 12px;
-    background-color: #DCAB6B;
-    border: none;
-    cursor: pointer;
+  padding: 12px;
+  background-color: #794500;
+  border: none;
+  cursor: pointer;
 }
 
 .search-icon {
-    height: 20px;
-    width: 20px;
+  height: 20px;
+  width: 20px;
 }
 
 /* View All and Refresh Buttons */
 .view-all-btn, .refresh-btn {
-    padding: 12px 20px;
-    background-color: #DCAB6B;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 16px;
+  padding: 12px 20px;
+  background-color: #794500;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
 }
 
-.view-all-btn:hover, .refresh-btn:hover {
-    background-color: #6A381F;
-    color: #fff;
+.add-item-btn {
+  padding: 12px 20px;
+  background-color: #794500;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.refresh-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
 }
 
 /* Table styles */
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
 table th, table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
 }
 
 table th {
-    background-color: #DCAB6B;
-    color: white;
+  background-color: #794500;
+  color: white;
 }
 
 table tr:nth-child(even) {
-    background-color: #ffffff;
+  background-color: #ffffff;
 }
 
 table tr:hover {
-    background-color: #ddd;
+  background-color: #ddd;
+}
+
+/* Employee ID button */
+.employee-id-btn {
+  text-decoration: none;
+  font-size: 14px;
+  color: #DCAB6B;
+  padding: 8px 50px;
+  background-color: #6A381F;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  margin-right: 50px;
+}
+
+.employee-id-btn:hover {
+  background-color: #DCAB6B;
+  color: #6A381F;
 }
