@@ -1916,6 +1916,36 @@ app.get('/inventory/name/:name', async (req, res) => {
 
 
 
+// GET /inventory/ingredient/:ingredientId: Retrieve inventory items by IngredientID
+app.get('/inventory/ingredient/:ingredientId', async (req, res) => {
+    const { ingredientId } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('ingredientId', sql.Int, ingredientId)
+            .query(`
+                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
+                       inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName, 
+                       ing.Category, ing.Description, inv.Quantity AS IngredientQuantity,
+                       ing.MinAmount, ing.MaxAmount, ing.ReorderAmount, ing.VendorID
+                FROM dbo.tblInventory inv
+                JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                WHERE inv.IngredientID = @ingredientId
+            `);
+        
+        if (result.recordset.length > 0) {
+            res.json(result.recordset);
+        } else {
+            res.status(404).send('No inventory items found for this ingredient');
+        }
+    } catch (error) {
+        res.status(500).send('Error retrieving inventory items: ' + error.message);
+    }
+});
+
+
+
 
 // POST /inventory: Add a new inventory item
 app.post('/inventory', async (req, res) => {
