@@ -110,13 +110,15 @@ Future<void> bake(Item _recipe, int currentYield) async {
   try {
     // Fetch the product by productID from the recipe
     Product product = await ProductApi.fetchProductById(_recipe.productID);
+    print('Fetching product with ID: ${_recipe.productID}');
 
     // Update the product quantity by adding the currentYield
     int updatedQuantity = product.quantity + currentYield;
 
     // Validate the updated quantity
     if (updatedQuantity > product.maxAmount) {
-      throw Exception('Updated quantity exceeds maximum allowed');
+      throw Exception(
+          'Updated quantity exceeds maximum allowed for product ${product.name}');
     }
 
     // Create a list to hold the inventory update futures
@@ -125,50 +127,61 @@ Future<void> bake(Item _recipe, int currentYield) async {
     // Iterate through the ingredients in the recipe
     for (var ingredient in _recipe.ingredients) {
       // Calculate the total amount of the ingredient needed based on currentYield
-      int totalAmountNeeded = ingredient.quantity * currentYield;
+      int totalAmountNeeded =
+          (ingredient.quantity * (currentYield / _recipe.yield2).round());
+      print('current yield: $currentYield');
+      print('recipe yield: ${_recipe.yield2}');
+      print('ingredient quantity: ${ingredient.quantity}');
+      print('total amount needed: $totalAmountNeeded');
+      // Fetch the current inventory item for the ingredient by IngredientID
+      print(
+          'Fetching inventory item with IngredientID: ${ingredient.ingredientID}');
+      InventoryItem inventoryItem =
+          await InventoryApi.fetchItemByIngredientId(ingredient.ingredientID);
 
-      // Fetch the current inventory item for the ingredient
-      InventoryItem inventoryItem = await InventoryApi.fetchItemById(ingredient.ingredientID);
-
-      // Calculate the updated quantity by subtracting the amount needed
-      int updatedInventoryQuantity = inventoryItem.quantity - totalAmountNeeded;
-
-      // Check if inventory has enough for the recipe
-      if (updatedInventoryQuantity < 0) {
-        throw Exception('Insufficient inventory for ingredient: ${ingredient.name}');
+      // Check if inventory has enough for the recipe by comparing numeric values
+      if (totalAmountNeeded > inventoryItem.quantity) {
+        throw Exception(
+            'Insufficient inventory for ingredient: ${ingredient.name}. Required: $totalAmountNeeded, Available: ${inventoryItem.quantity}');
       }
 
-      // Add the inventory update API call to the list
+      // If there is enough, proceed with updating the inventory
+      print(
+          'Sufficient inventory for ingredient: ${ingredient.name}. Required: $totalAmountNeeded, Available: ${inventoryItem.quantity}');
+
+      int updatedInventoryQuantity = inventoryItem.quantity - totalAmountNeeded;
+
+// Add the inventory update API call to the list
+      final url = Uri.parse(
+          'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/ingredient/${inventoryItem.ingredientID}');
+      final requestBody = {
+        'IngredientID': inventoryItem.ingredientID,
+        'quantity': updatedInventoryQuantity,
+      };
+
+// Log the URL and the request body before making the API call
+      print('PUT Request URL: $url');
+      print('PUT Request Body: ${jsonEncode(requestBody)}');
+
+// Add the HTTP PUT call to the list of update calls
       updateCalls.add(http.put(
-        Uri.parse('https://your-api-url/inventory/${inventoryItem.ingredientID}'),
-        body: jsonEncode({
-          'ingredient_id': inventoryItem.ingredientID,
-          'quantity': updatedInventoryQuantity,
-          'notes': inventoryItem.notes,
-          'cost': inventoryItem.cost,
-          'create_datetime': inventoryItem.createDateTime.toIso8601String(),
-          'expire_datetime': inventoryItem.expireDateTime.toIso8601String(),
-          'measurement': inventoryItem.invMeasurement,
-        }),
+        url,
         headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requestBody),
       ));
     }
 
     // Add the product update API call to the list
     updateCalls.add(http.put(
-      Uri.parse('https://your-api-url/product/${product.productID}'),
-      body: jsonEncode({
-        'productID': product.productID,
-        'name': product.name,
-        'description': product.description,
-        'maxAmount': product.maxAmount,
-        'remakeAmount': product.remakeAmount,
-        'minAmount': product.minAmount,
-        'quantity': updatedQuantity,
-        'price': product.price,
-        'category': product.category,
-      }),
+      Uri.parse(
+          'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/finalproducts/${product.productID}'),
       headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        'ProductID': product.productID,
+        'Name': product.name,
+        'Quantity': updatedQuantity,
+        'Category': product.category,
+      }),
     ));
 
     // Make all API calls in parallel
@@ -177,7 +190,7 @@ Future<void> bake(Item _recipe, int currentYield) async {
     // Check the responses for success or failure
     for (var response in responses) {
       if (response.statusCode != 200) {
-        throw Exception('Failed to update data: ${response.body}');
+        throw Exception('Failed to update data: ${response.body}}');
       }
     }
 
