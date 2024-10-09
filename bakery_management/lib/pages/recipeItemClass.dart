@@ -4,16 +4,16 @@ class Ingredient {
   final String name;
   final int quantity;
   final String measurement; // New field for measurement
-  final int inventoryQuantity;
-  final int entryID;
+  final int? inventoryQuantity;
+  final int? entryID;
 
   Ingredient({
     required this.ingredientID,
     required this.name,
     required this.quantity,
     required this.measurement, // Include measurement in constructor
-    required this.inventoryQuantity,
-    required this.entryID,
+    this.inventoryQuantity,
+    this.entryID,
   });
   @override
   String toString() {

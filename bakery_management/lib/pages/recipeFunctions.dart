@@ -804,14 +804,12 @@ void showRecipeUpdateDialog(
                       .split(',')
                       .map((ingredientString) {
                     final parts = ingredientString.split(':');
-                    if (parts.length == 6) {
+                    if (parts.length == 4) {
                       return Ingredient(
                         ingredientID: int.parse(parts[0].trim()),
                         name: parts[1].trim(),
                         quantity: int.parse(parts[2].trim()),
                         measurement: parts[3].trim(),
-                        entryID: int.parse(parts[4].trim()),
-                        inventoryQuantity: int.parse(parts[5].trim()),
                       );
                     } else {
                       throw Exception(
@@ -862,6 +860,7 @@ void showRecipeUpdateDialog(
                 // Close the dialog
                 Navigator.pop(context, updatedRecipe);
               } catch (error) {
+                print(error.toString());
                 // error
               }
             },
