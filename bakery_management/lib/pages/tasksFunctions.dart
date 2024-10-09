@@ -9,19 +9,13 @@ Future<Task> fetchTaskDetails(int id) async {
   try {
     final response = await http.get(Uri.parse('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/tasks/$id'));
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> json = jsonDecode(response.body);
-      print('Task Details JSON: $json'); // Debugging line
       return Task.fromJson(json);
     } else {
-      print('Failed to load task details. Status code: ${response.statusCode}');
       throw Exception('Failed to load task details');
     }
   } catch (e) {
-    print('Error: $e');
     throw Exception('Failed to load task details');
   }
 }
@@ -132,12 +126,10 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
         ),
         ElevatedButton(
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
-            foregroundColor: MaterialStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
+            backgroundColor: WidgetStateProperty.all(const Color(0xFF6D3200)), // Dark brown background
+            foregroundColor: WidgetStateProperty.all(const Color(0xFFEEC07B)), // Light brown text
           ),
           onPressed: () async {
-            var assID = widget.userId;
-            print('Assigned ID function: $assID');
             try {
               // Ensure taskDueDate is not null before proceeding
               if (taskDueDate != null && taskDescription.isNotEmpty) {

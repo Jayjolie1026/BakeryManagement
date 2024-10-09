@@ -31,10 +31,6 @@ class InventoryApi {
     try {
       final response = await http.get(Uri.parse('$baseUrl/$itemId'));
 
-      print('Fetching inventory item with ID: $itemId');
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final item = InventoryItem.fromJson(json.decode(response.body));
         return item;
@@ -49,10 +45,6 @@ class InventoryApi {
 static Future<List<InventoryItem>> fetchItemByName(String itemName) async {
   try {
     final response = await http.get(Uri.parse('$baseUrl/name/${Uri.encodeComponent(itemName)}'));
-
-    print('Fetching inventory item with name: $itemName');
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       // Expecting a list in the response body

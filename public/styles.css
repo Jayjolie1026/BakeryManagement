@@ -118,7 +118,7 @@ body.fade-out {
     margin-top: 10px;
     margin-left: 10px;
     font-weight: 300;
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     animation: fadeInUp 1s ease-in-out; /* Delayed fade-in */
 }
 
@@ -132,7 +132,7 @@ body.fade-out {
     max-width: 398px; /* Standard max width for form */
     width: 100%; /* Allow the container to be responsive */
     margin-left: 20px; /* Space from image */
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     position: absolute;
     top: 250px;
     right: 90px;
@@ -142,7 +142,7 @@ body.fade-out {
 .signin__container h1 {
     color: #774E24; /* White text for better contrast */
     font-size: 2rem;
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     margin-bottom: -15px;
 }
 
@@ -155,7 +155,7 @@ body.fade-out {
 
 .signin-form input {
     width: 90%;
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     padding: 18px;
     margin-right: 10px;
     margin-top: -50px;
@@ -170,7 +170,7 @@ body.fade-out {
     color: #fff;
     border: none;
     border-radius: 5px;
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     cursor: pointer;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -183,7 +183,7 @@ body.fade-out {
 .button1 {
     width: 80%;
     display: block;
-    font-family: 'Sofadi One';
+    font-family: "Playwrite DE Grund", cursive;
     text-decoration: none;
     color: #774E24;
     margin-bottom: 10px;
