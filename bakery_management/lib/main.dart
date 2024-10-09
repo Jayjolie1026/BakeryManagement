@@ -88,8 +88,6 @@ class _SignInPageState extends State<SignInPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
        await prefs.setString('username', _usernameController.text); 
       final responseBody = jsonDecode(response.body);
-      print('Decoded response body: $responseBody');
-
       final employeeId = responseBody['employee_id'];
       await prefs.setString('employeeId', employeeId);
 
@@ -418,10 +416,7 @@ Future<void> _loadJobID() async {
     // Retrieve the jobId from SharedPreferences
     int? jobId = prefs.getInt('jobId');
     if (jobId != null) {
-      print('Loaded Job ID: $jobId');
       _jobId = jobId.toString(); // Convert to string if necessary
-    } else {
-      print('No Job ID found in SharedPreferences');
     }
   });
 }
@@ -432,7 +427,6 @@ Future<void> _loadJobID() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _employeeId = prefs.getString('employeeId'); // Retrieve the stored employeeId
-      print('Employee ID: $_employeeId');
     });
   }
 
@@ -514,7 +508,6 @@ Widget _buildAddTaskButton() {
                 ),
                 onPressed: () async {
                   if (_employeeId != null) {
-                    print('Assigned By ID: $_employeeId');
                     bool updated = await showAddTaskDialog(context, _employeeId!); // Show the dialog to add a new task
                     if (updated) {
                       _refreshTasks(); // Refresh the task list after editing

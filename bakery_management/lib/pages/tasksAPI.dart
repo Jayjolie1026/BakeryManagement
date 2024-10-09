@@ -8,12 +8,6 @@ const String baseUrl = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azur
 Future<List<Task>> getTasks() async {
   final response = await http.get(Uri.parse(baseUrl));
 
-  // Debugging
-  print('Response status: ${response.statusCode}');
-  if (response.statusCode != 200) {
-    print('Error details: ${response.body}');
-  }
-
   if (response.statusCode == 200) {
     List jsonResponse = json.decode(response.body);
     return jsonResponse.map((task) => Task.fromJson(task)).toList();
@@ -44,16 +38,12 @@ Future<void> addTask({
     }),
   );
 
-  // Debugging
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
-
-  if (response.statusCode == 201) {
-    print('Task added successfully');
-  } else {
+  if (response.statusCode != 201) {
     throw Exception('Failed to add task: ${response.statusCode} - ${response.body}');
   }
 }
+
+
 
 // Similar debugging for updateTask and deleteTask...
 
@@ -78,22 +68,12 @@ body: json.encode({
 
   );
 
-  if (response.statusCode == 200) {
-    print('Task updated successfully');
-  } else {
-    throw Exception('Failed to update task: ${response.body}');
-  }
 }
 
 // Function to delete a task
 Future<void> deleteTask(int taskId) async {
   final url = Uri.parse('$baseUrl/$taskId'); // Using the base URL and appending the task ID
-
+  
   final response = await http.delete(url);
 
-  if (response.statusCode == 200) {
-    print('Task deleted successfully');
-  } else {
-    throw Exception('Failed to delete task: ${response.body}');
-  }
 }

@@ -440,11 +440,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             final description = 'Need to reorder ${item.ingredientName}, quantity below min amount';
             const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
 
-            // Log existing tasks for debugging
-            for (var task in existingTasks) {
-              print('Description: ${task.description}, Due Date: ${task.dueDate}');
-            }
-
             // Check if a task for this item already exists
             bool taskExists = existingTasks.any((task) =>
               task.description == description ||
@@ -452,10 +447,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
             if (!taskExists) {
               addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
-            } else {
-              print('Task already exists for ${item.ingredientName}, skipping task creation.');
             }
-
             return const Text(
               'QUANTITY IS VERY LOW! REORDER NOW!',
               style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
@@ -475,10 +467,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
 
             if (!taskExists) {
               addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
-            } else {
-              print('Task already exists for ${item.ingredientName}, skipping task creation.');
             }
-
             return const Text(
               'Quantity is getting low. Please reorder!',
               style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
