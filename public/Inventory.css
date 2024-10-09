@@ -147,6 +147,22 @@ body {
   color: #fff;
 }
 
+.remove-item-btn {
+  padding: 12px 20px;
+  background-color: #794500;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.remove-item-btn:hover {
+  background-color: #6A381F;
+  color: white;
+}
+
 /* Table styles */
 table {
   width: 100%;

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Inventory Item</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Playwrite DE Grund', cursive;
+            font-weight: 400;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Playwrite DE Grund', cursive;
+            background-color: bisque;
+        }
+
+        /* Header */
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #794500;
+        }
+
+        /* Form container */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        /* Label and input */
+        label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #794500;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 300px;
+            border: 2px solid #794500;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Remove button */
+        .remove-item-btn {
+            padding: 12px 20px;
+            background-color: #794500;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .remove-item-btn:hover {
+            background-color: #6A381F;
+            color: white;
+        }
+
+        /* Message styling */
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+            color: #794500;
+        }
+
+        /* Scrollable inventory list */
+        .inventory-list {
+            width: 80%;
+            margin: 20px auto;
+            max-height: 300px; /* Set a max height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 2px solid #794500;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #fff8e1;
+        }
+
+        .inventory-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .inventory-list li {
+            padding: 10px;
+            border-bottom: 1px solid #794500;
+            color: #794500;
+        }
+
+        .inventory-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Remove Inventory Item</h1>
+    
+    <div class="form-container">
+        <label for="item_name">Item Name:</label>
+        <input type="text" id="item_name" placeholder="Enter item name to remove">
+        <button class="remove-item-btn" onclick="removeInventory()">Remove Inventory</button>
+    </div>
+
+    <div id="message"></div>
+
+    <!-- Scrollable inventory list -->
+    <div class="inventory-list" id="inventoryList">
+        <ul id="inventoryItems"></ul>
+    </div>
+
+    <script>
+        // Function to load and display the inventory items
+        async function loadInventoryItems() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
+                const inventoryItems = await response.json();
+                
+                const inventoryList = document.getElementById('inventoryItems');
+                inventoryList.innerHTML = ''; // Clear existing list
+
+                // Populate the inventory list
+                inventoryItems.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${item.IngredientName} (ID: ${item.EntryID})`;
+                    inventoryList.appendChild(listItem);
+                });
+            } catch (error) {
+                document.getElementById('message').textContent = `Error loading inventory items: ${error.message}`;
+            }
+        }
+
+        // Load inventory items on page load
+        window.onload = loadInventoryItems;
+
+        // Function to remove an inventory item
+        async function removeInventory() {
+            const itemName = document.getElementById('item_name').value;
+
+            if (!itemName) {
+                document.getElementById('message').textContent = 'Please enter an item name.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/name/${itemName}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const messageDiv = document.getElementById('message');
+
+                if (response.ok) {
+                    const result = await response.text();
+                    messageDiv.textContent = result;  // Display the success message
+                    loadInventoryItems(); // Refresh the inventory list after deletion
+                } else if (response.status === 404) {
+                    messageDiv.textContent = 'Item not found.';
+                } else {
+                    messageDiv.textContent = 'Error: Unable to remove item.';
+                }
+
+            } catch (error) {
+                document.getElementById('message').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -43,6 +43,7 @@
         <!-- Moved Add Ingredient button here -->
         <button class="add-item-btn" onclick="redirectToAddInventory()">Add Inventory</button>
         <button class="refresh-btn" onclick="redirectToUpdateInventory()">Update Inventory</button>
+        <button class="remove-item-btn" onclick="removeInventory()">Remove Inventory</button>
     </div>
 
     <!-- Add New Item Section (Initially Hidden) -->
@@ -126,6 +127,10 @@
 
       function redirectToUpdateInventory() {
           window.location.href = 'updateinventory.html'
+      }
+
+      function removeInventory() {
+          window.location.href = 'removeInventory.html'
       }
     </script>
  
