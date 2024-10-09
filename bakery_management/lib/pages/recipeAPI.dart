@@ -106,11 +106,10 @@ Future<void> addRecipe(String name, String steps, int productID,
   }
 }
 
-Future<void> bake(Item _recipe, int currentYield) async {
+Future bake(Item _recipe, int currentYield) async {
   try {
     // Fetch the product by productID from the recipe
     Product product = await ProductApi.fetchProductById(_recipe.productID);
-    print('Fetching product with ID: ${_recipe.productID}');
 
     // Update the product quantity by adding the currentYield
     int updatedQuantity = product.quantity + currentYield;
@@ -129,13 +128,7 @@ Future<void> bake(Item _recipe, int currentYield) async {
       // Calculate the total amount of the ingredient needed based on currentYield
       int totalAmountNeeded =
           (ingredient.quantity * (currentYield / _recipe.yield2).round());
-      print('current yield: $currentYield');
-      print('recipe yield: ${_recipe.yield2}');
-      print('ingredient quantity: ${ingredient.quantity}');
-      print('total amount needed: $totalAmountNeeded');
-      // Fetch the current inventory item for the ingredient by IngredientID
-      print(
-          'Fetching inventory item with IngredientID: ${ingredient.ingredientID}');
+
       InventoryItem inventoryItem =
           await InventoryApi.fetchItemByIngredientId(ingredient.ingredientID);
 
@@ -145,10 +138,7 @@ Future<void> bake(Item _recipe, int currentYield) async {
             'Insufficient inventory for ingredient: ${ingredient.name}. Required: $totalAmountNeeded, Available: ${inventoryItem.quantity}');
       }
 
-      // If there is enough, proceed with updating the inventory
-      print(
-          'Sufficient inventory for ingredient: ${ingredient.name}. Required: $totalAmountNeeded, Available: ${inventoryItem.quantity}');
-
+      // Calculate amount to subtract from inventoryQuantity
       int updatedInventoryQuantity = inventoryItem.quantity - totalAmountNeeded;
 
 // Add the inventory update API call to the list
@@ -158,10 +148,6 @@ Future<void> bake(Item _recipe, int currentYield) async {
         'IngredientID': inventoryItem.ingredientID,
         'quantity': updatedInventoryQuantity,
       };
-
-// Log the URL and the request body before making the API call
-      print('PUT Request URL: $url');
-      print('PUT Request Body: ${jsonEncode(requestBody)}');
 
 // Add the HTTP PUT call to the list of update calls
       updateCalls.add(http.put(
@@ -187,17 +173,36 @@ Future<void> bake(Item _recipe, int currentYield) async {
     // Make all API calls in parallel
     final responses = await Future.wait(updateCalls);
 
-    // Check the responses for success or failure
-    for (var response in responses) {
-      if (response.statusCode != 200) {
-        throw Exception('Failed to update data: ${response.body}}');
-      }
-    }
+    // Check if all API calls were successful
+    bool allSuccessful =
+        responses.every((response) => response.statusCode == 200);
 
-    // Success message
-    print('Product and inventory updated successfully!');
+    if (allSuccessful) {
+      return {'success': true}; // All updates were successful
+    } else {
+      // Here, you might want to handle cases where some API calls fail
+      List<String> missingIngredients = [];
+
+      for (var response in responses) {
+        if (response.statusCode != 200) {
+          // Here, you can parse the response for missing ingredient details
+          final responseBody = jsonDecode(response.body);
+          if (responseBody['missingIngredients'] != null) {
+            missingIngredients.addAll(responseBody['missingIngredients']);
+          } else {
+            // Assuming the response body has a message
+            missingIngredients.add(responseBody['message'] ?? 'Unknown error');
+          }
+        }
+      }
+
+      return {'success': false, 'missingIngredients': missingIngredients};
+    }
   } catch (e) {
-    // Handle failure
-    print('Failed to update product or inventory: $e');
+    // Capture and return specific error details
+    return {
+      'success': false,
+      'message': e.toString(), // Return the error message
+    };
   }
 }

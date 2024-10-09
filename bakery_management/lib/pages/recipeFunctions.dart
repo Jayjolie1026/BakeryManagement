@@ -524,10 +524,60 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                                 width:
                                     10), // Add some space between the arrows and the button
                             ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 // API call to update product quantity and inventoryQuantity
                                 print('Recipe: $_recipe');
-                                bake(_recipe, currYield);
+
+                                // Call the bake function and wait for the result
+                                final result = await bake(_recipe, currYield);
+
+                                if (result['success']) {
+                                  // Show success message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Recipe baked successfully')),
+                                  );
+                                } 
+                                else {
+                                  // Show failure message with specific error details
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text(
+                                          'Insufficient Quantity',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF6D3200),
+                                          ),
+                                        ),
+                                        content: Text(
+                                          result['message']?.replaceFirst(
+                                                  'Exception: ', '') ??
+                                              'Failed to bake the recipe',
+                                        ),
+                                        backgroundColor: const Color(0xFFF0D1A0),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context)
+                                                  .pop(); // Close the dialog
+                                            },
+                                            child: const Text(
+                                              'OK',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Color(0xFF6D3200),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(
@@ -538,8 +588,10 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                                     horizontal: 20,
                                     vertical: 10), // Padding for the button
                               ),
-                              child: const Text('Bake It',
-                                  style: TextStyle(fontSize: 18)),
+                              child: const Text(
+                                'Bake It',
+                                style: TextStyle(fontSize: 18),
+                              ),
                             ),
                           ],
                         ),
@@ -788,87 +840,93 @@ void showRecipeUpdateDialog(
             ),
             child: const Text('Cancel'),
           ),
-ElevatedButton(
-  onPressed: () async {
-    try {
-      // Update the recipe with new values
-      int yieldValue = int.tryParse(yieldController.text) ?? 0; // Default to 0 if parsing fails
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // Update the recipe with new values
+                int yieldValue = int.tryParse(yieldController.text) ??
+                    0; // Default to 0 if parsing fails
 
-      // Create the updated recipe
-      final updatedRecipe = Item(
-        recipeID: recipe.recipeID,
-        name: nameController.text,
-        steps: stepsController.text,
-        productID: recipe.productID,
-        ingredients: ingredientsController.text.split(',').map((ingredientString) {
-          final parts = ingredientString.split(':');
+                // Create the updated recipe
+                final updatedRecipe = Item(
+                  recipeID: recipe.recipeID,
+                  name: nameController.text,
+                  steps: stepsController.text,
+                  productID: recipe.productID,
+                  ingredients: ingredientsController.text
+                      .split(',')
+                      .map((ingredientString) {
+                    final parts = ingredientString.split(':');
 
-          // Assuming you're using the format ID:name:quantity:measurement for updating ingredients
-          if (parts.length == 4) { // Adjust this back to 4 for updates
-            return Ingredient(
-              ingredientID: int.parse(parts[0].trim()),
-              name: parts[1].trim(),
-              quantity: int.parse(parts[2].trim()),
-              measurement: parts[3].trim(),
-              // entryID and inventoryQuantity are not included for updates
-            );
-          } else {
-            throw Exception('Invalid ingredient format. Expected format: ID:name:quantity:measurement');
-          }
-        }).toList(),
-        category: categoryController.text,
-        yield2: yieldValue,
-      );
+                    // Assuming you're using the format ID:name:quantity:measurement for updating ingredients
+                    if (parts.length == 4) {
+                      // Adjust this back to 4 for updates
+                      return Ingredient(
+                        ingredientID: int.parse(parts[0].trim()),
+                        name: parts[1].trim(),
+                        quantity: int.parse(parts[2].trim()),
+                        measurement: parts[3].trim(),
+                        // entryID and inventoryQuantity are not included for updates
+                      );
+                    } else {
+                      throw Exception(
+                          'Invalid ingredient format. Expected format: ID:name:quantity:measurement');
+                    }
+                  }).toList(),
+                  category: categoryController.text,
+                  yield2: yieldValue,
+                );
 
-      // Validate required fields
-      if (updatedRecipe.name.isEmpty ||
-          updatedRecipe.steps.isEmpty ||
-          updatedRecipe.productID == null ||
-          updatedRecipe.category.isEmpty ||
-          updatedRecipe.yield2 <= 0 ||
-          updatedRecipe.ingredients.isEmpty) {
-        throw Exception('Name, steps, product ID, category, yield, and ingredients are required');
-      }
+                // Validate required fields
+                if (updatedRecipe.name.isEmpty ||
+                    updatedRecipe.steps.isEmpty ||
+                    updatedRecipe.productID == null ||
+                    updatedRecipe.category.isEmpty ||
+                    updatedRecipe.yield2 <= 0 ||
+                    updatedRecipe.ingredients.isEmpty) {
+                  throw Exception(
+                      'Name, steps, product ID, category, yield, and ingredients are required');
+                }
 
-      // Prepare ingredients for the API call
-      List<Map<String, dynamic>> ingredientsForApi = updatedRecipe.ingredients.map((ingredient) {
-        return {
-          'IngredientID': ingredient.ingredientID,
-          'Name': ingredient.name,
-          'Quantity': ingredient.quantity,
-          'Measurement': ingredient.measurement,
-          // Don't include entryID and inventoryQuantity for updates
-        };
-      }).toList();
+                // Prepare ingredients for the API call
+                List<Map<String, dynamic>> ingredientsForApi =
+                    updatedRecipe.ingredients.map((ingredient) {
+                  return {
+                    'IngredientID': ingredient.ingredientID,
+                    'Name': ingredient.name,
+                    'Quantity': ingredient.quantity,
+                    'Measurement': ingredient.measurement,
+                    // Don't include entryID and inventoryQuantity for updates
+                  };
+                }).toList();
 
-      // Call the API to update the recipe
-      await RecipeApi().updateRecipe(
-        updatedRecipe.recipeID,
-        updatedRecipe.name,
-        updatedRecipe.steps,
-        ingredientsForApi,
-        updatedRecipe.productID,
-        updatedRecipe.category,
-        updatedRecipe.yield2,
-      );
+                // Call the API to update the recipe
+                await RecipeApi().updateRecipe(
+                  updatedRecipe.recipeID,
+                  updatedRecipe.name,
+                  updatedRecipe.steps,
+                  ingredientsForApi,
+                  updatedRecipe.productID,
+                  updatedRecipe.category,
+                  updatedRecipe.yield2,
+                );
 
-      // Call the update callback
-      onRecipeUpdated(updatedRecipe);
+                // Call the update callback
+                onRecipeUpdated(updatedRecipe);
 
-      // Close the dialog
-      Navigator.pop(context, updatedRecipe);
-    } catch (error) {
-      print(error.toString());
-      // Handle error appropriately, e.g., show a snackbar or dialog
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFF6D3200),
-    foregroundColor: const Color(0xFFF0d1a0),
-  ),
-  child: const Text('Save Changes'),
-)
-
+                // Close the dialog
+                Navigator.pop(context, updatedRecipe);
+              } catch (error) {
+                print(error.toString());
+                // Handle error appropriately, e.g., show a snackbar or dialog
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D3200),
+              foregroundColor: const Color(0xFFF0d1a0),
+            ),
+            child: const Text('Save Changes'),
+          )
         ],
       );
     },
