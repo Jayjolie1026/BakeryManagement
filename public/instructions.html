@@ -5,29 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: rgb(228, 213, 194);
+            font-family: "Playwrite DE Grund", cursive;
+            background-color: rgb(223, 197, 163); /* Keeping the same background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
         }
-        h1, h2 {
-            color: #333;
-        }
+
         #recipeContainer {
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 5px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            padding: 30px;
+            margin: 40px;
         }
-        #idInput {
-            margin-bottom: 10px;
+
+        h1, h2, h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: normal;
         }
+
+        h1 {
+            font-size: 2.5rem;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
+            margin-bottom: 0px;
+            text-align: center;
+            color: #6A381F;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #555;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        /*image for the recipe*/
         img {
-            width: 500px;
-            height: 500px;
+            width: 50%;
+            max-width: 700px;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
         }
-        .steps-list {
-            list-style-type: none;
+
+        .title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .update-button {
+            background-color: #6A381F;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        .scaling-container {
+            width: 60%;
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .batch-button {
+            padding: 5px 10px;
+            font-size: 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            background-color: #f8c36ec3;
+            border: none;
+            border-radius: 3px;
+        }
+        .batch-button:hover {
+            background-color: #d3a3557d;
+        } 
+        /* Plus button on the right */
+        .batch-control button:last-child {
+            border-left: 1px solid #d49a419a;
+        }
+
+        /* Remove default number input arrows */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+        /* Add a nice divider between sections */
+        hr {
+            border: 0;
+            border-top: 1px solid #ddd;
+            margin: 30px 0;
         }
     </style>
 </head>
@@ -35,9 +119,11 @@
     <div id="recipeContainer"></div>
 
     <script>
+        let originalYield;
+        let ingredients = [];
+
         async function fetchRecipe(recipeID) {
             try {
-                // Use backticks for template literal to inject the recipeID
                 const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${recipeID}`);
                 
                 if (!response.ok) {
@@ -47,33 +133,49 @@
                 const recipe = await response.json();
                 
                 if (recipe) {
-                    document.title = recipe.Name; // Set page title
-                    
+                    document.title = recipe.Name;
+                    originalYield = recipe.Yield;
+                    ingredients = recipe.Ingredients;
+
                     let html = `
-                        <h1>${recipe.Name}</h1>
+                        <div class="title-container">
+                            <h1>${recipe.Name}</h1>
+                            <button class="update-button" onclick="updateRecipe()">Update</button>
+                        </div>
+
                         <h2>Category: ${recipe.Category}</h2>
-                        <h2>Yield: ${recipe.Yield}</h2>
-                        <img src="bread1.png" alt="Recipe Image"> 
+                        <h2>Yield: <span id="currentYield">${recipe.Yield}</span></h2>
+
+                        <img src="assets/${recipe.RecipeID}.jpg" alt="Recipe Image" onerror="this.onerror=null; this.src='assets/noIMG.jpg';">
+                        
                         <h3>Ingredients:</h3>
-                        <ul class="ingredients-list">
+                        <ul id="ingredientsList" class="ingredients-list"></ul>
+
+                        <h3>Steps:</h3>
+                        <ul class="steps-list">
                     `;
-                    
-                    // Loop through the ingredients and add them to the HTML
-                    recipe.Ingredients.forEach(ingredient => {
-                        html += `<li>${ingredient.Name}: ${ingredient.Quantity} ${ingredient.Measurement}</li>`;
-                    });
-                    
-                    html += '</ul><h3>Steps:</h3><ul class="steps-list">';
 
                     // Split the steps by newline and add each as a list item
                     const steps = recipe.Steps.split('\\n').filter(step => step.trim() !== '');
                     steps.forEach(step => {
                         html += `<li>${step.trim()}</li>`;
                     });
-                    
-                    html += '</ul>';
+
+                    html += `
+                        </ul>
+                        <div class="scaling-container">
+                            <div>
+                                <label for="batchCount">Batches: </label>
+                                <button onclick="changeBatch(-1)" class="batch-button">-</button>
+                                <input type="number" id="batchCount" value="1" min="1" oninput="updateIngredients()" />
+                                <button onclick="changeBatch(1)" class="batch-button">+</button>
+                            </div>
+                        </div>
+                    `;
                     
                     document.getElementById('recipeContainer').innerHTML = html;
+                    updateIngredients();  // Call function to render ingredients
+
                 } else {
                     document.getElementById('recipeContainer').innerHTML = '<p>No recipe found with that ID.</p>';
                 }
@@ -83,12 +185,51 @@
             }
         }
 
+        function updateIngredients() {
+            const batchCount = document.getElementById('batchCount').value;
+            const newYield = originalYield * batchCount;
+            document.getElementById('currentYield').innerText = newYield;
+
+            const ingredientsList = document.getElementById('ingredientsList');
+            ingredientsList.innerHTML = '';
+
+            // Loop through the ingredients and scale the quantity by batchCount
+            ingredients.forEach(ingredient => {
+                const scaledQuantity = (ingredient.Quantity * batchCount).toFixed(2);
+                ingredientsList.innerHTML += `<li>${ingredient.Name}: ${scaledQuantity} ${ingredient.Measurement}</li>`;
+            });
+        }
+
+        // Placeholder function for future update functionality
+        function updateRecipe() {
+            alert('Update feature coming soon!');
+        }
+
+        function changeBatch(amount) {
+        const batchInput = document.getElementById('batchCount');
+        let currentBatch = parseInt(batchInput.value);
+        let newBatch = currentBatch + amount;
+        
+        // Ensure the batch count doesn't go below 1
+        if (newBatch < 1) {
+            newBatch = 1;
+        }
+
+        batchInput.value = newBatch;
+        updateIngredients();  // Update ingredients based on new batch number
+        }
         // Extract the recipe ID from the URL query parameters
         const params = new URLSearchParams(window.location.search);
         const recipeID = params.get('ID');
 
         // Fetch the recipe when the page loads
-        window.onload = () => fetchRecipe(recipeID);
+        window.onload = () => {
+            if (recipeID) {
+                fetchRecipe(recipeID);
+            } else {
+                document.getElementById('recipeContainer').innerHTML = '<p>No recipe ID provided. Please specify a valid ID.</p>';
+            }
+        };
     </script>
 </body>
 </html>
