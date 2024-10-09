@@ -608,7 +608,6 @@ app.delete('/users/username/:username', async (req, res) => {
 app.put('/users/:username', async (req, res) => {
     const username = req.params.username;
     const { firstName, lastName, newUsername, password, email, phoneNumber, address } = req.body;
-    console.log(req.body);
 
 
     if (!username) {
