@@ -2070,10 +2070,10 @@ app.put('/inventory/:item_id', async (req, res) => {
 });
 
 // PUT /inventory/:ingredient_id: Update an inventory item by IngredientID
-app.put('/inventory/:ingredient_id', async (req, res) => {
+app.put('/inventory/ingredientid/:ingredient_id', async (req, res) => {
     console.log('Received request for updating ingredient:', req.params.ingredient_id);
     console.log('Request Body:', req.body);
-    
+
     const { ingredient_id } = req.params;
     const { quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
