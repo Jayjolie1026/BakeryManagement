@@ -365,7 +365,7 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
   );
 }
 
-void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, ValueChanged<Item> onItemUpdated) {
+void showInventoryAndIngredientUpdateDialog(BuildContext context, InventoryItem item, ValueChanged<InventoryItem> onItemUpdated) {
   final nameController = TextEditingController(text: item.ingredientName);
   final descriptionController = TextEditingController(text: item.description);
   final notesController = TextEditingController(text: item.notes);
@@ -695,7 +695,7 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, Item item, Val
                   throw Exception('Failed to update ingredient: ${ingredientResponse.body}');
                 }
 
-                final updatedItem = Item(
+                final updatedItem = InventoryItem(
                   ingredientID: item.ingredientID,
                   ingredientName: nameController.text,
                   description: descriptionController.text,

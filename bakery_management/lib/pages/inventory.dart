@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:bakery_management/pages/tasksAPI.dart';
+
 import 'vendorsItemClass.dart';
 import 'bakedgoods.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,8 @@ import 'vendorsAPI.dart';
 import 'sessions.dart';
 import 'package:bakery_management/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bakery_management/pages/tasksFunctions.dart';
+import 'package:bakery_management/pages/tasksItemClass.dart';
 
 
 class InventoryPage extends StatefulWidget {
@@ -21,8 +25,8 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  List<Item> items = [];
-  List<Item> allItems = [];  // This holds all items
+  List<InventoryItem> items = [];
+  List<InventoryItem> allItems = [];  // This holds all items
   String query = '';
   Timer? debouncer;
 
@@ -37,8 +41,9 @@ class _InventoryPageState extends State<InventoryPage> {
     debouncer?.cancel();
     super.dispose();
   }
+  
 
-  Future<void> navigateToDetailPage(Item item) async {
+  Future<void> navigateToDetailPage(InventoryItem item) async {
     // Push to the detail page and wait for the result
     final updatedItem = await Navigator.push(
       context,
@@ -278,7 +283,7 @@ class _InventoryPageState extends State<InventoryPage> {
 
 
   void searchItem(String query) {
-    List<Item> filteredItems;
+    List<InventoryItem> filteredItems;
 
     if (query.isEmpty) {
       // Reset items to the full list when search is cleared
@@ -299,7 +304,7 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   // Build list tile for each inventory item
-  Widget buildItem(Item item) => GestureDetector(
+  Widget buildItem(InventoryItem item) => GestureDetector(
     onTap: () async {
       final updatedItem = await Navigator.push(
         context,
@@ -354,7 +359,7 @@ class _InventoryPageState extends State<InventoryPage> {
           child: Text(
             item.ingredientName,
             style: const TextStyle(
-              color: Color.fromARGB(255, 243, 217, 162),
+              color: Color(0xFFEEC07B),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -367,8 +372,8 @@ class _InventoryPageState extends State<InventoryPage> {
 
 // Item Detail Page
 class ItemDetailPage extends StatefulWidget {
-  final Item item;
-  final Function(Item)? onItemUpdated;
+  final InventoryItem item;
+  final Function(InventoryItem)? onItemUpdated;
   const ItemDetailPage({super.key, required this.item,this.onItemUpdated});
 
   @override
@@ -376,7 +381,7 @@ class ItemDetailPage extends StatefulWidget {
 }
 
 class _ItemDetailPageState extends State<ItemDetailPage> {
-  late Item _item;
+  late InventoryItem _item;
 
   @override
   void initState() {
@@ -384,7 +389,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     _item = widget.item;
   }
 
-  void _updateItem(Item updatedItem) async {
+  void _updateItem(InventoryItem updatedItem) async {
     // Preserve the entryID before updating
     final int preservedEntryID = _item.entryID!;
 
@@ -412,21 +417,80 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     return formatter.format(dateTime);
   }
+  Future<List<Task>> checkTasks() async {
+   List<Task> existingTasks = await getTasks();
+   return existingTasks;
+       
+}
 
-  Widget _buildQuantityWarning(Item item) {
-    if (item.quantity < item.minAmount) {
-      return const Text(
-        'QUANTITY IS VERY LOW! REORDER NOW!',
-        style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-      );
-    } else if (item.quantity < item.reorderAmount) {
-      return const Text(
-        'Quantity is getting low. Please reorder!',
-        style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-      );
-    }
-    return const SizedBox(); // Return an empty widget if no warnings
-  }
+ Widget _buildQuantityWarning(InventoryItem item) {
+  return FutureBuilder<List<Task>>(
+    future: checkTasks(), // Fetch the existing tasks
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const CircularProgressIndicator();
+      } else if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      } else if (snapshot.hasData) {
+        List<Task> existingTasks = snapshot.data!;
+
+        // Check for quantity below minimum amount
+        if (item.quantity < item.minAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 1));
+          final description = 'Need to remake ${item.ingredientName}, quantity below min amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Log existing tasks for debugging
+          for (var task in existingTasks) {
+            print('Description: ${task.description}, Due Date: ${task.dueDate}');
+          }
+
+          // Check if a task for this item already exists
+          bool taskExists = existingTasks.any((task) =>
+            task.description == description ||
+            task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${item.ingredientName}, skipping task creation.');
+          }
+
+          return const Text(
+            'QUANTITY IS VERY LOW! REORDER NOW!',
+            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+          );
+        } 
+        
+        // Check for quantity below reorder amount
+        else if (item.quantity < item.reorderAmount) {
+          final dueDate = DateTime.now().add(Duration(days: 5));
+          final description = 'Need to remake ${item.ingredientName}, quantity below reorder amount';
+          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+
+          // Check if a task for this item already exists
+          bool taskExists = existingTasks.any((task) =>
+            task.description == description && 
+            task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+          if (!taskExists) {
+            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+          } else {
+            print('Task already exists for ${item.ingredientName}, skipping task creation.');
+          }
+
+          return const Text(
+            'Quantity is getting low. Please reorder!',
+            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+          );
+        }
+      }
+
+      return const SizedBox(); // Return empty widget if no warnings
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

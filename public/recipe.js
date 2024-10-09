@@ -41,7 +41,7 @@ function displayRecipes(recipesToDisplay) {
         recipeImage.classList.add('recipe-image'); // Add a class to the image for styling
         
         recipeImage.onerror = function(){
-            recipeImage.src = 'assets/noIMG.webp';
+            recipeImage.src = 'assets/noIMG.jpg';
         };
 
 

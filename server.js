@@ -42,23 +42,32 @@ app.post('/tasks', async (req, res) => {
 
         const pool = await sql.connect(dbConfig);
 
+        // Use OUTPUT to return the inserted TaskID
         const result = await pool.request()
             .input('Description', sql.VarChar(100), Description)
             .input('CreateDate', sql.Date, CreateDate)
             .input('DueDate', sql.Date, DueDate)
             .input('AssignedBy', sql.UniqueIdentifier, AssignedBy)
-            .query('INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)');
+            .query(`
+                INSERT INTO tblTasks (Description, CreateDate, DueDate, AssignedBy) 
+                OUTPUT INSERTED.TaskID 
+                VALUES (@Description, @CreateDate, @DueDate, @AssignedBy)
+            `);
 
-        // If no recordset is returned, handle it
-        if (result.recordset && result.recordset.length > 0) {
-            res.status(201).json({ message: 'Task created successfully', taskId: result.recordset[0].TaskID });
+        // Check if the result has any records
+        if (result.recordset.length > 0) {
+            res.status(201).json({ 
+                message: 'Task created successfully', 
+                taskId: result.recordset[0].TaskID 
+            });
         } else {
-            res.status(201).json({ message: 'Task created successfully, but no task ID returned' });
+            res.status(400).json({ message: 'Task created but no TaskID returned' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Error creating task', error: error.message });
     }
 });
+
 
 // Get All Tasks
 app.get('/tasks', async (req, res) => {
@@ -1907,6 +1916,36 @@ app.get('/inventory/name/:name', async (req, res) => {
 
 
 
+// GET /inventory/ingredient/:ingredientId: Retrieve inventory items by IngredientID
+app.get('/inventory/ingredient/:ingredientId', async (req, res) => {
+    const { ingredientId } = req.params;
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .input('ingredientId', sql.Int, ingredientId)
+            .query(`
+                SELECT inv.EntryID, inv.Quantity, inv.Notes, inv.Cost, inv.CreateDateTime, inv.ExpireDateTime,
+                       inv.Measurement AS InventoryMeasurement, ing.IngredientID, ing.Name AS IngredientName, 
+                       ing.Category, ing.Description, inv.Quantity AS IngredientQuantity,
+                       ing.MinAmount, ing.MaxAmount, ing.ReorderAmount, ing.VendorID
+                FROM dbo.tblInventory inv
+                JOIN dbo.tblIngredients ing ON inv.IngredientID = ing.IngredientID
+                WHERE inv.IngredientID = @ingredientId
+            `);
+        
+        if (result.recordset.length > 0) {
+            res.json(result.recordset);
+        } else {
+            res.status(404).send('No inventory items found for this ingredient');
+        }
+    } catch (error) {
+        res.status(500).send('Error retrieving inventory items: ' + error.message);
+    }
+});
+
+
+
 
 // POST /inventory: Add a new inventory item
 app.post('/inventory', async (req, res) => {
@@ -2031,7 +2070,10 @@ app.put('/inventory/:item_id', async (req, res) => {
 });
 
 // PUT /inventory/:ingredient_id: Update an inventory item by IngredientID
-app.put('/inventory/:ingredient_id', async (req, res) => {
+app.put('/inventory/ingredient/:ingredient_id', async (req, res) => {
+    console.log('Received request for updating ingredient:', req.params.ingredient_id);
+    console.log('Request Body:', req.body);
+
     const { ingredient_id } = req.params;
     const { quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
