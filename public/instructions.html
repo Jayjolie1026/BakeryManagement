@@ -40,6 +40,7 @@
         h2 {
             font-size: 1.5rem;
             color: #555;
+            margin-bottom: 5px;
         }
 
         h3 {
@@ -61,22 +62,27 @@
         }
 
         .title-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex;                    /* Use flexbox for layout */
+            align-items: center;              /* Center items vertically */
+            margin-bottom: 20px;              /* Space below the title */
         }
 
         .update-button {
-            background-color: #6A381F;
-            color: white;
+            background-color: #905639;
+            color: #ffffff;                  /* Correct color */
             padding: 10px 20px;
             border: none;
+            width: auto;                     /* Button resizes according to text */
+            max-width: 200px;                /* Optional: limit button width */
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.2rem;
             transition: background-color 0.3s;
+            text-align: center;              /* Centers text inside the button */
+            margin-left: 20px;               /* Space between the title and button */
+            margin-top: 20px;
         }
+
         .scaling-container {
             width: 60%;
             margin-top: 20px;
@@ -86,10 +92,10 @@
         }
         .batch-button {
             padding: 5px 10px;
-            font-size: 16px;
+            font-size: 20px;
             margin: 0 5px;
             cursor: pointer;
-            background-color: #f8c36ec3;
+            background-color: #cfb7ab;
             border: none;
             border-radius: 3px;
         }
@@ -206,18 +212,19 @@
         }
 
         function changeBatch(amount) {
-        const batchInput = document.getElementById('batchCount');
-        let currentBatch = parseInt(batchInput.value);
-        let newBatch = currentBatch + amount;
-        
-        // Ensure the batch count doesn't go below 1
-        if (newBatch < 1) {
-            newBatch = 1;
+            const batchInput = document.getElementById('batchCount');
+            let currentBatch = parseInt(batchInput.value);
+            let newBatch = currentBatch + amount;
+            
+            // Ensure the batch count doesn't go below 1
+            if (newBatch < 1) {
+                newBatch = 1;
+            }
+
+            batchInput.value = newBatch;
+            updateIngredients();  // Update ingredients based on new batch number
         }
 
-        batchInput.value = newBatch;
-        updateIngredients();  // Update ingredients based on new batch number
-        }
         // Extract the recipe ID from the URL query parameters
         const params = new URLSearchParams(window.location.search);
         const recipeID = params.get('ID');
