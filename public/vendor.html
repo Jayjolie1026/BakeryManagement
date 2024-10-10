@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendors List</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="vendor.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="logo">
+      <img src="final_logo.png" alt="flour & fantasy logo" >
+      </div>
+      <ul class="navbar__menu">
+          <li class="navbar__item">
+              <a href="recipe.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Recipe</a>
+          </li>
+          <li class="navbar__item">
+              <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
+          </li>
+          <li class="navbar__item"></li>
+              <a href="vendor.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Vendor</a>
+          </li>
+          <li class="navbar__btn">
+              <a href="index.html" class="button">Log out</a>
+          </li>
+      </ul>
+    </nav>
+
+
+    <!-- Vendor List Section -->
+
+
+    <table id="vendorTable">
+        <thead>
+            <tr>
+                <th>Vendor ID</th>
+                <th>Vendor Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+    // API URL - Replace with your actual API endpoint
+    const apiURL = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors';
+
+    // Function to load vendor data into the table
+    function loadVendorData(data) {
+        const tableBody = document.querySelector('#vendorTable tbody');
+        tableBody.innerHTML = ''; // Clear existing data
+
+        data.forEach(vendor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${vendor.VendorID}</td>
+                <td>${vendor.VendorName}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Fetch vendor data from the API
+    function fetchVendorData() {
+        fetch(apiURL)
+            .then(response => response.json())
+            .then(data => loadVendorData(data))
+            .catch(error => console.error('Error fetching vendor data:', error));
+    }
+
+    // Call the API and load the data into the table
+    fetchVendorData();
+    </script>
+
+</body>
+</html>

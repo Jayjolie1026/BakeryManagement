@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Inventory Item</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!--font from mobile team-->
+    <title>Update Ingredient and Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
     <style>
         /* General Styles */
         body {
-            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+            font-family: 'Playwrite DE Grund', cursive;
             margin: 0;
             padding: 0;
             line-height: 1.6;
@@ -16,31 +16,29 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: rgba(241, 212, 164, 0.967); /* Light background */
-            overflow-y: scroll; /* Enable scrolling for the whole page */
+            background-color: rgba(241, 212, 164, 0.967);
+            overflow-y: scroll;
         }
 
         .container {
             width: 100%;
             max-width: 600px;
-            background-color: rgba(255, 255, 255, 0.9); /* Light background for form */
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 20px;
             margin: 20px auto;
         }
 
-        /* Update Inventory Item Header Styles */
         h1 {
             text-align: center;
             color: #6E0D25;
-            background-color: rgba(255, 255, 255, 0.9); /* Light brown background */
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 15px;
             border-radius: 8px;
-            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+            font-family: 'Playwrite DE Grund', cursive;
         }
 
-        /* Form Styles */
         form {
             display: flex;
             flex-direction: column;
@@ -53,7 +51,7 @@
             color: #6E0D25;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -62,14 +60,13 @@
             margin-bottom: 15px;
         }
 
-        input:focus {
+        input:focus, select:focus {
             border-color: #6E0D25;
             outline: none;
         }
 
-        /* Button Styles */
         button {
-            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+            font-family: 'Playwrite DE Grund', cursive;
             padding: 15px;
             background-color: #774E24;
             color: #fff;
@@ -86,42 +83,76 @@
             background-color: #9c2a3b;
         }
 
-        /* Response Message Styles */
         #responseMessage {
             text-align: center;
             margin-top: 20px;
             font-weight: bold;
-            color: #6E0D25; /* Color for response message */
+            color: #6E0D25;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Update Inventory Item</h1>
-        <form id="updateInventoryForm">
-            <label for="item_id">Inventory Entry ID:</label>
-            <input type="number" id="item_id" name="item_id" required>
-
-            <label for="ingredient_id">Ingredient ID:</label>
-            <input type="number" id="ingredient_id" name="ingredient_id">
+        <h1>Update Inventory</h1>
+        <form id="updateForm">
+            <label for="entry_id">Entry ID:</label>
+            <select id="entry_id" required>
+                <option value="">Select Entry ID</option>
+                <!-- Options will be dynamically populated -->
+            </select>
+            
+            <label for="name">Ingredient Name:</label>
+            <input type="text" id="name" required>
+            
+            <label for="category">Category:</label>
+            <input type="text" id="category" required>
+            
+            <label for="description">Description:</label>
+            <input type="text" id="description" required>
+            
+            <label for="measurement">Inventory Measurement:</label>
+            <select id="measurement" required>
+                <option value="">Select Measurement</option>
+                <option value="kg">Kilogram</option>
+                <option value="g">Gram</option>
+                <option value="l">Liter</option>
+                <option value="ml">Milliliter</option>
+                <option value="pcs">Pieces</option>
+                <!-- Add other measurements as needed -->
+            </select>
+            
+            <label for="id">Ingredient ID:</label>
+            <input type="number" id="id" required>
 
             <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity">
-
-            <label for="notes">Notes:</label>
-            <input type="text" id="notes" name="notes">
+            <input type="number" id="quantity">
 
             <label for="cost">Cost:</label>
-            <input type="number" id="cost" name="cost" step="0.01">
+            <input type="number" id="cost" step="0.01">
 
-            <label for="create_datetime">Creation DateTime:</label>
-            <input type="datetime-local" id="create_datetime" name="create_datetime">
+            <label for="notes">Notes:</label>
+            <input type="text" id="notes">
 
-            <label for="expire_datetime">Expiration DateTime:</label>
-            <input type="datetime-local" id="expire_datetime" name="expire_datetime">
+            <label for="create_datetime">Creation Date:</label>
+            <input type="datetime-local" id="create_datetime">
 
-            <label for="measurement">Measurement:</label>
-            <input type="text" id="measurement" name="measurement">
+            <label for="expire_datetime">Expiration Date:</label>
+            <input type="datetime-local" id="expire_datetime">
+
+            <label for="minAmount">Min Amount:</label>
+            <input type="number" id="minAmount" required>
+
+            <label for="maxAmount">Max Amount:</label>
+            <input type="number" id="maxAmount" required>
+
+            <label for="reorderAmount">Reorder Amount:</label>
+            <input type="number" id="reorderAmount" required>
+
+            <label for="vendorID">Vendor ID:</label>
+            <select id="vendorID" required>
+                <option value="">Select Vendor</option>
+                <!-- Options will be dynamically populated -->
+            </select>
 
             <button type="submit">Update Inventory</button>
         </form>
@@ -130,48 +161,136 @@
     </div>
 
     <script>
-        const form = document.getElementById('updateInventoryForm');
+        const entryIdSelect = document.getElementById('entry_id');
+        const vendorIdSelect = document.getElementById('vendorID');
         const responseMessage = document.getElementById('responseMessage');
+        const updateForm = document.getElementById('updateForm');
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        // Function to load entry IDs into the select dropdown
+        async function loadEntryIds() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
+                const data = await response.json();
+                
+                // Populate the Entry ID dropdown
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.EntryID; // Change this according to your data structure
+                    option.textContent = item.EntryID; // Change this to display a more meaningful value if needed
+                    entryIdSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading Entry IDs:', error);
+            }
+        }
 
-            const itemId = document.getElementById('item_id').value;
-            const ingredientId = document.getElementById('ingredient_id').value;
-            const quantity = document.getElementById('quantity').value;
-            const notes = document.getElementById('notes').value;
-            const cost = document.getElementById('cost').value;
-            const createDateTime = document.getElementById('create_datetime').value;
-            const expireDateTime = document.getElementById('expire_datetime').value;
-            const measurement = document.getElementById('measurement').value;
+        // Function to load vendor IDs into the select dropdown
+        async function loadVendorIds() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors');
+                const data = await response.json();
 
-            const updateData = {};
+                // Populate the Vendor ID dropdown
+                data.forEach(vendor => {
+                    const option = document.createElement('option');
+                    option.value = vendor.VendorID; // Change this according to your data structure
+                    option.textContent = vendor.Name; // Change this to display a more meaningful value (e.g., vendor name)
+                    vendorIdSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading Vendor IDs:', error);
+            }
+        }
 
-            if (ingredientId) updateData.ingredient_id = parseInt(ingredientId);
-            if (quantity) updateData.quantity = parseFloat(quantity);
-            if (notes) updateData.notes = notes;
-            if (cost) updateData.cost = parseFloat(cost);
-            if (createDateTime) updateData.create_datetime = createDateTime;
-            if (expireDateTime) updateData.expire_datetime = expireDateTime;
-            if (measurement) updateData.measurement = measurement;
+        // Function to populate form fields based on selected Entry ID
+        async function fetchEntryDetails(entryId) {
+          if (!entryId) return; // Don't do anything if no ID is selected
+
+          try {
+              const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${entryId}`);
+              const item = await response.json();
+
+              // Autofill the form fields with the retrieved data
+              document.getElementById('name').value = item.IngredientName;
+              document.getElementById('category').value = item.Category;
+              document.getElementById('description').value = item.Description;
+
+              // Only update the measurement if it's not already selected
+              if (!document.getElementById('measurement').value) {
+                  document.getElementById('measurement').value = item.InventoryMeasurement; // Assuming this returns a valid measurement value
+              }
+
+              document.getElementById('id').value = item.IngredientID;
+              document.getElementById('quantity').value = item.Quantity;
+              document.getElementById('cost').value = item.Cost;
+              document.getElementById('notes').value = item.Notes;
+
+              document.getElementById('create_datetime').value = item.CreationDate;
+              document.getElementById('expire_datetime').value = item.ExpirationDate;
+              document.getElementById('minAmount').value = item.MinAmount;
+              document.getElementById('maxAmount').value = item.MaxAmount;
+              document.getElementById('reorderAmount').value = item.ReorderAmount;
+
+              // Only update the vendor ID if it's not already selected
+              if (!document.getElementById('vendorID').value) {
+                  document.getElementById('vendorID').value = item.VendorID; // Assuming this returns a valid vendor ID
+              }
+          } catch (error) {
+              console.error('Error fetching entry details:', error);
+          }
+        }
+
+        // Load Entry IDs and Vendor IDs on page load
+        window.onload = async () => {
+            await loadEntryIds();
+            await loadVendorIds();
+        };
+
+        // Add event listener to fetch details when an Entry ID is selected
+        entryIdSelect.addEventListener('change', (event) => {
+            fetchEntryDetails(event.target.value);
+        });
+
+        // Handle form submission
+        updateForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the default form submission
+
+            const formData = {
+                entryId: entryIdSelect.value,
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                measurement: document.getElementById('measurement').value,
+                id: document.getElementById('id').value,
+                quantity: document.getElementById('quantity').value,
+                cost: document.getElementById('cost').value,
+                notes: document.getElementById('notes').value,
+                create_datetime: document.getElementById('create_datetime').value,
+                expire_datetime: document.getElementById('expire_datetime').value,
+                minAmount: document.getElementById('minAmount').value,
+                maxAmount: document.getElementById('maxAmount').value,
+                reorderAmount: document.getElementById('reorderAmount').value,
+                vendorID: vendorIdSelect.value,
+            };
 
             try {
-                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${itemId}`, {
-                    method: 'PUT',
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory', {
+                    method: 'PUT', // Assuming you're updating with a PUT request
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(updateData),
+                    body: JSON.stringify(formData),
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to update the inventory item');
+                if (response.ok) {
+                    const result = await response.json();
+                    responseMessage.textContent = `Inventory updated successfully: ${result.message}`;
+                } else {
+                    responseMessage.textContent = `Error updating inventory: ${response.statusText}`;
                 }
-
-                const updatedItem = await response.json();
-                responseMessage.textContent = `Inventory item updated successfully: ${JSON.stringify(updatedItem)}`;
             } catch (error) {
-                responseMessage.textContent = `Error: ${error.message}`;
+                console.error('Error updating inventory:', error);
+                responseMessage.textContent = 'An error occurred. Please try again.';
             }
         });
     </script>
