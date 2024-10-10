@@ -2,13 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap');
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-weight: 400;
-}
-
 /*navbar*/
 .navbar {
     background: #794500; 
@@ -120,19 +113,55 @@
 }
 
 /*search bar*/
-.searchbar {
-    width: 350px;
-    font-family: "Playwrite DE Grund", cursive;
-    height: 35px;
-    padding: 26px;
-    border: 2px solid #ccc;
-    font-size: 1rem;
-    margin: 20px 0;
-    border-radius: 85px;
-    text-align: center;
-    background-color: #ffffff;
-    margin-left: 600px;
+/* Search Section */
+.search-section {
+  display: flex;
+  margin-top: 20px;
+  margin-left: 100px;
+  padding: 10px;
+  gap: 10px;
 }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 40%;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.search-btn {
+  padding: 12px;
+  background-color: #794500;
+  border: none;
+  cursor: pointer;
+}
+
+.search-icon {
+  height: 20px;
+  width: 20px;
+}
+
+.refresh-btn {
+  padding: 12px;  /* Adjust padding to match the height */
+  background-color: #794500;
+  margin-left: 20px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
 
 
 * {

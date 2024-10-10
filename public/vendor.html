@@ -4,36 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendors List</title>
-    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="vendor.css">
 </head>
 <body>
 
     <!-- Navbar -->
     <nav class="navbar">
-      <div class="logo">
-      <img src="final_logo.png" alt="flour & fantasy logo" >
-      </div>
-      <ul class="navbar__menu">
-          <li class="navbar__item">
-              <a href="recipe.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Recipe</a>
-          </li>
-          <li class="navbar__item">
-              <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
-          </li>
-          <li class="navbar__item"></li>
-              <a href="vendor.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Vendor</a>
-          </li>
-          <li class="navbar__btn">
-              <a href="index.html" class="button">Log out</a>
-          </li>
-      </ul>
+        <div class="logo">
+            <img src="final_logo.png" alt="flour & fantasy logo" >
+        </div>
+        <ul class="navbar__menu">
+            <li class="navbar__item">
+                <a href="recipe.html" class="navbar__links">Recipe</a>
+            </li>
+            <li class="navbar__item">
+                <a href="inventory.html" class="navbar__links">Inventory</a>
+            </li>
+            <li class="navbar__item">
+                <a href="vendor.html" class="navbar__links">Vendor</a>
+            </li>
+            <li class="navbar__btn">
+                <a href="index.html" class="button">Log out</a>
+            </li>
+        </ul>
     </nav>
 
-
+    <!-- Search Bar -->
+    <div class="search-section">
+      <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Search vendors...">
+          <button class="search-btn">
+              <img src="Magnifying-Glass.png" alt="Search" class="search-icon">
+          </button>
+          <button class="refresh-btn" onclick="addVendor()">Add Vendor</button>
+          <button class="refresh-btn" onclick="updateVendor()">Update Vendor</button>
+      </div>
+    </div>
+  
     <!-- Vendor List Section -->
-
-
     <table id="vendorTable">
         <thead>
             <tr>
@@ -47,34 +55,84 @@
     </table>
 
     <script>
-    // API URL - Replace with your actual API endpoint
-    const apiURL = 'https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors';
+        // Function to fetch all vendors initially
+        async function fetchVendors() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const vendors = await response.json();
+                populateTable(vendors);
+            } catch (error) {
+                console.error('Error fetching vendors:', error);
+            }
+        }
 
-    // Function to load vendor data into the table
-    function loadVendorData(data) {
-        const tableBody = document.querySelector('#vendorTable tbody');
-        tableBody.innerHTML = ''; // Clear existing data
+        // Function to search vendors by name
+        async function searchVendor() {
+            const searchInput = document.getElementById('searchInput').value.trim();
 
-        data.forEach(vendor => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${vendor.VendorID}</td>
-                <td>${vendor.VendorName}</td>
-            `;
-            tableBody.appendChild(row);
+            // If the input is empty, reset to show all vendors
+            if (searchInput === "") {
+                fetchVendors();
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/name/${searchInput}`);
+                if (response.status === 404) {
+                    alert("No vendors found.");
+                    document.querySelector('#vendorTable tbody').innerHTML = ''; // Clear the table
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const vendors = await response.json();
+                populateTable(vendors);
+            } catch (error) {
+                console.error('Error searching vendors:', error);
+            }
+        }
+
+        // Function to populate the table with vendor data
+        function populateTable(vendors) {
+            const tableBody = document.querySelector('#vendorTable tbody');
+            tableBody.innerHTML = ''; // Clear any existing data
+
+            vendors.forEach(vendor => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${vendor.VendorID}</td>
+                    <td>${vendor.VendorName}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Add event listener to trigger search on 'Enter' key press
+        document.getElementById('searchInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                searchVendor();
+            }
+            // Reset the vendor list if the search bar is cleared
+            if (this.value === "") {
+                fetchVendors();
+            }
         });
-    }
 
-    // Fetch vendor data from the API
-    function fetchVendorData() {
-        fetch(apiURL)
-            .then(response => response.json())
-            .then(data => loadVendorData(data))
-            .catch(error => console.error('Error fetching vendor data:', error));
-    }
+        // Fetch all vendors when the page loads
+        window.onload = fetchVendors;
 
-    // Call the API and load the data into the table
-    fetchVendorData();
+        function updateVendor() {
+          window.location.href = 'updateVendor.html'
+        }
+
+        function addVendor() {
+          window.location.href = 'addVendor.html'
+        } 
     </script>
 
 </body>
