@@ -69,6 +69,13 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                 labelText: 'Task Description',
                 labelStyle: const TextStyle(color: Color(0xFF6D3200)), // Dark brown label text
                 counterText: '${taskDescription.length}/100', // Character counter
+                counterStyle: const TextStyle(color: Color(0xFF6D3200)),
+                      enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200)), // Dark brown border when not focused
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF6D3200), width: 2.0), // Dark brown border when focused
+                    ),
               ),
               style: const TextStyle(color: Color(0xFF6D3200)), // Color of the text that's typed
               maxLines: null, // Allows the TextField to grow
@@ -108,6 +115,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                       style: const TextStyle(
                         color: Color(0xFF6D3200), // Dark brown text
                         decoration: TextDecoration.underline, // Underlined text
+                        
                       ),
                     ),
                   ],
@@ -219,6 +227,12 @@ Future<bool> handleEditTask(BuildContext context, Task task) async {
                     labelStyle: const TextStyle(color: Color(0xFF6D3200), fontSize: 20), // Dark brown label text
                     border: const OutlineInputBorder(), // Optional: add border for clarity
                     counterText: '$currentLength/100', // Dynamic character counter
+                          enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF6D3200)), // Dark brown border when not focused
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Color(0xFF6D3200), width: 2.0), // Dark brown border when focused
+      ),
                   ),
                   onChanged: (text) {
                     // Update current length on text change
