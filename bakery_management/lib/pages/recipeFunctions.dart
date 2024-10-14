@@ -783,10 +783,9 @@ Column(
       controller: ingredientsController,
       style: const TextStyle(color: Color(0xFF6D3200)), // Text color
       decoration: InputDecoration(
-        labelText: 'Ingredients',
+        //labelText: 'Ingredients',
         labelStyle: const TextStyle(color: Color(0xFF6D3200)), // Label text color
-        counterText: '${ingredientsController.text.length}/500', // Character counter
-        counterStyle: const TextStyle(color: Color(0xFF6D3200)),
+        counterText: '', // Remove the character counter
         enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Color(0xFF6D3200)), // Dark brown border when not focused
         ),
@@ -795,12 +794,10 @@ Column(
         ),
       ),
       maxLines: null, // Allows the TextField to grow
-      maxLength: 500, // Limit input to 500 characters
+      maxLength: 500, // Limit input to 500 characters, but the counter will be hidden
     ),
   ],
 ),
-
-
               TextField(
                 controller: stepsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
@@ -951,3 +948,4 @@ Column(
     },
   );
 }
+
