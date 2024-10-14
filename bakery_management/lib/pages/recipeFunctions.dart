@@ -525,8 +525,6 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                                     10), // Add some space between the arrows and the button
                             ElevatedButton(
                               onPressed: () async {
-                                // API call to update product quantity and inventoryQuantity
-                                print('Recipe: $_recipe');
 
                                 // Call the bake function and wait for the result
                                 final result = await bake(_recipe, currYield);
@@ -535,9 +533,14 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
                                   // Show success message
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                        content:
-                                            Text('Recipe baked successfully')),
+                                      content: Text('Recipe baked successfully'),
+                                    ),
                                   );
+
+                                  // Refresh the page to update product quantity
+                                  setState(() {
+
+                                  });
                                 } 
                                 else {
                                   // Show failure message with specific error details
@@ -933,7 +936,6 @@ Column(
                 // Close the dialog
                 Navigator.pop(context, updatedRecipe);
               } catch (error) {
-                print(error.toString());
                 // Handle error appropriately, e.g., show a snackbar or dialog
               }
             },

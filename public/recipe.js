@@ -16,18 +16,72 @@ async function loadRecipes() {
         
         // Call displayRecipes function to show all recipes initially
         displayRecipes(recipes);
+        // Extract unique categories from recipes
+        const categories = extractCategories(recipes);
+        
+        // Display categories as buttons
+        displayCategories(categories);
+
     } catch (error) {
         // Log any errors encountered during the fetch process
         console.error("Error loading recipes API:", error);
     }
 }
-//begin from 33 -41
+
+function extractCategories(recipes) {
+    const categories = new Set(); // Using Set to avoid duplicates
+
+    // Loop through each recipe and add its category to the Set
+    recipes.forEach(recipe => {
+        if (recipe.Category) {
+            categories.add(recipe.Category); // Add the category to the Set
+        }
+    });
+
+    return [...categories]; // Convert the Set back to an array
+}
+
+function displayCategories(categories) {
+    const categoryContainer = document.getElementById('category-container'); // Get the container for categories
+
+    const showAllButton = document.createElement('button');
+    showAllButton.classList.add('category-button'); // Add a class for styling
+    showAllButton.textContent = 'Show All'; // Set the button text
+    showAllButton.onclick = function() {
+        displayRecipes(recipes); // When clicked, display all recipes
+    };
+
+    categoryContainer.appendChild(showAllButton);
+
+    categories.forEach(category => {
+        const categoryButton = document.createElement('button'); // Create a new button element
+        categoryButton.classList.add('category-button'); // Add a class to the button
+        categoryButton.textContent = category; // Set the button text to the category name
+
+        // Set the button's click action to filter recipes by category
+        categoryButton.onclick = function() {
+            filterRecipesByCategory(category);
+        };
+
+        // Append the button to the category container
+        categoryContainer.appendChild(categoryButton);
+    });
+}
+   
+function filterRecipesByCategory(category) {
+    const filteredRecipes = recipes.filter(recipe => recipe.Category === category);
+    displayRecipes(filteredRecipes); // Update the displayed recipes based on the selected category
+}
+
+
+
+
 // Function to display recipes as buttons
 function displayRecipes(recipesToDisplay) {
     const recipeContainer = document.getElementById('recipe-container'); // Get the container for recipes
     
     // Clear existing recipe buttons from the container
-    recipeContainer.querySelectorAll('.recipe-button').forEach(button => button.remove());
+    recipeContainer.innerHTML = '';
 
     // Create and append buttons for each recipe in the recipesToDisplay array
     recipesToDisplay.forEach(recipe => {

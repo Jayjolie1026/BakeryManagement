@@ -718,7 +718,6 @@ Future<List<Task>> checkTasks() async {
           final description = 'Need to remake ${product.name}, quantity below min amount';
           const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
           existingTasks.forEach((task) {
-  print('Description: ${task.description}, Due Date: ${task.dueDate}');
 });
           // Check if a task for this product already exists
           bool taskExists = existingTasks.any((task) =>
@@ -729,7 +728,6 @@ Future<List<Task>> checkTasks() async {
             // If no such task exists, add the new task
             addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
           } else {
-            print('Task already exists for ${product.name}, skipping task creation.');
           }
 
           return const Padding(
@@ -756,8 +754,6 @@ Future<List<Task>> checkTasks() async {
 
           if (!taskExists) {
             addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
-          } else {
-            print('Task already exists for ${product.name}, skipping task creation.');
           }
 
           return const Padding(

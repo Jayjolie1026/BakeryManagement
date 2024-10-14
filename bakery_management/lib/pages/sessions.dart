@@ -31,8 +31,6 @@ class SessionService {
         context,
         MaterialPageRoute(builder: (context) => const SignInPage()),
       );
-    } else {
-      // error
     }
   }
 
@@ -46,8 +44,6 @@ class SessionService {
 
     if (response.statusCode == 200) {
       // Session updated successfully
-    } else {
-      // error
     }
   }
 }

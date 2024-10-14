@@ -344,12 +344,8 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
                   Navigator.of(context).pop(); // Close the dialogs
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item added')),
                   );
-                } else {
-                  // error for adding to inventory
-                }
-              } else {
-                // error for adding to ingredient
-              }
+                } 
+              } 
             } catch (e) {
               // error
             }

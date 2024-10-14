@@ -664,12 +664,13 @@ app.put('/users/:username', async (req, res) => {
             const emailQuery = `
                 MERGE tblEmails AS target
                 USING (SELECT @employeeID AS EmployeeID, @emailAddress AS EmailAddress, @typeID AS TypeID) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.EmailAddress = source.EmailAddress
+                ON target.EmployeeID = source.EmployeeID AND target.TypeID = source.TypeID
                 WHEN MATCHED THEN
-                    UPDATE SET target.TypeID = source.TypeID
+                    UPDATE SET target.EmailAddress = source.EmailAddress
                 WHEN NOT MATCHED THEN
                     INSERT (EmailAddress, EmployeeID, TypeID, Valid)
                     VALUES (source.EmailAddress, source.EmployeeID, source.TypeID, 1);
+
             `;
             await pool.request()
                 .input('emailAddress', sql.VarChar, email.emailAddress)
@@ -682,13 +683,14 @@ app.put('/users/:username', async (req, res) => {
         if (phoneNumber && phoneNumber.number) {
             const phoneQuery = `
                 MERGE tblPhoneNumbers AS target
-                USING (SELECT @employeeID AS EmployeeID, @number AS Number, @areaCode AS AreaCode) AS source
-                ON target.EmployeeID = source.EmployeeID AND target.Number = source.Number
+                USING (SELECT @employeeID AS EmployeeID, @number AS Number, @areaCode AS AreaCode, @typeID AS TypeID) AS source
+                ON target.EmployeeID = source.EmployeeID AND target.TypeID = source.TypeID
                 WHEN MATCHED THEN
-                    UPDATE SET target.AreaCode = source.AreaCode
+                    UPDATE SET target.Number = source.Number, target.AreaCode = source.AreaCode
                 WHEN NOT MATCHED THEN
                     INSERT (Number, AreaCode, EmployeeID, TypeID, Valid)
-                    VALUES (source.Number, source.AreaCode, source.EmployeeID, @typeID, 1);
+                    VALUES (source.Number, source.AreaCode, source.EmployeeID, source.TypeID, 1);
+
             `;
             await pool.request()
                 .input('number', sql.VarChar, phoneNumber.number)
@@ -2071,9 +2073,6 @@ app.put('/inventory/:item_id', async (req, res) => {
 
 // PUT /inventory/:ingredient_id: Update an inventory item by IngredientID
 app.put('/inventory/ingredient/:ingredient_id', async (req, res) => {
-    console.log('Received request for updating ingredient:', req.params.ingredient_id);
-    console.log('Request Body:', req.body);
-
     const { ingredient_id } = req.params;
     const { quantity, notes, cost, create_datetime, expire_datetime, measurement } = req.body;
 
@@ -2553,5 +2552,5 @@ app.get('/finalproducts/:id', async (req, res) => {
 
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`); // Log server start message
+    //console.log(`Server is running on port ${port}`);
 });

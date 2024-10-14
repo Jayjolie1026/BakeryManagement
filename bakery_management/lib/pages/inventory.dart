@@ -421,75 +421,64 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
    List<Task> existingTasks = await getTasks();
    return existingTasks;
        
-}
+  }
 
- Widget _buildQuantityWarning(InventoryItem item) {
-  return FutureBuilder<List<Task>>(
-    future: checkTasks(), // Fetch the existing tasks
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const CircularProgressIndicator();
-      } else if (snapshot.hasError) {
-        return Text('Error: ${snapshot.error}');
-      } else if (snapshot.hasData) {
-        List<Task> existingTasks = snapshot.data!;
+  Widget _buildQuantityWarning(InventoryItem item) {
+    return FutureBuilder<List<Task>>(
+      future: checkTasks(), // Fetch the existing tasks
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (snapshot.hasData) {
+          List<Task> existingTasks = snapshot.data!;
 
-        // Check for quantity below minimum amount
-        if (item.quantity < item.minAmount) {
-          final dueDate = DateTime.now().add(Duration(days: 1));
-          final description = 'Need to remake ${item.ingredientName}, quantity below min amount';
-          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
+          // Check for quantity below minimum amount
+          if (item.quantity < item.minAmount) {
+            final dueDate = DateTime.now().add(Duration(days: 1));
+            final description = 'Need to reorder ${item.ingredientName}, quantity below min amount';
+            const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
 
-          // Log existing tasks for debugging
-          for (var task in existingTasks) {
-            print('Description: ${task.description}, Due Date: ${task.dueDate}');
+            // Check if a task for this item already exists
+            bool taskExists = existingTasks.any((task) =>
+              task.description == description ||
+              task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+            if (!taskExists) {
+              addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+            }
+            return const Text(
+              'QUANTITY IS VERY LOW! REORDER NOW!',
+              style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+            );
           }
 
-          // Check if a task for this item already exists
-          bool taskExists = existingTasks.any((task) =>
-            task.description == description ||
-            task.dueDate.toIso8601String() == dueDate.toIso8601String());
+          // Check for quantity below reorder amount
+          else if (item.quantity < item.reorderAmount) {
+            final dueDate = DateTime.now().add(Duration(days: 5));
+            final description = 'Need to reorder ${item.ingredientName}, quantity below reorder amount';
+            const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
 
-          if (!taskExists) {
-            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
-          } else {
-            print('Task already exists for ${item.ingredientName}, skipping task creation.');
+            // Check if a task for this item already exists
+            bool taskExists = existingTasks.any((task) =>
+              task.description == description &&
+              task.dueDate.toIso8601String() == dueDate.toIso8601String());
+
+            if (!taskExists) {
+              addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
+            }
+            return const Text(
+              'Quantity is getting low. Please reorder!',
+              style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
+            );
           }
-
-          return const Text(
-            'QUANTITY IS VERY LOW! REORDER NOW!',
-            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-          );
-        } 
-        
-        // Check for quantity below reorder amount
-        else if (item.quantity < item.reorderAmount) {
-          final dueDate = DateTime.now().add(Duration(days: 5));
-          final description = 'Need to remake ${item.ingredientName}, quantity below reorder amount';
-          const assignedBy = 'f4f5101a-48a1-42b9-b99d-cdc66b7d8761';
-
-          // Check if a task for this item already exists
-          bool taskExists = existingTasks.any((task) =>
-            task.description == description && 
-            task.dueDate.toIso8601String() == dueDate.toIso8601String());
-
-          if (!taskExists) {
-            addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
-          } else {
-            print('Task already exists for ${item.ingredientName}, skipping task creation.');
-          }
-
-          return const Text(
-            'Quantity is getting low. Please reorder!',
-            style: TextStyle(fontSize: 18, color: Color(0xFF6D3200)),
-          );
         }
-      }
 
-      return const SizedBox(); // Return empty widget if no warnings
-    },
-  );
-}
+        return const SizedBox(); // Return empty widget if no warnings
+      },
+    );
+  }
 
 
   @override

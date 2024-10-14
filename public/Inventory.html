@@ -5,139 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BigBallersBakery Website</title>
     <link rel="stylesheet" href="inventory.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="navbar.css">
+    
+
 </head>
 <body>
-    <header>
-        <div class="logo-container">
-            <a href="index.html">
-                <img src="final_logo.png" alt="Logo">
-            </a>
-            <div class="menu-container">
-                <a href="recipe.html">Recipe</a>
-                <a href="inventory.html">Inventory</a>
-                <a href="account.html">Employee</a>
-            </div>
-        </div>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="logo">
+      <img src="final_logo.png" alt="flour & fantasy logo" >
+      </div>
+      <ul class="navbar__menu">
+          <li class="navbar__item">
+              <a href="recipe.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Recipe</a>
+          </li>
+          <li class="navbar__item">
+              <a href="inventory.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Inventory</a>
+          </li>
+          <li class="navbar__item"></li>
+              <a href="vendor.html" class="navbar__links"><i class="/" aria-hidden="true"></i> Vendor</a>
+          </li>
+          <li class="navbar__btn">
+              <a href="index.html" class="button">Log out</a>
+          </li>
+      </ul>
+  </nav>
 
-        <div class="right-section">
-            <a href="employee-id.html" class="employee-id-btn">Employee ID</a>
-        </div>
-    </header>
-
+    <!-- Search Section -->
     <div class="search-section">
-        <!-- Search bar with icon -->
         <div class="search-bar">
-            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search your inventory...">
-            <button class="search-btn">
-                <img src="Maginifying-Glass.png" alt="Search" class="search-icon">
+            <input type="text" id="searchInput" placeholder="Search your inventory...">
+            <button id="searchButton" class="search-btn">
+                <img src="Magnifying-Glass.png" alt="Search" class="search-icon">
             </button>
         </div>
-
-        <!-- View all and Refresh buttons -->
-        <button class="view-all-btn" onclick="viewAll()">View All</button>
-        <button class="refresh-btn" onclick="refreshTable()">Refresh</button>
+        <div id="errorMessage" style="color: red;"></div>
+        <!-- Moved Add Ingredient button here -->
+        <button class="add-item-btn" onclick="redirectToAddInventory()">Add Inventory</button>
+        <button class="refresh-btn" onclick="redirectToUpdateInventory()">Update Inventory</button>
+        <button class="remove-item-btn" onclick="removeInventory()">Remove Inventory</button>
     </div>
 
-    <div style="margin-top: 100px; padding: 20px;">
+    <!-- Add New Item Section (Initially Hidden) -->
+    <div id="addItemSection" class="add-item-section" style="display: none; padding: 20px; border: 1px solid #ddd;">
+        <h3>Add New Ingredient and Inventory</h3>
+        <form id="ingredientInventoryForm">
+            <!-- Ingredient Details Section -->
+            <fieldset>
+                <legend>Ingredient Details</legend>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter ingredient name" required><br>
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" placeholder="Enter description"><br>
+                <label for="category">Category:</label>
+                <input type="text" id="category" name="category" placeholder="Enter category" required><br>
+                <label for="measurement">Measurement:</label>
+                <input type="text" id="measurement" name="measurement" placeholder="Enter measurement (e.g., lbs)" required><br>
+                <label for="maxAmount">Max Amount:</label>
+                <input type="number" id="maxAmount" name="maxAmount" step="0.01" placeholder="Enter max amount" required><br>
+                <label for="reorderAmount">Reorder Amount:</label>
+                <input type="number" id="reorderAmount" name="reorderAmount" step="0.01" placeholder="Enter reorder amount" required><br>
+                <label for="minAmount">Min Amount:</label>
+                <input type="number" id="minAmount" name="minAmount" step="0.01" placeholder="Enter min amount" required><br>
+                <label for="vendorID">Vendor:</label>
+                  <select id="vendorID" name="vendorID" required>
+                    <option value="">Select a vendor</option>
+                 </select><br>  
+                
+            </fieldset>
+            <!-- Inventory Details Section -->
+            <fieldset>
+                <legend>Inventory Details</legend>
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" step="0.01" placeholder="Enter quantity" required><br>
+                <label for="notes">Notes:</label>
+                <input type="text" id="notes" name="notes" placeholder="Optional notes"><br>
+                <label for="cost">Cost:</label>
+                <input type="number" id="cost" name="cost" step="0.01" placeholder="Enter cost" required><br>
+                <label for="create_datetime">Creation Date:</label>
+                <input type="datetime-local" id="create_datetime" name="create_datetime" required><br>
+                <label for="expire_datetime">Expiration Date (optional):</label>
+                <input type="datetime-local" id="expire_datetime" name="expire_datetime"><br>
+            </fieldset>
+            <!-- Submit Button -->
+            <button type="submit">Add Ingredient Info</button>
+        </form>
+    </div>
+    <!-- Inventory Table -->
+    <div style="margin-top: 20px; padding: 20px;">
         <table id="inventoryTable">
             <thead>
                 <tr>
                     <th>Entry ID</th>
-                    <th>Product ID</th>
-                    <th>Product Name</th>
+                    <th>Ingredient Name</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Inventory Measurement</th>
+                    <th>Ingredient ID</th>
                     <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Purchase Date</th>
+                    <th>Cost</th>
+                    <th>Notes</th>
+                    <th>Creation Date</th>
                     <th>Expiration Date</th>
-                    <th>Purchase Order ID</th>
-                    <th>Recipe ID</th>
+                    <th>Min Amount</th>
+                    <th>Max Amount</th>
+                    <th>Reorder Amount</th>
+                    <th>Vendor ID</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>001</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>002</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-
-                <tr>
-                    <td>003</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>004</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                <tr>
-                
+            <tbody id="inventoryBody">
+                <!-- Inventory rows will be populated here by JavaScript -->
             </tbody>
         </table>
     </div>
 
     <script>
-        function searchTable() {
-            let input = document.getElementById('searchInput');
-            let filter = input.value.toUpperCase();
-            let table = document.getElementById('inventoryTable');
-            let tr = table.getElementsByTagName('tr');
+      // Function to redirect to the Add Inventory page
+      function redirectToAddInventory() {
+          window.location.href = 'addinventory.html';
+      }
 
-            for (let i = 1; i < tr.length; i++) {
-                tr[i].style.display = 'none';
-                let td = tr[i].getElementsByTagName('td');
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
-                            tr[i].style.display = '';
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+      function redirectToUpdateInventory() {
+          window.location.href = 'updateinventory.html'
+      }
 
-        // View All Button Function
-        function viewAll() {
-            let tr = document.getElementById('inventoryTable').getElementsByTagName('tr');
-            for (let i = 1; i < tr.length; i++) {
-                tr[i].style.display = ''; // Show all rows
-            }
-            document.getElementById('searchInput').value = ''; // Clear search input
-        }
-
-        // Refresh Button Function
-        function refreshTable() {
-            location.reload(); // Reload the page
-        }
+      function removeInventory() {
+          window.location.href = 'removeInventory.html'
+      }
     </script>
+ 
+    <script src="Inventory.js"></script>
 </body>
 </html>

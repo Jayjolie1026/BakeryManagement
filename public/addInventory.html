@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Ingredient and Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!-- Updated font -->
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: rgba(241, 212, 164, 0.967); /* Light background */
+            overflow-y: scroll; /* Enable scrolling for the whole page */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.9); /* Light background for form */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+        }
+
+        /* Add Inventory Header Styles */
+        h1 {
+            text-align: center;
+            color: #6E0D25;
+            background-color: rgba(255, 255, 255, 0.9); /* Light brown background */
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+        }
+
+        /* Form Styles */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        fieldset {
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        legend {
+            font-weight: bold; /* Make legends bold */
+            font-size: 1.2rem; /* Optional: Increase font size for legends */
+            color: #6E0D25; /* Optional: Change color of legends */
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #6E0D25;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        input:focus, select:focus {
+            border-color: #6E0D25;
+            outline: none;
+        }
+
+        /* Button Styles */
+        button {
+            font-family: 'Playwrite DE Grund', cursive; /* Updated font */
+            padding: 15px;
+            background-color: #774E24;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #9c2a3b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add Inventory</h1>
+
+        <!-- Form for adding both ingredient and inventory details -->
+        <form id="ingredientInventoryForm">
+            <!-- Ingredient Details Section -->
+            <fieldset>
+                <legend>Ingredient Details</legend>
+
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter ingredient name" required>
+
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" placeholder="Enter description">
+
+                <label for="category">Category:</label>
+                <input type="text" id="category" name="category" placeholder="Enter category" required>
+
+                <label for="measurement">Measurement:</label>
+                <input type="text" id="measurement" name="measurement" placeholder="Enter measurement (e.g., lbs)" required>
+
+                <label for="maxAmount">Max Amount:</label>
+                <input type="number" id="maxAmount" name="maxAmount" step="0.01" placeholder="Enter max amount" required>
+
+                <label for="reorderAmount">Reorder Amount:</label>
+                <input type="number" id="reorderAmount" name="reorderAmount" step="0.01" placeholder="Enter reorder amount" required>
+
+                <label for="minAmount">Min Amount:</label>
+                <input type="number" id="minAmount" name="minAmount" step="0.01" placeholder="Enter min amount" required>
+
+                <label for="vendorID">Vendor:</label>
+                <select id="vendorID" name="vendorID" required>
+                    <option value="">Select a vendor</option>
+                    <!-- Vendor options will be populated here using JavaScript -->
+                </select>
+            </fieldset>
+
+            <!-- Inventory Details Section -->
+            <fieldset>
+                <legend>Inventory Details</legend>
+
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" step="0.01" placeholder="Enter quantity" required>
+
+                <label for="notes">Notes:</label>
+                <input type="text" id="notes" name="notes" placeholder="Optional notes">
+
+                <label for="cost">Cost:</label>
+                <input type="number" id="cost" name="cost" step="0.01" placeholder="Enter cost" required>
+
+                <label for="create_datetime">Creation Date:</label>
+                <input type="datetime-local" id="create_datetime" name="create_datetime" required>
+
+                <label for="expire_datetime">Expiration Date (optional):</label>
+                <input type="datetime-local" id="expire_datetime" name="expire_datetime">
+            </fieldset>
+
+            <!-- Submit Button -->
+            <button type="submit">Add Ingredient and Inventory</button>
+        </form>
+    </div>
+
+    <script src="addInventory.js"></script>
+</body>
+</html>
