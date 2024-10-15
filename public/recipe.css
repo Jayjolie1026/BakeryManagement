@@ -1,0 +1,44 @@
+
+.searchbar {
+    width: 350px;
+    font-family: "Playwrite DE Grund", cursive;
+    height: 35px;
+    padding: 26px;
+    border: 2px solid #000000;
+    font-size: 1rem;
+    margin: 20px 0;
+    border-radius: 85px;
+    text-align: center;
+    background-color: #ffffff;
+    margin-left: 600px;
+}
+
+.category-container {
+    flex-direction: row;               
+    margin: auto;
+    width: 70%;
+    padding: 10px;
+}
+
+.category-button {
+    width: 195px;              
+    height: 70px;
+    font-family: "Playwrite DE Grund", cursive;               
+    border-radius: 9px;        
+    background-color: #f7ebd5;  
+    color: #000000;                
+    font-size: 1rem;            
+    transition: all 0.3s ease;  
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+    font-size: 1.1rem;
+}
+
+.category-button.active {
+    background-color: #85623fea;
+    color: #fff;               
+}
+
+.category-button:hover {
+    background-color: #a88a60;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}

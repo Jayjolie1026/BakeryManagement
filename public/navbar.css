@@ -119,17 +119,4 @@
     color: #6E0D25;
 }
 
-/*search bar*/
-.searchbar {
-    width: 350px;
-    font-family: "Playwrite DE Grund", cursive;
-    height: 35px;
-    padding: 26px;
-    border: 2px solid #ccc;
-    font-size: 1rem;
-    margin: 20px 0;
-    border-radius: 85px;
-    text-align: center;
-    background-color: #ffffff;
-    margin-left: 600px;
-}
+
