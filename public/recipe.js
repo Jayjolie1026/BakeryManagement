@@ -129,6 +129,10 @@ function filterRecipes() {
     displayRecipes(filteredRecipes);
 }
 
+document.getElementById('add-recipe-button').addEventListener('click', function() {
+  window.location.href = 'addFinalproducts.html';  // Redirect to addFinalProduct.html
+});
+
 // Calls loadRecipes function when the webpage loads
 window.onload = loadRecipes;
 
