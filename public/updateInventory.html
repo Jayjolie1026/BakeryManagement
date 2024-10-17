@@ -94,11 +94,10 @@
 <body>
     <div class="container">
         <h1>Update Inventory</h1>
-        <form id="updateForm">
-            <label for="entry_id">Entry ID:</label>
-            <select id="entry_id" required>
+        <form id="updateInventoryForm">
+            <label for="entryId">Entry ID:</label>
+            <select id="entryId" required>
                 <option value="">Select Entry ID</option>
-                <!-- Options will be dynamically populated -->
             </select>
             
             <label for="name">Ingredient Name:</label>
@@ -120,9 +119,6 @@
                 <option value="pcs">Pieces</option>
             </select>
             
-            <label for="id">Ingredient ID:</label>
-            <input type="number" id="id" required>
-
             <label for="quantity">Quantity:</label>
             <input type="number" id="quantity">
 
@@ -159,128 +155,157 @@
     </div>
 
     <script>
-        const entryIdSelect = document.getElementById('entry_id');
-        const vendorIdSelect = document.getElementById('vendorID');
-        const responseMessage = document.getElementById('responseMessage');
-        const updateForm = document.getElementById('updateForm');
+        document.getElementById('updateInventoryForm').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent page reload
 
-        // Function to load entry IDs into the select dropdown
-        async function loadEntryIds() {
-            try {
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
-                const data = await response.json();
-                
-                // Populate the Entry ID dropdown
-                data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.EntryID; 
-                    option.textContent = item.EntryID;
-                    entryIdSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading Entry IDs:', error);
+        // Clear previous messages
+        document.getElementById('responseMessage').textContent = '';
+
+        const entryId = document.getElementById('entryId').value;
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+        const category = document.getElementById('category').value;
+        const measurement = document.getElementById('measurement').value;
+        const quantity = document.getElementById('quantity').value;
+        const cost = document.getElementById('cost').value;
+        const notes = document.getElementById('notes').value;
+        const createDateTime = document.getElementById('create_datetime').value;
+        const expireDateTime = document.getElementById('expire_datetime').value;
+        const minAmount = document.getElementById('minAmount').value;
+        const maxAmount = document.getElementById('maxAmount').value;
+        const reorderAmount = document.getElementById('reorderAmount').value;
+        const vendorID = document.getElementById('vendorID').value;
+
+        try {
+            // Fetch Inventory to get the associated IngredientID
+            const inventoryResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${entryId}`);
+            if (!inventoryResponse.ok) {
+                throw new Error('Failed to load inventory');
             }
-        }
+            const inventoryData = await inventoryResponse.json();
+            const ingredientId = inventoryData.IngredientID;
 
-        // Function to load vendor IDs into the select dropdown
-        async function loadVendorIds() {
-            try {
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors');
-                const data = await response.json();
+            // Update ingredient using IngredientID
+            const ingredientResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients/${ingredientId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name, description, category, measurement, 
+                    maxAmount, reorderAmount, minAmount, vendorID
+                })
+            });
 
-                // Populate the Vendor ID dropdown
-                data.forEach(vendor => {
-                    const option = document.createElement('option');
-                    option.value = vendor.VendorID; 
-                    option.textContent = vendor.VendorName; 
-                    vendorIdSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading Vendor IDs:', error);
+            if (!ingredientResponse.ok) {
+                throw new Error('Failed to update ingredient');
             }
-        }
 
-        // Function to populate form fields based on selected Entry ID
-        async function fetchEntryDetails(entryId) {
-          if (!entryId) return; 
+            // Update inventory using EntryID
+            const inventoryUpdateResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${entryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ingredient_id: ingredientId, quantity, notes, cost,
+                    create_datetime: createDateTime, expire_datetime: expireDateTime, measurement
+                })
+            });
 
-          try {
-              const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${entryId}`);
-              const item = await response.json();
-
-              // Autofill the form fields with the retrieved data
-              document.getElementById('name').value = item.IngredientName;
-              document.getElementById('category').value = item.Category;
-              document.getElementById('description').value = item.Description;
-              document.getElementById('measurement').value = item.InventoryMeasurement;
-              document.getElementById('id').value = item.IngredientID;
-              document.getElementById('quantity').value = item.Quantity;
-              document.getElementById('cost').value = item.Cost;
-              document.getElementById('notes').value = item.Notes;
-              document.getElementById('create_datetime').value = item.CreationDate;
-              document.getElementById('expire_datetime').value = item.ExpirationDate;
-              document.getElementById('minAmount').value = item.MinAmount;
-              document.getElementById('maxAmount').value = item.MaxAmount;
-              document.getElementById('reorderAmount').value = item.ReorderAmount;
-              document.getElementById('vendorID').value = item.VendorID;
-          } catch (error) {
-              console.error('Error fetching entry details:', error);
-          }
-        }
-
-        // Load Entry IDs and Vendor IDs on page load
-        window.onload = async () => {
-            await loadEntryIds();
-            await loadVendorIds();
-        };
-
-        // Add event listener to fetch details when an Entry ID is selected
-        entryIdSelect.addEventListener('change', (event) => {
-            fetchEntryDetails(event.target.value);
-        });
-
-        // Handle form submission
-        updateForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); 
-
-            const formData = {
-                entryId: entryIdSelect.value,
-                name: document.getElementById('name').value,
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value,
-                measurement: document.getElementById('measurement').value,
-                id: document.getElementById('id').value,
-                quantity: document.getElementById('quantity').value,
-                cost: document.getElementById('cost').value,
-                notes: document.getElementById('notes').value,
-                create_datetime: document.getElementById('create_datetime').value,
-                expire_datetime: document.getElementById('expire_datetime').value,
-                minAmount: document.getElementById('minAmount').value,
-                maxAmount: document.getElementById('maxAmount').value,
-                reorderAmount: document.getElementById('reorderAmount').value,
-                vendorID: document.getElementById('vendorID').value
-            };
-
-            try {
-                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${formData.entryId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    responseMessage.textContent = 'Inventory Updated Successfully!';
-                } else {
-                    responseMessage.textContent = `Failed to update: ${result.message}`;
-                }
-            } catch (error) {
-                console.error('Error updating inventory:', error);
-                responseMessage.textContent = 'An error occurred while updating the inventory.';
+            if (!inventoryUpdateResponse.ok) {
+                throw new Error('Failed to update inventory');
             }
-        });
+
+            // Success message
+            document.getElementById('responseMessage').textContent = 'Inventory and Ingredient updated successfully!';
+        } catch (error) {
+            // Error handling
+            document.getElementById('responseMessage').textContent = error.message;
+        }
+    });
+
+    // Function to load vendors
+    async function loadVendors() {
+        try {
+            const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors');
+            if (!response.ok) {
+                throw new Error('Failed to load vendors');
+            }
+            const vendors = await response.json();
+            const vendorSelect = document.getElementById('vendorID');
+            vendorSelect.innerHTML = '<option value="">Select a vendor</option>';
+
+            vendors.forEach(vendor => {
+                const option = document.createElement('option');
+                option.value = vendor.VendorID;
+                option.textContent = vendor.VendorName;
+                vendorSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error loading vendors:", error);
+            document.getElementById('responseMessage').textContent = `Error: ${error.message}`;
+        }
+    }
+
+    // Function to load Entry IDs
+    async function loadEntryIds() {
+        try {
+            const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory');
+            if (!response.ok) {
+                throw new Error('Failed to load entry IDs');
+            }
+            const entries = await response.json();
+            const entryIdSelect = document.getElementById('entryId');
+            entryIdSelect.innerHTML = '<option value="">Select an Entry ID</option>';
+
+            entries.forEach(entry => {
+                const option = document.createElement('option');
+                option.value = entry.EntryID;
+                option.textContent = `ID: ${entry.EntryID}`;
+                entryIdSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error loading entry IDs:", error);
+            document.getElementById('responseMessage').textContent = `Error: ${error.message}`;
+        }
+    }
+
+    // Function to auto-fill form on entry ID change
+    async function autoFillForm(entryId) {
+        if (!entryId) return;
+        try {
+            const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/inventory/${entryId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch entry details');
+            }
+            const entry = await response.json();
+            document.getElementById('name').value = entry.IngredientName;
+            document.getElementById('category').value = entry.Category;
+            document.getElementById('description').value = entry.Description;
+            document.getElementById('measurement').value = entry.Measurement;
+            document.getElementById('quantity').value = entry.Quantity;
+            document.getElementById('cost').value = entry.Cost;
+            document.getElementById('notes').value = entry.Notes;
+            document.getElementById('create_datetime').value = entry.CreateDateTime;
+            document.getElementById('expire_datetime').value = entry.ExpireDateTime;
+            document.getElementById('minAmount').value = entry.MinAmount;
+            document.getElementById('maxAmount').value = entry.MaxAmount;
+            document.getElementById('reorderAmount').value = entry.ReorderAmount;
+            document.getElementById('vendorID').value = entry.VendorID;
+        } catch (error) {
+            console.error("Error fetching entry details:", error);
+            document.getElementById('responseMessage').textContent = `Error: ${error.message}`;
+        }
+    }
+
+    document.getElementById('entryId').addEventListener('change', (event) => {
+        autoFillForm(event.target.value);
+    });
+
+    // Load the vendors and entry IDs when the page loads
+    loadVendors();
+    loadEntryIds();
     </script>
 </body>
 </html>
