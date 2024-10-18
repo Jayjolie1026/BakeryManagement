@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Details</title>
+    <link rel="stylesheet" href="vendor.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="final_logo.png" alt="Flour & Fantasy Logo" style="height: 40px;">
+        </div>
+        <ul class="navbar__menu">
+            <li class="navbar__item"><a href="recipe.html" class="navbar__links">Recipe</a></li>
+            <li class="navbar__item"><a href="inventory.html" class="navbar__links">Inventory</a></li>
+            <li class="navbar__item"><a href="vendor.html" class="navbar__links">Vendor</a></li>
+            <li class="navbar__btn"><a href="index.html" class="button">Log out</a></li>
+        </ul>
+    </nav>
+
+    <!-- Vendor Details Section -->
+    <div id="vendorDetails" class="vendor-details">
+        <h2>Vendor Details</h2>
+        <div id="vendorDetailsContent">
+            <!-- Vendor details will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Fetch vendor details from the API and display them
+        async function fetchVendorDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const vendorID = urlParams.get('VendorID'); // Get the VendorID from query parameters
+
+            if (!vendorID) {
+                alert("Vendor ID is missing!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendorID}`);
+                if (!response.ok) throw new Error(`Error fetching details for Vendor ID ${vendorID}`);
+                const vendorDetails = await response.json();
+                displayVendorDetailSection(vendorDetails);
+            } catch (error) {
+                console.error(`Error fetching vendor details for ID ${vendorID}:`, error);
+                alert("Error fetching vendor details. Please try again later.");
+            }
+        }
+
+        // Display the vendor details in the details section
+        function displayVendorDetailSection(vendorDetails) {
+            const vendorDetailsContent = document.querySelector('#vendorDetailsContent');
+
+            vendorDetailsContent.innerHTML = `
+                <p><span>Name:</span> ${vendorDetails.VendorName || 'N/A'}</p>
+                <p><span>ID:</span> ${vendorDetails.VendorID || 'N/A'}</p>
+                <h3>Addresses:</h3>
+                <ul>
+                    ${vendorDetails.Addresses.map(address => `
+                        <li>
+                            ${address.StreetAddress}, ${address.City}, ${address.State} - ${address.PostalCode}, ${address.Country} (${address.AddressType})
+                        </li>
+                    `).join('')}
+                </ul>
+                <h3>Phone Numbers:</h3>
+                <ul>
+                    ${vendorDetails.PhoneNumbers.map(phone => `
+                        <li>
+                            (${phone.AreaCode}) ${phone.PhoneNumber} - ${phone.PhoneType}
+                        </li>
+                    `).join('')}
+                </ul>
+                <h3>Emails:</h3>
+                <ul>
+                    ${vendorDetails.Emails.map(email => `
+                        <li>${email.EmailAddress} - ${email.EmailType}</li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        // Fetch the vendor details when the page loads
+        window.onload = fetchVendorDetails;
+    </script>
+</body>
+
+</html>
