@@ -497,7 +497,7 @@ app.get('/vendors/:id', async (req, res) => {
 
 
 // Endpoint to update vendor addresses
-app.put('/api/vendor-addresses/:vendorId', async (req, res) => {
+app.put('/vendor-addresses/:vendorId', async (req, res) => {
     const vendorId = req.params.vendorId;
     const addresses = req.body.addresses; // Expecting an array of address objects
 
@@ -538,7 +538,7 @@ app.put('/api/vendor-addresses/:vendorId', async (req, res) => {
 });
 
 // Endpoint to update vendor phone numbers
-app.put('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
+app.put('/vendor-phone-numbers/:vendorId', async (req, res) => {
     const vendorId = req.params.vendorId;
     const phoneNumbers = req.body.phoneNumbers; // Expecting an array of phone number objects
 
@@ -575,7 +575,7 @@ app.put('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
 });
 
 // Endpoint to update vendor emails
-app.put('/api/vendor-emails/:vendorId', async (req, res) => {
+app.put('/vendor-emails/:vendorId', async (req, res) => {
     const vendorId = req.params.vendorId;
     const emails = req.body.emails; // Expecting an array of email objects
 
@@ -609,16 +609,9 @@ app.put('/api/vendor-emails/:vendorId', async (req, res) => {
     }
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
-
 
 // Endpoint to get vendor addresses
-app.get('/api/vendor-addresses/:vendorId', async (req, res) => {
+app.get('/vendor-addresses/:vendorId', async (req, res) => {
   const vendorId = req.params.vendorId;
 
   try {
@@ -635,7 +628,7 @@ app.get('/api/vendor-addresses/:vendorId', async (req, res) => {
 });
 
 // Endpoint to get vendor phone numbers
-app.get('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
+app.get('/vendor-phone-numbers/:vendorId', async (req, res) => {
   const vendorId = req.params.vendorId;
 
   try {
@@ -652,7 +645,7 @@ app.get('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
 });
 
 // Endpoint to get vendor emails
-app.get('/api/vendor-emails/:vendorId', async (req, res) => {
+app.get('/vendor-emails/:vendorId', async (req, res) => {
   const vendorId = req.params.vendorId;
 
   try {
