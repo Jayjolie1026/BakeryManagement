@@ -162,6 +162,7 @@
 
                 if (response.ok) {
                     alert('Vendor added successfully');
+                    window.location.href = 'vendor.html'; 
                 } else {
                     const errorData = await response.json();
                     alert(`Error: ${errorData.message}`);

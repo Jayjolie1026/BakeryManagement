@@ -496,6 +496,179 @@ app.get('/vendors/:id', async (req, res) => {
 });
 
 
+// Endpoint to update vendor addresses
+app.put('/api/vendor-addresses/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const addresses = req.body.addresses; // Expecting an array of address objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const addressPromises = addresses.map(address => {
+            const { AddressID, StreetAddress, City, State, PostalCode, Country, AddressTypeID } = address;
+            return transaction.request()
+                .input('AddressID', sql.Int, AddressID)
+                .input('StreetAddress', sql.VarChar(255), StreetAddress)
+                .input('City', sql.VarChar(100), City)
+                .input('State', sql.VarChar(100), State)
+                .input('PostalCode', sql.VarChar(20), PostalCode)
+                .input('Country', sql.VarChar(100), Country)
+                .input('AddressTypeID', sql.Int, AddressTypeID)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorAddresses 
+                         SET StreetAddress = @StreetAddress, 
+                             City = @City, 
+                             State = @State, 
+                             PostalCode = @PostalCode, 
+                             Country = @Country, 
+                             AddressTypeID = @AddressTypeID 
+                         WHERE AddressID = @AddressID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(addressPromises);
+        await transaction.commit();
+        res.status(200).send('Vendor addresses updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor addresses:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor addresses.');
+    }
+});
+
+// Endpoint to update vendor phone numbers
+app.put('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const phoneNumbers = req.body.phoneNumbers; // Expecting an array of phone number objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const phonePromises = phoneNumbers.map(phone => {
+            const { PhoneNumberID, AreaCode, Number, TypeID, Valid } = phone;
+            return transaction.request()
+                .input('PhoneNumberID', sql.Int, PhoneNumberID)
+                .input('AreaCode', sql.VarChar(10), AreaCode)
+                .input('Number', sql.VarChar(20), Number)
+                .input('TypeID', sql.Int, TypeID)
+                .input('Valid', sql.Bit, Valid)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorPhoneNumbers 
+                         SET AreaCode = @AreaCode, 
+                             Number = @Number, 
+                             TypeID = @TypeID, 
+                             Valid = @Valid 
+                         WHERE PhoneNumberID = @PhoneNumberID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(phonePromises);
+        await transaction.commit();
+        res.status(200).send('Vendor phone numbers updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor phone numbers:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor phone numbers.');
+    }
+});
+
+// Endpoint to update vendor emails
+app.put('/api/vendor-emails/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const emails = req.body.emails; // Expecting an array of email objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const emailPromises = emails.map(email => {
+            const { EmailID, EmailAddress, TypeID, Valid } = email;
+            return transaction.request()
+                .input('EmailID', sql.Int, EmailID)
+                .input('EmailAddress', sql.VarChar(255), EmailAddress)
+                .input('TypeID', sql.Int, TypeID)
+                .input('Valid', sql.Bit, Valid)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorEmails 
+                         SET EmailAddress = @EmailAddress, 
+                             TypeID = @TypeID, 
+                             Valid = @Valid 
+                         WHERE EmailID = @EmailID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(emailPromises);
+        await transaction.commit();
+        res.status(200).send('Vendor emails updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor emails:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor emails.');
+    }
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+
+
+// Endpoint to get vendor addresses
+app.get('/api/vendor-addresses/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorAddresses WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor addresses:', error);
+      res.status(500).send('Error fetching vendor addresses.');
+  }
+});
+
+// Endpoint to get vendor phone numbers
+app.get('/api/vendor-phone-numbers/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorPhoneNumbers WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor phone numbers:', error);
+      res.status(500).send('Error fetching vendor phone numbers.');
+  }
+});
+
+// Endpoint to get vendor emails
+app.get('/api/vendor-emails/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorEmails WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor emails:', error);
+      res.status(500).send('Error fetching vendor emails.');
+  }
+});
+
+
 
 // POST /users: Add a new user
 app.post('/users', async (req, res) => {

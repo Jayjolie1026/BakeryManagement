@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendor Details</title>
-    <link rel="stylesheet" href="vendor.css">
+    <link rel="stylesheet" href="vendorDetails.css">
 </head>
 
 <body>
     <nav class="navbar">
         <div class="logo">
-            <img src="final_logo.png" alt="Flour & Fantasy Logo" style="height: 40px;">
+            <img src="final_logo.png" alt="Flour & Fantasy Logo">
         </div>
         <ul class="navbar__menu">
             <li class="navbar__item"><a href="recipe.html" class="navbar__links">Recipe</a></li>
@@ -23,8 +23,10 @@
 
     <!-- Vendor Details Section -->
     <div id="vendorDetails" class="vendor-details">
-        <h2>Vendor Details</h2>
-        <div id="vendorDetailsContent">
+        <div class="vendor-header">
+            <h2>Vendor Details</h2>
+        </div>
+        <div id="vendorDetailsContent" class="vendor-details-content">
             <!-- Vendor details will be dynamically inserted here -->
         </div>
     </div>
@@ -56,8 +58,8 @@
             const vendorDetailsContent = document.querySelector('#vendorDetailsContent');
 
             vendorDetailsContent.innerHTML = `
-                <p><span>Name:</span> ${vendorDetails.VendorName || 'N/A'}</p>
-                <p><span>ID:</span> ${vendorDetails.VendorID || 'N/A'}</p>
+                <p><strong>Name:</strong> ${vendorDetails.VendorName || 'N/A'}</p>
+                <p><strong>ID:</strong> ${vendorDetails.VendorID || 'N/A'}</p>
                 <h3>Addresses:</h3>
                 <ul>
                     ${vendorDetails.Addresses.map(address => `
@@ -85,6 +87,7 @@
 
         // Fetch the vendor details when the page loads
         window.onload = fetchVendorDetails;
+
     </script>
 </body>
 

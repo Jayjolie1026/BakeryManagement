@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Recipe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Playwrite DE Grund', cursive;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: rgba(241, 212, 164, 0.967);
+            overflow-y: scroll;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #6E0D25;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #6E0D25;
+        }
+
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            border-color: #6E0D25;
+            outline: none;
+        }
+
+        button {
+            padding: 15px;
+            background-color: #774E24;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #9c2a3b;
+        }
+
+        .message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+            display: none;
+        }
+
+        .error {
+            background-color: #ffdddd;
+            color: #a94442;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .ingredient-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ingredient-select select {
+            width: 100%;
+        }
+
+        .removeIngredient {
+            padding: 5px 10px;
+            background-color: #9c2a3b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .removeIngredient:hover {
+            background-color: #6e202c;
+        }
+
+        /* Scrollable Ingredients */
+        #ingredientsContainer {
+            max-height: 200px; /* Adjust as needed */
+            overflow-y: auto;  /* Enables vertical scrolling if content exceeds height */
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Update Recipe</h2>
+        <form id="updateRecipeForm">
+            <label for="recipeName">Recipe Name</label>
+            <input type="text" id="recipeName" placeholder="Enter current recipe name" required>
+
+            <label for="newName">New Name (Optional)</label>
+            <input type="text" id="newName" placeholder="Enter new recipe name">
+
+            <label for="steps">Steps (Optional)</label>
+            <textarea id="steps" rows="4" placeholder="Enter new recipe steps"></textarea>
+
+            <label for="category">Category</label>
+            <input type="text" id="category" placeholder="Enter recipe category" required>
+
+            <label for="yield">Yield</label>
+            <input type="number" id="yield" placeholder="Enter recipe yield" required>
+
+            <label for="ingredients">Ingredients</label>
+            <div id="ingredientsContainer"></div>
+
+            <button type="button" id="addIngredient">Add Ingredient</button>
+            <button type="submit">Update Recipe</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // Fetch ingredients and populate the dropdown menu
+        async function fetchIngredients() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients'); // Update URL to the correct endpoint
+                const ingredients = await response.json();
+                const ingredientsContainer = document.getElementById('ingredientsContainer');
+
+                // Populate dropdown with fetched ingredients
+                const ingredientSelectHTML = ingredients.map(ingredient => `
+                    <div class="ingredient-select">
+                        <select class="ingredientSelect" data-id="${ingredient.IngredientID}">
+                            <option value="">Select Ingredient</option>
+                            <option value="${ingredient.IngredientID}">${ingredient.Name}</option>
+                        </select>
+                        <select class="measurementSelect" data-id="${ingredient.IngredientID}">
+                            <option value="">Select Measurement</option>
+                            <option value="lbs">lbs</option>
+                            <option value="gals">gals</option>
+                            <option value="cups">cups</option>
+                        </select>
+                        <button class="removeIngredient">Remove</button>
+                    </div>
+                `).join('');
+
+                ingredientsContainer.innerHTML = ingredientSelectHTML;
+
+                // Event listener for remove buttons
+                const removeButtons = document.querySelectorAll('.removeIngredient');
+                removeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        button.parentElement.remove();
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching ingredients:', error);
+            }
+        }
+
+        fetchIngredients();  // Call function to populate ingredients
+
+        document.getElementById('addIngredient').addEventListener('click', function() {
+            const ingredientsContainer = document.getElementById('ingredientsContainer');
+            const newIngredientSelect = document.createElement('div');
+            newIngredientSelect.classList.add('ingredient-select');
+            newIngredientSelect.innerHTML = `
+                <select class="ingredientSelect">
+                    <option value="">Select Ingredient</option>
+                </select>
+                <select class="measurementSelect">
+                    <option value="">Select Measurement</option>
+                    <option value="lbs">lbs</option>
+                    <option value="gals">gals</option>
+                    <option value="cups">cups</option>
+                </select>
+                <button class="removeIngredient">Remove</button>
+            `;
+
+            ingredientsContainer.appendChild(newIngredientSelect);
+
+            // Reattach remove button listener
+            newIngredientSelect.querySelector('.removeIngredient').addEventListener('click', function() {
+                newIngredientSelect.remove();
+            });
+        });
+
+        document.getElementById('updateRecipeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const recipeName = document.getElementById('recipeName').value;
+            const newName = document.getElementById('newName').value;
+            const steps = document.getElementById('steps').value;
+            const category = document.getElementById('category').value;
+            const yieldValue = document.getElementById('yield').value;
+
+            // Collect selected ingredients and measurements
+            const ingredients = Array.from(document.querySelectorAll('.ingredientSelect')).map(select => ({
+                IngredientID: parseInt(select.value),
+                Measurement: select.nextElementSibling.value,
+                Quantity: 1  // Default quantity
+            }));
+
+            const body = {
+                new_name: newName || undefined,
+                steps: steps || undefined,
+                category,
+                yield2: yieldValue,
+                ingredients: ingredients.length > 0 ? ingredients : undefined
+            };
+
+            try {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${recipeName}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                document.getElementById('message').textContent = 'Recipe updated successfully!';
+                document.getElementById('message').className = 'message success';
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error updating recipe.';
+                document.getElementById('message').className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>
