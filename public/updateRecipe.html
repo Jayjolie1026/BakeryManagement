@@ -157,7 +157,6 @@
                 <thead>
                     <tr>
                         <th>Ingredient</th>
-                        <th>Measurement</th>
                         <th>Quantity</th>
                         <th>Action</th>
                     </tr>
@@ -168,10 +167,6 @@
             <div class="ingredient-select">
                 <select id="newIngredientSelect" class="ingredientSelect">
                     <option value="">Select Ingredient</option>
-                </select>
-                <select id="measurementSelect" class="measurementSelect">
-                    <option value="">Select Measurement</option>
-                    <!-- Measurement options will be populated here -->
                 </select>
                 <input type="number" class="quantityInput" placeholder="Quantity" min="0" step="0.01" value="1">
                 <button type="button" id="addIngredient">Add Ingredient</button>
@@ -186,7 +181,6 @@
     <script>
         let ingredients = []; // Store the fetched ingredients
         let recipes = []; // Store the fetched recipes
-        let measurements = []; // Store the fetched measurements
 
         // Fetch ingredients and populate the dropdown menu
         async function fetchIngredients() {
@@ -196,17 +190,6 @@
                 populateIngredientDropdown();
             } catch (error) {
                 console.error('Error fetching ingredients:', error);
-            }
-        }
-
-        // Fetch measurements and populate the dropdown menu
-        async function fetchMeasurements() {
-            try {
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/measurements'); // Update this URL according to your API
-                measurements = await response.json();
-                populateMeasurementDropdown();
-            } catch (error) {
-                console.error('Error fetching measurements:', error);
             }
         }
 
@@ -231,16 +214,6 @@
             document.getElementById('newIngredientSelect').innerHTML = `<option value="">Select Ingredient</option>` + ingredientOptions;
         }
 
-        // Populate dropdowns with fetched measurements
-        function populateMeasurementDropdown() {
-            const measurementOptions = measurements.map(measurement => `
-                <option value="${measurement.Name}">${measurement.Name}</option>
-            `).join('');
-
-            // Populate the measurement select dropdown
-            document.getElementById('measurementSelect').innerHTML = `<option value="">Select Measurement</option>` + measurementOptions;
-        }
-
         // Populate the recipe dropdown
         function populateRecipeDropdown() {
             const recipeOptions = recipes.map(recipe => `
@@ -255,14 +228,14 @@
             if (selectedRecipe) {
                 document.getElementById('recipeName').value = selectedRecipe.Name;
                 document.getElementById('newName').value = ''; // Clear new name field
-                document.getElementById('steps').value = selectedRecipe.Steps;
-                document.getElementById('category').value = selectedRecipe.Category;
-                document.getElementById('yield').value = selectedRecipe.Yield;
+                document.getElementById('steps').value = selectedRecipe.Steps || ''; // Handle empty steps
+                document.getElementById('category').value = selectedRecipe.Category || ''; // Handle empty category
+                document.getElementById('yield').value = selectedRecipe.Yield || ''; // Handle empty yield
 
                 // Autofill ingredients
                 clearIngredientTable();
                 selectedRecipe.Ingredients.forEach(ingredient => {
-                    addIngredientRow(ingredient.IngredientID, ingredient.Quantity, ingredient.Measurement);
+                    addIngredientRow(ingredient.IngredientID, ingredient.Quantity);
                 });
             }
         });
@@ -276,25 +249,23 @@
         // Function to handle adding a new ingredient row to the table
         document.getElementById('addIngredient').addEventListener('click', function() {
             const ingredientID = document.getElementById('newIngredientSelect').value;
-            const measurement = document.getElementById('measurementSelect').value;
             const quantity = document.querySelector('.quantityInput').value;
 
-            if (ingredientID && measurement && quantity > 0) {
-                addIngredientRow(ingredientID, quantity, measurement);
+            if (ingredientID && quantity > 0) {
+                addIngredientRow(ingredientID, quantity);
                 clearNewIngredientInputs(); // Clear input fields after adding
             } else {
                 alert('Please select an ingredient and enter a valid quantity.');
             }
         });
 
-        // Add an ingredient row to the table
-        function addIngredientRow(selectedID, quantity, measurement) {
+        // Function to add a new ingredient row to the table
+        function addIngredientRow(selectedID, quantity) {
             const ingredientsContainer = document.getElementById('ingredientsContainer');
             const newRow = document.createElement('tr');
 
             newRow.innerHTML = `
                 <td>${getIngredientName(selectedID)}</td>
-                <td>${measurement}</td>
                 <td>${quantity}</td>
                 <td><button class="removeIngredient">Remove</button></td>
             `;
@@ -316,7 +287,6 @@
         // Clear new ingredient inputs
         function clearNewIngredientInputs() {
             document.getElementById('newIngredientSelect').value = '';
-            document.getElementById('measurementSelect').value = '';
             document.querySelector('.quantityInput').value = 1;
         }
 
@@ -333,21 +303,23 @@
             // Collect current ingredients from the table
             const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
                 const cells = row.children;
+                const ingredientID = getIngredientId(cells[0].textContent); // Get ID from name
+                const quantity = parseFloat(cells[1].textContent) || 1;  // Default quantity
                 return {
-                    IngredientID: getIngredientId(cells[0].textContent), // Get ID from name
-                    Quantity: parseFloat(cells[2].textContent) || 1,  // Default quantity
-                    Measurement: cells[1].textContent // Capture measurement
+                    IngredientID: ingredientID,
+                    Quantity: quantity,
                 };
             });
 
             const body = {
                 new_name: newName || undefined,
                 steps: steps || undefined,
-                category,
-                yield2: yieldValue,
+                category: category || undefined, // Include category if required
+                yield2: yieldValue || undefined, // Include yield if required
                 ingredients: ingredientsData.length > 0 ? ingredientsData : undefined
             };
 
+            // Simplified try-catch
             try {
                 const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/name/${recipeName}`, {
                     method: 'PUT',
@@ -358,18 +330,36 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to update recipe');
+                    const errorMessage = await response.text(); // Get error response from server
+                    throw new Error(errorMessage); // Throws if the response is not ok
                 }
 
-                const data = await response.json();
-                document.getElementById('message').textContent = 'Recipe updated successfully!';
+                const data = await response.json(); // Parse the JSON response
+                document.getElementById('message').textContent = data.message || 'Recipe updated successfully!'; // Show success message
                 document.getElementById('message').className = 'message success';
                 document.getElementById('message').style.display = 'block'; // Show message
+
+                // Clear form after successful update
+                document.getElementById('updateRecipeForm').reset();
+                clearIngredientTable(); // Clear ingredient table
+                clearNewIngredientInputs(); // Clear new ingredient inputs
+
             } catch (error) {
-                document.getElementById('message').textContent = 'Error updating recipe.';
-                document.getElementById('message').className = 'message error';
-                document.getElementById('message').style.display = 'block'; // Show message
+        
+                let errorMessage = 'Error updating recipe: ';
+                try {
+                    // Attempt to parse the error response as JSON
+                    const errorResponse = await response.json();
+                    errorMessage += errorResponse.message || error.message; // Use the message from the response, if available
+                } catch (jsonError) {
+                    // If parsing fails, use the text response
+                    errorMessage += error.message; // Fallback to the error caught earlier
+                }
+                document.getElementById('message').textContent = errorMessage; // Show error message
+                document.getElementById('message').className = 'message error'; // Set error class
+                document.getElementById('message').style.display = 'block'; // Show error message
             }
+
         });
 
         // Get ingredient ID by name (to be used when updating)
@@ -378,10 +368,9 @@
             return ingredient ? ingredient.IngredientID : null;
         }
 
-        // Add initial ingredient and measurement dropdowns, and fetch data on load
+        // Add initial ingredient dropdowns and fetch data on load
         document.addEventListener('DOMContentLoaded', () => {
             fetchIngredients(); // Fetch ingredients on load
-            fetchMeasurements(); // Fetch measurements on load
             fetchRecipes(); // Fetch recipes on load
         });
     </script>

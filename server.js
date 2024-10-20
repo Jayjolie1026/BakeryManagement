@@ -1458,27 +1458,27 @@ app.post('/ingredients', async (req, res) => {
 
 // GET /measurements: Fetch all unique measurements
 app.get('/measurements', async (req, res) => {
-  try {
-      const pool = await sql.connect(dbConfig);
-      const result = await pool.request()
-          .query(`
-              SELECT DISTINCT Measurement
-              FROM tblIngredients
-              WHERE Measurement IS NOT NULL
-          `);
-      
-      // If no measurements found
-      if (result.recordset.length === 0) {
-          return res.status(404).send('No measurements found');
-      }
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .query(`
+                SELECT DISTINCT Measurement
+                FROM tblIngredients
+                WHERE Measurement IS NOT NULL
+            `);
+        
+        // If no measurements found
+        if (result.recordset.length === 0) {
+            return res.status(404).send('No measurements found');
+        }
 
-      // Map the results to return an array of measurements
-      const measurements = result.recordset.map(row => ({ Name: row.Measurement }));
-      
-      res.status(200).json(measurements);
-  } catch (error) {
-      res.status(500).send(error.message);
-  }
+        // Map the results to return an array of measurements
+        const measurements = result.recordset.map(row => ({ Name: row.Measurement }));
+        
+        res.status(200).json(measurements);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
 });
 
 
@@ -1982,7 +1982,7 @@ app.put('/recipes/name/:name', async (req, res) => {
             }
         }
 
-        res.send('Recipe updated');
+        res.json({ message: 'Recipe updated successfully' });
     } catch (error) {
         res.status(500).send('Error updating recipe: ' + error.message);
     }
