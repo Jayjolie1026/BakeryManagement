@@ -17,21 +17,17 @@
             align-items: center;
             min-height: 100vh;
             background-color: rgba(241, 212, 164, 0.967);
+            overflow-y: scroll;
         }
 
         .container {
             width: 100%;
             max-width: 600px;
             background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            margin: 20px;
-            transition: box-shadow 0.3s ease;
-        }
-
-        .container:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px auto;
         }
 
         h1 {
@@ -40,36 +36,42 @@
             background-color: rgba(255, 255, 255, 0.9);
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 30px;
-            font-size: 2rem;
+            font-family: 'Playwrite DE Grund', cursive;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
         }
 
         label {
             display: block;
-            font-weight: 600;
-            margin-bottom: 6px;
+            font-weight: 500;
+            margin-bottom: 8px;
             color: #6E0D25;
         }
 
-        input,
-        select {
+        input, select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
             margin-bottom: 15px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
         }
 
-        input:focus,
-        select:focus {
+        input:focus, select:focus {
             border-color: #6E0D25;
             outline: none;
         }
 
+        .phone-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
         button {
+            font-family: 'Playwrite DE Grund', cursive;
             padding: 15px;
             background-color: #774E24;
             color: #fff;
@@ -86,20 +88,11 @@
             background-color: #9c2a3b;
         }
 
-        .add-button {
-            background-color: #774E24; 
-            color: white;
-            width: auto;
-            display: inline-block;
-            margin: 5px 0;
-            font-size: 0.9rem;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .add-button:hover {
-            background-color: #9c2a3b; 
+        h2 {
+            margin: 15px 0 5px;
+            color: #6E0D25;
+            border-bottom: 2px solid #6E0D25;
+            padding-bottom: 5px;
         }
 
         #responseMessage {
@@ -107,118 +100,61 @@
             margin-top: 20px;
             font-weight: bold;
             color: #6E0D25;
-            transition: opacity 0.5s ease;
-        }
-
-        .multiple-container {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px;
-        }
-
-        .remove-button {
-            background-color: #774E24; 
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-top: 5px;
-            cursor: pointer;
-            padding: 8px 12px;
-            font-size: 0.9rem;
-            align-self: flex-end; /* Aligns the button to the right */
-        }
-
-        .remove-button:hover {
-            background-color: #9c2a3b; 
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-                margin: 10px;
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            button {
-                font-size: 1rem;
-            }
-
-            input,
-            select {
-                padding: 10px;
-                font-size: 0.9rem;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Update Vendor</h1>
-        <form id="updateVendorForm">
-            <label for="vendorID">Select Vendor:</label>
-            <select id="vendorID" required>
-                <option value="">Select a vendor</option>
-                <!-- Vendor options will be loaded here dynamically -->
+        <h1>Update Vendor Information</h1>
+        <form id="vendorForm">
+            <label for="vendorId">Vendor ID:</label>
+            <select id="vendorId" required>
+                <option value="">Select Vendor</option>
+                <!-- Options will be populated dynamically -->
             </select>
 
-            <label for="name">Vendor Name:</label>
-            <input type="text" id="name" required>
+            <label for="vendorName">Vendor Name:</label>
+            <input type="text" id="vendorName" required>
 
-            <label for="phone">Phone Numbers:</label>
-            <div id="phoneNumbers">
-                <div class="multiple-container">
-                    <input type="text" required placeholder="Enter phone number">
-                    <button type="button" class="remove-button" onclick="removePhoneNumber(this)">Remove</button>
+            <h2>Emails</h2>
+            <div id="emailContainer">
+                <input type="email" class="email" placeholder="Email" required>
+            </div>
+
+            <h2>Phone Numbers</h2>
+            <div id="phoneContainer">
+                <div class="phone-wrapper">
+                    <input type="text" class="areaCode" placeholder="Area Code" required>
+                    <input type="text" class="phone" placeholder="Phone Number (e.g., 555-1234)" required>
                 </div>
             </div>
-            <button type="button" class="add-button" onclick="addPhoneNumber()">Add Another Phone Number</button>
 
-            <label for="email">Email Addresses:</label>
-            <div id="emailAddresses">
-                <div class="multiple-container">
-                    <input type="email" required placeholder="Enter email address">
-                    <button type="button" class="remove-button" onclick="removeEmailAddress(this)">Remove</button>
-                </div>
+            <h2>Addresses</h2>
+            <div id="addressContainer">
+                <input type="text" class="address" placeholder="Street Address" required>
+                <input type="text" class="city" placeholder="City" required>
+                <input type="text" class="state" placeholder="State" required>
+                <input type="text" class="postalCode" placeholder="Postal Code" required>
+                <input type="text" class="country" placeholder="Country" required>
             </div>
-            <button type="button" class="add-button" onclick="addEmailAddress()">Add Another Email</button>
-
-            <label for="addresses">Addresses:</label>
-            <div id="addresses">
-                <div class="multiple-container">
-                    <input type="text" required placeholder="Street Address">
-                    <input type="text" required placeholder="City">
-                    <input type="text" required placeholder="State">
-                    <input type="text" required placeholder="Postal Code">
-                    <input type="text" required placeholder="Country">
-                    <button type="button" class="remove-button" onclick="removeAddress(this)">Remove</button>
-                </div>
-            </div>
-            <button type="button" class="add-button" onclick="addAddress()">Add Another Address</button>
 
             <button type="submit">Update Vendor</button>
+            <div id="responseMessage"></div>
         </form>
-
-        <p id="responseMessage"></p>
     </div>
-    <script>
-        const updateVendorForm = document.getElementById('updateVendorForm');
-        const vendorSelect = document.getElementById('vendorID');
-        const responseMessage = document.getElementById('responseMessage');
 
-        // Fetch the vendor list and populate the dropdown
-        async function loadVendors() {
+    <script>
+        // Fetch all vendors and populate the dropdown
+        async function fetchVendors() {
             try {
                 const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors');
                 const vendors = await response.json();
+                const vendorSelect = document.getElementById('vendorId');
 
-                // Populate the dropdown with vendors
                 vendors.forEach(vendor => {
                     const option = document.createElement('option');
                     option.value = vendor.VendorID;
-                    option.textContent = `${vendor.VendorName} (ID: ${vendor.VendorID})`;
+                    option.textContent = vendor.VendorName;
                     vendorSelect.appendChild(option);
                 });
             } catch (error) {
@@ -226,56 +162,104 @@
             }
         }
 
-        vendorSelect.addEventListener('change', async (event) => {
-            const vendorId = event.target.value;
-            if (vendorId) {
+        // Autofill vendor information
+        document.getElementById('vendorId').addEventListener('change', async (event) => {
+            const selectedVendorId = event.target.value;
+            if (selectedVendorId) {
                 try {
-                    const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendorId}`);
-                    const vendorDetails = await response.json();
+                    const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${selectedVendorId}`);
+                    const vendor = await response.json();
 
-                    // Populate the fields with vendor details
-                    document.getElementById('name').value = vendorDetails.VendorName || '';
-                    
-                    // Populate phone numbers
-                    document.getElementById('phoneNumbers').innerHTML = '';
-                    vendorDetails.PhoneNumbers.forEach(phone => {
-                        const phoneContainer = document.createElement('div');
-                        phoneContainer.classList.add('multiple-container');
-                        phoneContainer.innerHTML = `
-                            <input type="text" required value="${phone.AreaCode ? `(${phone.AreaCode}) ${phone.PhoneNumber}` : phone.PhoneNumber}" placeholder="Enter phone number">
-                            <button type="button" class="remove-button" onclick="removePhoneNumber(this)">Remove</button>
-                        `;
-                        document.getElementById('phoneNumbers').appendChild(phoneContainer);
+                    document.getElementById('vendorName').value = vendor.VendorName;
+
+                    // Fill emails
+                    const emailContainer = document.getElementById('emailContainer');
+                    emailContainer.innerHTML = '';
+                    vendor.Emails.forEach(email => {
+                        const input = document.createElement('input');
+                        input.type = 'email';
+                        input.className = 'email';
+                        input.placeholder = 'Email';
+                        input.value = email.EmailAddress;
+
+                        existingEmails.push({
+                            EmailID: email.EmailID
+                        });
+                        
+                        emailContainer.appendChild(input);
                     });
 
-                    // Populate emails
-                    document.getElementById('emailAddresses').innerHTML = '';
-                    if (vendorDetails.Emails && Array.isArray(vendorDetails.Emails)) {
-                        vendorDetails.Emails.forEach(emailObject => {
-                            const emailContainer = document.createElement('div');
-                            emailContainer.classList.add('multiple-container');
-                            emailContainer.innerHTML = `
-                                <input type="email" required value="${emailObject.Email}" placeholder="Enter email address">
-                                <button type="button" class="remove-button" onclick="removeEmailAddress(this)">Remove</button>
-                            `;
-                            document.getElementById('emailAddresses').appendChild(emailContainer);
-                        });
-                    }
+                    // Fill phone numbers
+                    const phoneContainer = document.getElementById('phoneContainer');
+                    phoneContainer.innerHTML = '';
+                    vendor.PhoneNumbers.forEach(phone => {
+                        const phoneWrapper = document.createElement('div');
+                        phoneWrapper.className = 'phone-wrapper';
 
-                    // Populate addresses
-                    document.getElementById('addresses').innerHTML = '';
-                    vendorDetails.Addresses.forEach(address => {
-                        const addressContainer = document.createElement('div');
-                        addressContainer.classList.add('multiple-container');
-                        addressContainer.innerHTML = `
-                            <input type="text" required value="${address.StreetAddress}" placeholder="Street Address">
-                            <input type="text" required value="${address.City}" placeholder="City">
-                            <input type="text" required value="${address.State}" placeholder="State">
-                            <input type="text" required value="${address.PostalCode}" placeholder="Postal Code">
-                            <input type="text" required value="${address.Country}" placeholder="Country">
-                            <button type="button" class="remove-button" onclick="removeAddress(this)">Remove</button>
-                        `;
-                        document.getElementById('addresses').appendChild(addressContainer);
+                        const areaCodeInput = document.createElement('input');
+                        areaCodeInput.type = 'text';
+                        areaCodeInput.className = 'areaCode';
+                        areaCodeInput.placeholder = 'Area Code';
+                        areaCodeInput.value = phone.AreaCode;
+
+                        const phoneInput = document.createElement('input');
+                        phoneInput.type = 'text';
+                        phoneInput.className = 'phone';
+                        phoneInput.placeholder = 'Phone Number';
+                        phoneInput.value = phone.PhoneNumber;
+
+                        phoneWrapper.appendChild(areaCodeInput);
+                        phoneWrapper.appendChild(phoneInput);
+                        phoneContainer.appendChild(phoneWrapper);
+
+                        existingPhones.push({
+                            PhoneNumberID: phone.PhoneNumberID
+                        });
+                    });
+
+                    // Fill addresses
+                    const addressContainer = document.getElementById('addressContainer');
+                    addressContainer.innerHTML = '';
+                    vendor.Addresses.forEach(address => {
+                        const streetInput = document.createElement('input');
+                        streetInput.type = 'text';
+                        streetInput.className = 'address';
+                        streetInput.placeholder = 'Street Address';
+                        streetInput.value = address.StreetAddress;
+
+                        const cityInput = document.createElement('input');
+                        cityInput.type = 'text';
+                        cityInput.className = 'city';
+                        cityInput.placeholder = 'City';
+                        cityInput.value = address.City;
+
+                        const stateInput = document.createElement('input');
+                        stateInput.type = 'text';
+                        stateInput.className = 'state';
+                        stateInput.placeholder = 'State';
+                        stateInput.value = address.State;
+
+                        const postalCodeInput = document.createElement('input');
+                        postalCodeInput.type = 'text';
+                        postalCodeInput.className = 'postalCode';
+                        postalCodeInput.placeholder = 'Postal Code';
+                        postalCodeInput.value = address.PostalCode;
+
+                        const countryInput = document.createElement('input');
+                        countryInput.type = 'text';
+                        countryInput.className = 'country';
+                        countryInput.placeholder = 'Country';
+                        countryInput.value = address.Country;
+
+                        addressContainer.appendChild(streetInput);
+                        addressContainer.appendChild(cityInput);
+                        addressContainer.appendChild(stateInput);
+                        addressContainer.appendChild(postalCodeInput);
+                        addressContainer.appendChild(countryInput);
+
+                        existingAddresses.push({
+                            AddressID: address.AddressID
+                        });
                     });
                 } catch (error) {
                     console.error('Error fetching vendor details:', error);
@@ -283,103 +267,117 @@
             }
         });
 
-        updateVendorForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        let existingEmails = [];
+        let existingPhones = [];
+        let existingAddresses = [];
 
-            const vendorId = vendorSelect.value;
-            const name = document.getElementById('name').value;
-            const phoneNumbers = Array.from(document.querySelectorAll('#phoneNumbers input')).map(input => ({
-                PhoneNumber: input.value
-            }));
-            const emails = Array.from(document.querySelectorAll('#emailAddresses input')).map(input => ({
-                Email: input.value
-            }));
-            const addresses = Array.from(document.querySelectorAll('#addresses .multiple-container')).map(container => ({
-                Street: container.children[0].value,
-                City: container.children[1].value,
-                State: container.children[2].value,
-                PostalCode: container.children[3].value,
-                Country: container.children[4].value,
-            }));
+        document.getElementById('vendorForm').addEventListener('submit', async (event) => {
+          event.preventDefault();
 
-            const vendorData = {
-                VendorID: vendorId,
-                VendorName: name,
-                PhoneNumbers: phoneNumbers,
-                Emails: emails,
-                Addresses: addresses,
-            };
+          const vendorId = document.getElementById('vendorId').value;
+          const vendorName = document.getElementById('vendorName').value;
 
-            try {
-                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendorId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(vendorData),
-                });
+          // Collect emails
+          const emails = [...document.querySelectorAll('.email')].map((input, index) => ({
+              EmailID: existingEmails[index] ? existingEmails[index].EmailID : null,
+              EmailAddress: input.value
+          }));
 
-                if (!response.ok) throw new Error('Failed to update vendor');
+          // Collect phone numbers
+          const phones = [...document.querySelectorAll('.phone-wrapper')].map((wrapper, index) => {
+              const areaCode = wrapper.querySelector('.areaCode').value;
+              const number = wrapper.querySelector('.phone').value;
 
-                responseMessage.textContent = 'Vendor updated successfully!';
-                responseMessage.style.color = 'green';
-                responseMessage.style.opacity = '1';
-            } catch (error) {
-                console.error('Error updating vendor:', error);
-                responseMessage.textContent = 'Error updating vendor. Please try again.';
-                responseMessage.style.color = 'red';
-                responseMessage.style.opacity = '1';
-            }
-        });
+              return {
+                  PhoneNumberID: existingPhones[index] ? existingPhones[index].PhoneNumberID : null,
+                  AreaCode: areaCode,
+                  Number: number,
+                  TypeID: null, // Add logic to fill this if necessary
+                  Valid: null, // Add logic to determine validity if necessary
+                  VendorID: vendorId // Reference to VendorID
+              };
+          });
 
-        function addPhoneNumber() {
-            const phoneContainer = document.createElement('div');
-            phoneContainer.classList.add('multiple-container');
-            phoneContainer.innerHTML = `
-                <input type="text" required placeholder="Enter phone number">
-                <button type="button" class="remove-button" onclick="removePhoneNumber(this)">Remove</button>
-            `;
-            document.getElementById('phoneNumbers').appendChild(phoneContainer);
-        }
+          // Collect addresses
+          const addresses = [];
+          const addressFields = document.querySelectorAll('.address, .city, .state, .postalCode, .country');
+          for (let i = 0; i < addressFields.length; i += 5) {
+              const addressIndex = i / 5;
+              addresses.push({
+                  AddressID: existingAddresses[addressIndex] ? existingAddresses[addressIndex].AddressID : null,
+                  StreetAddress: addressFields[i].value,
+                  City: addressFields[i + 1].value,
+                  State: addressFields[i + 2].value,
+                  PostalCode: addressFields[i + 3].value,
+                  Country: addressFields[i + 4].value
+              });
+          }
 
-        function removePhoneNumber(button) {
-            button.parentElement.remove();
-        }
+          try {
+              // Update vendor name
+              const updateVendorResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendorId}`, {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ VendorID: vendorId, VendorName: vendorName })
+              });
 
-        function addEmailAddress() {
-            const emailContainer = document.createElement('div');
-            emailContainer.classList.add('multiple-container');
-            emailContainer.innerHTML = `
-                <input type="email" required placeholder="Enter email address">
-                <button type="button" class="remove-button" onclick="removeEmailAddress(this)">Remove</button>
-            `;
-            document.getElementById('emailAddresses').appendChild(emailContainer);
-        }
+              if (!updateVendorResponse.ok) {
+                  throw new Error('Failed to update vendor name.');
+              }
 
-        function removeEmailAddress(button) {
-            button.parentElement.remove();
-        }
+              // Update vendor addresses
+              const updateAddressesResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendor-addresses/${vendorId}`, {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ addresses })
+              });
 
-        function addAddress() {
-            const addressContainer = document.createElement('div');
-            addressContainer.classList.add('multiple-container');
-            addressContainer.innerHTML = `
-                <input type="text" required placeholder="Street Address">
-                <input type="text" required placeholder="City">
-                <input type="text" required placeholder="State">
-                <input type="text" required placeholder="Postal Code">
-                <input type="text" required placeholder="Country">
-                <button type="button" class="remove-button" onclick="removeAddress(this)">Remove</button>
-            `;
-            document.getElementById('addresses').appendChild(addressContainer);
-        }
+              if (!updateAddressesResponse.ok) {
+                  throw new Error('Failed to update vendor addresses.');
+              }
 
-        function removeAddress(button) {
-            button.parentElement.remove();
-        }
+              // Update vendor phone numbers
+              const updatePhonesResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendor-phone-numbers/${vendorId}`, {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ phoneNumbers: phones })
+              });
 
-        // Load vendors when the page is loaded
-        window.onload = loadVendors;
+              if (!updatePhonesResponse.ok) {
+                  throw new Error('Failed to update vendor phone numbers.');
+              }
+
+              // Update vendor emails
+              const updateEmailsResponse = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendor-emails/${vendorId}`, {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ emails })
+              });
+
+              if (!updateEmailsResponse.ok) {
+                  throw new Error('Failed to update vendor emails.');
+              }
+
+              document.getElementById('responseMessage').textContent = 'Vendor updated successfully!';
+          } catch (error) {
+              console.error('Error updating vendor:', error);
+              document.getElementById('responseMessage').textContent = 'Error updating vendor. Please try again.';
+          }
+      });
+
+
+
+        // Fetch vendors on page load
+        fetchVendors();
     </script>
 </body>
 </html>
+

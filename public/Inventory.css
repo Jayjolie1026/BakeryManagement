@@ -142,6 +142,11 @@ body {
   font-size: 16px;
 }
 
+.add-item-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
+
 .refresh-btn:hover {
   background-color: #6A381F;
   color: #fff;

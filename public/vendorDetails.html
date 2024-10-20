@@ -64,7 +64,7 @@
                 <ul>
                     ${vendorDetails.Addresses.map(address => `
                         <li>
-                            ${address.StreetAddress}, ${address.City}, ${address.State} - ${address.PostalCode}, ${address.Country} (${address.AddressType})
+                            ${address.StreetAddress}, ${address.City}, ${address.State} - ${address.PostalCode}, ${address.Country})
                         </li>
                     `).join('')}
                 </ul>
@@ -72,14 +72,14 @@
                 <ul>
                     ${vendorDetails.PhoneNumbers.map(phone => `
                         <li>
-                            (${phone.AreaCode}) ${phone.PhoneNumber} - ${phone.PhoneType}
+                            (${phone.AreaCode}) ${phone.PhoneNumber} 
                         </li>
                     `).join('')}
                 </ul>
                 <h3>Emails:</h3>
                 <ul>
                     ${vendorDetails.Emails.map(email => `
-                        <li>${email.EmailAddress} - ${email.EmailType}</li>
+                        <li>${email.EmailAddress}</li>
                     `).join('')}
                 </ul>
             `;
