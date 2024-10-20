@@ -146,15 +146,25 @@
   cursor: pointer;
 }
 
+.search-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
+
 .search-icon {
   height: 20px;
   width: 20px;
 }
 
+.search-icon:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
+
 .refresh-btn {
   padding: 12px;  /* Adjust padding to match the height */
   background-color: #794500;
-  margin-left: 20px;
+  margin-left: 3px;
   color: white;
   border: none;
   cursor: pointer;
@@ -162,7 +172,10 @@
   font-size: 16px;
 }
 
-
+.refresh-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
 
 * {
   box-sizing: border-box;
