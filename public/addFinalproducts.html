@@ -35,11 +35,11 @@
         h1 {
             text-align: center;
             color: #6E0D25;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            /* background-color: rgba(255, 255, 255, 0.9); */
+            /* padding: 0px; */
+            /* border-radius: 8px; */
+            /* margin-bottom: 0px; */
+            /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); */
         }
 
         form {
@@ -51,21 +51,21 @@
             border: none;
             margin-bottom: 20px;
             padding: 20px;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.9);
+            /* border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9); */
         }
 
-        legend {
+        /* legend {
             font-weight: bold;
             font-size: 1.3rem;
             color: #6E0D25;
             margin-bottom: 15px;
-        }
+        } */
 
         label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 10px;
+            font-weight: bold;
+            margin-bottom: 5px;
             color: #6E0D25;
         }
 
@@ -134,31 +134,31 @@
         <h1>Create Final Product</h1>
         <form id="finalProductForm">
             <fieldset>
-                <legend>Final Product Details</legend>
+                <!-- <legend>Final Product Details</legend> -->
 
                 <label for="name">Product Name:</label>
-                <input type="text" id="name" name="name" required>
+                <input type="text" id="name" name="name" placeholder="Enter Product Name" required>
 
                 <label for="description">Description:</label>
-                <textarea id="description" name="description" required></textarea>
+                <input id="description" name="description" placeholder="Enter description" required></input>
 
                 <label for="maxAmount">Max Amount:</label>
-                <input type="number" id="maxAmount" name="maxAmount">
+                <input type="number" id="maxAmount" placeholder="Enter max amount" name="maxAmount">
 
                 <label for="remakeAmount">Remake Amount:</label>
-                <input type="number" id="remakeAmount" name="remakeAmount">
+                <input type="number" id="remakeAmount" placeholder="Enter remake amount" name="remakeAmount">
 
                 <label for="minAmount">Min Amount:</label>
-                <input type="number" id="minAmount" name="minAmount">
+                <input type="number" id="minAmount" placeholder="Enter min amount" name="minAmount">
 
                 <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity" required>
+                <input type="number" id="quantity" placeholder="Enter quantity" name="quantity" required>
 
                 <label for="price">Price:</label>
-                <input type="number" id="price" name="price" step="0.01" required>
+                <input type="number" id="price" name="price" step="0.01" placeholder="Enter price" required>
 
                 <label for="category">Category:</label>
-                <input type="text" id="category" name="category" required>
+                <input type="text" id="category" name="category" placeholder="Enter category" required>
 
                 <button type="submit">Create Final Product</button>
             </fieldset>

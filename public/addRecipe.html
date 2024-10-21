@@ -142,7 +142,7 @@
         <h1>Create Recipe</h1>
         <form id="recipeForm">
             <label for="recipeName">Recipe Name:</label>
-            <input type="text" id="recipeName" name="recipeName" required>
+            <input type="text" id="recipeName" name="recipeName" placeholder="Enter recipe name" required>
 
             <label for="steps">Steps:</label>
             <textarea id="steps" name="steps" rows="5" required></textarea>
@@ -151,10 +151,10 @@
             <select id="productID" name="productID" required></select>
 
             <label for="category">Category:</label>
-            <input type="text" id="category" name="category" required>
+            <input type="text" id="category" name="category" placeholder="Enter category" required>
 
             <label for="yield">Yield:</label>
-            <input type="number" id="yield" name="yield" required>
+            <input type="number" id="yield" name="yield" placeholder="Enter yield" required>
 
             <div id="ingredients"></div>
 
@@ -274,7 +274,12 @@
             const formData = new FormData(e.target);
             const recipeData = {};
             formData.forEach((value, key) => {
+        // Handle newlines for the steps textarea
+            if (key === 'steps') {
+                recipeData[key] = value.replace(/\r?\n/g, '\\n'); // Convert newlines to \n
+            } else {
                 recipeData[key] = value;
+            }
             });
 
             try {
