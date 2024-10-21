@@ -283,7 +283,7 @@
             });
 
             try {
-                const response = await fetch('https://your-backend-api-url-here', {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -293,7 +293,7 @@
 
                 if (response.ok) {
                     alert('Recipe submitted successfully');
-                    window.location.href = '/instructions.html?ID=51'; // Navigate back to instructions page
+                    window.location.href = 'recipe.html'; // Navigate back to instructions page
                 } else {
                     alert('Failed to submit the recipe');
                 }
