@@ -78,12 +78,12 @@
 
 /*log out button*/
 .button {
-    padding: 12px 20px;
+    padding: 5px 20px;
     text-decoration: none;
     font-size: 1.1rem;
     height: 50px;
     width: 100%;
-    border: 2px solid #fff;
+    border: 1px solid #fff;
     border-radius: 5px;
     background-color: #774E24;
     color: #ffffff; 
@@ -93,8 +93,7 @@
 
 /* logout button */
 .button:hover {
-    background-color: bisque;
-    color: #6E0D25;
+    background-color: #6E0D25;
 }
 
 .nav-button{
@@ -119,17 +118,4 @@
     color: #6E0D25;
 }
 
-/*search bar*/
-.searchbar {
-    width: 350px;
-    font-family: "Playwrite DE Grund", cursive;
-    height: 35px;
-    padding: 26px;
-    border: 2px solid #ccc;
-    font-size: 1rem;
-    margin: 20px 0;
-    border-radius: 85px;
-    text-align: center;
-    background-color: #ffffff;
-    margin-left: 600px;
-}
+

@@ -6,9 +6,9 @@
     <title>Flour & Fantasy-Recipes</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/fontawesome.min.css"
     integrity="sha384-NvKbDTEnL+A8F/AA5Tc5kmMLSJHUO868P+lDtTpJIeQdGYaUIuLr4lVGOEA1OcMy" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!--Poppins, Cursive-->
-    <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet"> <!--font from mobile team-->
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!--font from mobile team-->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="recipe.css">
     <link rel="stylesheet" href="navbar.css">
 
@@ -35,23 +35,21 @@
             }
         }
 
-
-        .main-body-container{
+        .main-body-container {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; 
+            align-items: center; /* Center align the items */
             justify-content: center;
             flex-wrap: wrap;
             animation: fadeInUp 1s ease-in-out;
         }
 
-        /*background recipe button*/
         .recipe-container {
             background: #914b0e;
-            flex-direction:column; 
+            flex-direction: column; 
             align-items: center;
             padding: 0 5rem;
-
+            width: 100%;
         }
 
         .recipe-button {
@@ -64,23 +62,98 @@
             color: rgb(0, 0, 0);
             text-align: center;
             font-family: "Playwrite DE Grund", cursive;
-            font-size: 1.14rem;
+            font-size: 1rem;
             text-decoration: none;
             border-radius: 20px;
-            border-style: solid;
             cursor: pointer;
-            white-space:normal;
-            overflow-wrap: break-word; /*long words should break down to the next line*/
+            white-space: normal;
+            overflow-wrap: break-word;
+            margin: 15px;
         }
 
-        /*Style for recipe image right here */
-        .recipe-image{
+        .recipe-image {
             display: block;
-            width: 100%;
-            height: 200px;
-            object-fit: cover; /*force all image to be the same*/
+            width: 180px;
+            height: 150px;
+            object-fit: cover; 
             max-width: 200px;
             max-height: 200px;
+        }
+
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          font-family: 'Playwrite DE Grund', cursive;
+          font-weight: 400;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Playwrite DE Grund', cursive;
+          background-color: rgb(228, 213, 194); /* Background color */
+        }
+
+        /* Search Section */
+        .search-section {
+          display: flex;
+          margin: 40px 0; /* Adjusted margin for more spacing */
+          justify-content: center; /* Center align search bar */
+        }
+
+        .search-bar {
+          display: flex;
+          align-items: center;
+          border: 1px solid #ccc; /* Border color */
+          border-radius: 4px; /* Rounded corners */
+          overflow: hidden; /* Ensures the button and input stay within bounds */
+          width: 60%; /* Width of the search bar */
+          max-width: 800px; /* Max width for larger screens */
+        }
+
+        .search-btn:hover {
+          background-color: #6A381F;
+          color: #fff;
+        }
+
+        .search-bar input[type="text"] {
+          width: 100%; /* Full width input */
+          padding: 12px; /* Padding for input */
+          border: none; /* Remove border */
+          outline: none; /* Remove outline */
+          font-size: 18px; /* Increased font size */
+        }
+
+        .search-btn {
+          padding: 12px;
+          background-color: #794500; /* Button background color */
+          border: none; /* Remove border */
+          cursor: pointer; /* Pointer cursor on hover */
+        }
+
+        .search-icon {
+          height: 20px; /* Icon height */
+          width: 20px; /* Icon width */
+        }
+
+        /* Search Section */
+        .search-section {
+            display: flex;
+            align-items: center; /* Align items vertically center */
+            justify-content: center; /* Center align search bar and button */
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+
+        .add-recipe-button {
+            padding: 12px 20px; /* Padding for the add button */
+            background-color: #794500; /* Button background color */
+            color: white; /* Text color */
+            border: none; /* Remove border */
+            border-radius: 4px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            margin-left: 10px; /* Space between search bar and add button */
+            font-size: 16px; /* Font size */
         }
 
     </style>
@@ -89,7 +162,7 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div class="logo">
-        <img src="final_logo.png" alt="flour & fantasy logo" >
+            <img src="final_logo.png" alt="flour & fantasy logo">
         </div>
         <ul class="navbar__menu">
             <li class="navbar__item">
@@ -108,10 +181,17 @@
     </nav>
 
     <div class="main-body-container">
-        <div class="search-container" style="display: flex; justify-content: center; align-items: center;">
-            <input class="searchbar" type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search recipes..." oninput="filterRecipes()">
+                <button id="searchButton" class="search-btn">
+                    <img src="Magnifying-Glass.png" alt="Search" class="search-icon">
+                </button>
+            </div>
+            <button class="add-recipe-button" id="add-recipe-button">Add Recipe</button>
+            <div id="errorMessage" style="color: red;"></div>
         </div>
-        <div id="category-container"></div>
+        <div id="category-container" class="category-container" style="display: flex; justify-content: center; align-items: center;"></div>
         <div id="recipe-container" class="recipe-container"></div>
     </div>
 
