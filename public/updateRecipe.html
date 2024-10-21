@@ -33,9 +33,7 @@
         h2 {
             text-align: center;
             color: #6E0D25;
-            background-color: rgba(255, 255, 255, 0.9);
             padding: 15px;
-            border-radius: 8px;
         }
 
         label {
@@ -305,67 +303,85 @@
 
           // Function to handle form submission
           document.getElementById('updateRecipeForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
+        event.preventDefault();
 
-            const recipeName = document.getElementById('recipeName').value;
-            const newName = document.getElementById('newName').value;
-            const steps = document.getElementById('steps').value.replace(/\\/g, '\\\\'); // Replace single backslash with double backslash
-            const category = document.getElementById('category').value;
-            const yieldValue = document.getElementById('yield').value;
+        const recipeName = document.getElementById('recipeName').value;
+        const newName = document.getElementById('newName').value;
+        const steps = document.getElementById('steps').value;
+        const category = document.getElementById('category').value;
+        const yieldValue = document.getElementById('yield').value;
 
-            // Collect current ingredients from the table
-            const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
-                const cells = row.children;
-                const ingredientID = getIngredientId(cells[0].textContent); // Get ID from ingredient name
-                const quantity = parseFloat(cells[1].textContent) || 1; // Default quantity
-                const measurement = cells[2].textContent.trim();  // Ensure no extra spaces in measurement
+        // Collect current ingredients from the table
+        const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
+            const cells = row.children;
+            const ingredientID = getIngredientId(cells[0].textContent); // Get ID from ingredient name
+            const quantity = parseFloat(cells[1].textContent) || 1; // Default quantity
+            const measurement = cells[2].textContent.trim();  // Ensure no extra spaces in measurement
 
-                return {
-                    IngredientID: ingredientID,
-                    Quantity: quantity,
-                    Measurement: measurement || 'grams'  // Default to 'grams' if measurement is missing
-                };
-            }).filter(ingredient => ingredient.IngredientID !== null); // Filter out invalid ingredients
-
-            // Log ingredientsData to check if measurements are correct
-            console.log('Collected ingredients:', ingredientsData);
-
-            const body = {
-                new_name: newName || undefined,
-                steps: steps || undefined,
-                category: category || undefined,
-                yield2: yieldValue || undefined,
-                ingredients: ingredientsData.length > 0 ? ingredientsData : undefined
+            return {
+                IngredientID: ingredientID,
+                Quantity: quantity,
+                Measurement: measurement || 'grams'  // Default to 'grams' if measurement is missing
             };
+        }).filter(ingredient => ingredient.IngredientID !== null); // Filter out invalid ingredients
 
-            // Log the final request body before making the fetch request
-            console.log('Request body:', body);
+        // Log ingredientsData to check if measurements are correct
+        console.log('Collected ingredients:', ingredientsData);
 
-            // Send the request to update the recipe (make sure to replace this URL with your actual endpoint)
-            try {
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/name/${recipeName}', {
-                    method: 'PUT', // Assuming you are updating a recipe
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
+        const body = {
+            new_name: newName || undefined,
+            steps: steps || undefined,
+            category: category || undefined,
+            yield2: yieldValue || undefined,
+            ingredients: ingredientsData.length > 0 ? ingredientsData : undefined
+        };
 
-                if (!response.ok) {
-                    throw new Error('Failed to update recipe');
-                }
+        // Log the final request body before making the fetch request
+        console.log('Request body:', body);
 
-                const responseData = await response.json();
-                document.getElementById('message').textContent = 'Recipe updated successfully!';
-                document.getElementById('message').classList.add('success');
-                document.getElementById('message').style.display = 'block';
+        try {
+            const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/name/${recipeName}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body)
+            });
 
-            } catch (error) {
-                console.error('Error updating recipe:', error);
-                document.getElementById('message').textContent = 'Error updating recipe: ' + error.message;
-                document.getElementById('message').classList.add('error');
-                document.getElementById('message').style.display = 'block';
+            if (!response.ok) {
+                const errorMessage = await response.text(); // Get error message from response
+                throw new Error(errorMessage);
             }
+
+            const data = await response.json(); // Parse JSON response
+            document.getElementById('message').textContent = data.message || 'Recipe updated successfully!';
+            document.getElementById('message').className = 'message success';
+            document.getElementById('message').style.display = 'block';
+            
+            // Redirect to the new page after a short delay (e.g., 2 seconds)
+            setTimeout(() => {
+                window.location.href = "recipe.html";  // Change the URL to your desired page
+            }, 2000); 
+
+        } catch (error) {
+            let errorMessage = 'Error updating recipe: ' + error.message;
+            document.getElementById('message').textContent = errorMessage;
+            document.getElementById('message').className = 'message error';
+            document.getElementById('message').style.display = 'block';
+        }
+        });
+
+
+        // Get ingredient ID by name (to be used when updating)
+        function getIngredientId(ingredientName) {
+            const ingredient = ingredients.find(i => i.Name === ingredientName);
+            return ingredient ? ingredient.IngredientID : null;
+        }
+
+        // Add initial ingredient dropdowns and fetch data on load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchIngredients(); // Fetch ingredients on load
+            fetchRecipes(); // Fetch recipes on load
         });
     </script>
 </body>
