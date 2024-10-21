@@ -1988,12 +1988,12 @@ app.put('/recipes/name/:name', async (req, res) => {
     }
 });
 
-app.put('/recipes/updateById/:id', async (req, res) => {
-  const { id } = req.params;
-  const { new_name, steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+app.put('/recipes/:id/:name', async (req, res) => {
+  const { id, name } = req.params; // Destructure to get both id and name from the URL
+  const { steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
-  if (!new_name && !steps && (!Array.isArray(ingredients) || ingredients.length === 0)) {
-      return res.status(400).send('At least one field (new_name, steps, or ingredients) is required for update');
+  if (!steps && (!Array.isArray(ingredients) || ingredients.length === 0)) {
+      return res.status(400).send('At least one field (steps or ingredients) is required for update');
   }
 
   try {
@@ -2012,9 +2012,10 @@ app.put('/recipes/updateById/:id', async (req, res) => {
       const updateQueries = [];
       const updateParams = [];
 
-      if (new_name) {
+      // Use the new name from the URL if provided
+      if (name) {
           updateQueries.push('Name = @new_name');
-          updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
+          updateParams.push({ name: 'new_name', value: name, type: sql.VarChar });
       }
       if (steps) {
           updateQueries.push('Steps = @steps');
@@ -2068,6 +2069,7 @@ app.put('/recipes/updateById/:id', async (req, res) => {
       res.status(500).send('Error updating recipe: ' + error.message);
   }
 });
+
 
 
 
