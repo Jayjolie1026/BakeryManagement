@@ -1988,6 +1988,83 @@ app.put('/recipes/name/:name', async (req, res) => {
     }
 });
 
+// PUT /recipes/name/:name: Update a recipe by name including measurements
+app.put('/recipes/updateById/:id', async (req, res) => {
+  const { name } = req.params;
+  const { new_name, steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+
+  if (!new_name && !steps && !Array.isArray(ingredients)) {
+      return res.status(400).send('At least one field (new_name, steps, or ingredients) is required for update');
+  }
+
+  try {
+      const pool = await sql.connect(dbConfig);
+
+      // Fetch the RecipeID using the current recipe name
+      const recipeResult = await pool.request()
+          .input('name', sql.VarChar, name)
+          .query('SELECT RecipeID FROM tblRecipes WHERE Name = @name');
+
+      if (recipeResult.recordset.length === 0) {
+          return res.status(404).send('Recipe not found');
+      }
+
+      const recipeID = recipeResult.recordset[0].RecipeID;
+
+      // Update recipe details
+      if (new_name || steps) {
+          let updateQuery = 'UPDATE tblRecipes SET ';
+          const updateParams = [];
+
+          if (new_name) {
+              updateQuery += 'Name = @new_name, ';
+              updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
+          }
+          if (steps) {
+              updateQuery += 'Steps = @steps, ';
+              updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+          }
+
+          // Remove trailing comma and space
+          updateQuery = updateQuery.slice(0, -2);
+          updateQuery += ' WHERE RecipeID = @recipe_id';
+
+          const request = pool.request();
+          request.input('recipe_id', sql.Int, recipeID);
+          updateParams.forEach(param => {
+              request.input(param.name, param.type, param.value);
+          });
+
+          await request.query(updateQuery);
+      }
+
+      // Update ingredients
+      if (Array.isArray(ingredients)) {
+          // Clear current ingredients
+          await pool.request()
+              .input('recipe_id', sql.Int, recipeID)
+              .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+
+          // Insert new ingredients with measurements
+          for (const ingredient of ingredients) {
+              await pool.request()
+                  .input('recipe_id', sql.Int, recipeID)
+                  .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                  .input('quantity', sql.Decimal, ingredient.Quantity)
+                  .input('measurement', sql.VarChar, ingredient.Measurement) // Add Measurement field
+                  .query(`
+                      INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
+                      VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
+                  `);
+          }
+      }
+
+      res.json({ message: 'Recipe updated successfully' });
+  } catch (error) {
+      res.status(500).send('Error updating recipe: ' + error.message);
+  }
+});
+
 
 
 

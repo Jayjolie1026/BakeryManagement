@@ -170,7 +170,9 @@
                     <option value="">Select Ingredient</option>
                 </select>
                 <input type="number" class="quantityInput" placeholder="Quantity" min="0" step="0.01" value="1">
-                <input type="text" class="measurementInput" placeholder="Measurement (e.g., grams, cups)" value="grams"> <!-- Added this -->
+                <select id="measurementSelect" required>
+                    <option value="">Select Measurement</option>
+                </select>
                 <button type="button" id="addIngredient">Add Ingredient</button>
             </div>
 
@@ -183,6 +185,26 @@
     <script>
         let ingredients = []; // Store the fetched ingredients
         let recipes = []; // Store the fetched recipes
+        let measurements = []; // Store the fetched measurements
+
+        // Fetch measurements and populate the dropdown menu
+        async function fetchMeasurements() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/measurements');
+                measurements = await response.json();
+                populateMeasurementDropdown();
+            } catch (error) {
+                console.error('Error fetching measurements:', error);
+            }
+        }
+
+        // Populate the measurement dropdown
+        function populateMeasurementDropdown() {
+            const measurementOptions = measurements.map(measurement => `
+                <option value="${measurement.Name}">${measurement.Name}</option>
+            `).join('');
+            document.getElementById('measurementSelect').innerHTML += measurementOptions;
+        }
 
         // Fetch ingredients and populate the dropdown menu
         async function fetchIngredients() {
@@ -262,25 +284,6 @@
             }
         });
 
-        // Function to add a new ingredient row to the table
-        // function addIngredientRow(selectedID, quantity, measurement = 'grams') {
-        //     const ingredientsContainer = document.getElementById('ingredientsContainer');
-        //     const newRow = document.createElement('tr');
-
-        //     newRow.innerHTML = `
-        //         <td>${getIngredientName(selectedID)}</td>
-        //         <td>${quantity}</td>
-        //         <td>${measurement || 'N/A'}</td> <!-- Display measurement or 'N/A' if not provided -->
-        //         <td><button class="removeIngredient">Remove</button></td>
-        //     `;
-
-        //     ingredientsContainer.appendChild(newRow);
-
-        //     // Add event listener for the remove button
-        //     newRow.querySelector('.removeIngredient').addEventListener('click', function() {
-        //         newRow.remove(); // Remove the row when clicked
-        //     });
-        // }
 
         // Get ingredient name by ID
         function getIngredientName(ingredientID) {
@@ -324,75 +327,46 @@
 
 
           // Function to handle form submission
-          document.getElementById('updateRecipeForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
+          document.getElementById('updateRecipeForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevent default form submission
 
-        const recipeName = document.getElementById('recipeName').value;
-        const newName = document.getElementById('newName').value;
-        const steps = document.getElementById('steps').value;
-        const category = document.getElementById('category').value;
-        const yieldValue = document.getElementById('yield').value;
+            const recipeId = document.getElementById('recipeSelect').value;
+            const newName = document.getElementById('newName').value;
+            const steps = document.getElementById('steps').value;
+            const category = document.getElementById('category').value;
+            const yieldValue = document.getElementById('yield').value;
 
-        // Collect current ingredients from the table
-        const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
-            const cells = row.children;
-            const ingredientID = getIngredientId(cells[0].textContent); // Get ID from ingredient name
-            const quantity = parseFloat(cells[1].textContent) || 1; // Default quantity
-            const measurement = cells[2].textContent.trim();  // Ensure no extra spaces in measurement
-
-            return {
-                IngredientID: ingredientID,
-                Quantity: quantity,
-                Measurement: measurement || 'grams'  // Default to 'grams' if measurement is missing
-            };
-        }).filter(ingredient => ingredient.IngredientID !== null); // Filter out invalid ingredients
-
-        // Log ingredientsData to check if measurements are correct
-        console.log('Collected ingredients:', ingredientsData);
-
-        const body = {
-            new_name: newName || undefined,
-            steps: steps || undefined,
-            category: category || undefined,
-            yield2: yieldValue || undefined,
-            ingredients: ingredientsData.length > 0 ? ingredientsData : undefined
-        };
-
-        // Log the final request body before making the fetch request
-        console.log('Request body:', body);
-
-        try {
-            const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/name/${recipeName}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body)
+            // Collect ingredients for the update
+            const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
+                const cells = row.children;
+                return {
+                    IngredientID: cells[0].dataset.id, // Assume ID is stored as a data attribute
+                    Quantity: cells[1].innerText,
+                    Measurement: cells[2].innerText,
+                };
             });
 
-            if (!response.ok) {
-                const errorMessage = await response.text(); // Get error message from response
-                throw new Error(errorMessage);
+            try {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/updateById/${recipeId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ new_name: newName, steps, ingredients: ingredientsData }),
+                });
+
+                const result = await response.json();
+                const messageDiv = document.getElementById('message');
+                messageDiv.classList.add('success');
+                messageDiv.innerText = result.message;
+                messageDiv.style.display = 'block';
+            } catch (error) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.classList.add('error');
+                messageDiv.innerText = 'Error updating recipe: ' + error.message;
+                messageDiv.style.display = 'block';
             }
-
-            const data = await response.json(); // Parse JSON response
-            document.getElementById('message').textContent = data.message || 'Recipe updated successfully!';
-            document.getElementById('message').className = 'message success';
-            document.getElementById('message').style.display = 'block';
-
-            // Clear form and table after successful update
-            document.getElementById('updateRecipeForm').reset();
-            clearIngredientTable();
-            clearNewIngredientInputs();
-
-        } catch (error) {
-            let errorMessage = 'Error updating recipe: ' + error.message;
-            document.getElementById('message').textContent = errorMessage;
-            document.getElementById('message').className = 'message error';
-            document.getElementById('message').style.display = 'block';
-        }
         });
-
 
         // Get ingredient ID by name (to be used when updating)
         function getIngredientId(ingredientName) {
@@ -404,6 +378,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchIngredients(); // Fetch ingredients on load
             fetchRecipes(); // Fetch recipes on load
+            fetchMeasurements();
         });
     </script>
 </body>
