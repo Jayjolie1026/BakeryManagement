@@ -165,24 +165,27 @@
     </div>
 
     <script>
-        // Populate common measurement units
-        function populateMeasurementDropdown(selectElement) {
-            const measurementOptions = [
-                { value: '', text: 'Select Measurement' },
-                { value: 'lbs', text: 'lbs' },
-                { value: 'gals', text: 'Gals' },
-                { value: 'counts', text: 'Counts' },
-                { value: 'sticks', text: 'Sticks' },
-                { value: 'jars', text: 'Jars' },
-                { value: 'fl oz', text: 'fl oz' },
-                { value: 'grams', text: 'Grams' },
-                { value: 'cups', text: 'Cups' }
-            ];
+        // Fetch measurements from the API and populate the dropdown
+        async function fetchMeasurements() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/measurements'); // Replace with your actual API URL
+                const measurements = await response.json();
 
-            measurementOptions.forEach(optionData => {
+                // Return measurements to be used in dropdowns
+                return measurements;
+            } catch (error) {
+                console.error('Error fetching measurements:', error);
+            }
+        }
+
+        // Populate the measurement dropdown
+        async function populateMeasurementDropdown(selectElement) {
+            const measurements = await fetchMeasurements();
+            selectElement.innerHTML = '<option value="">Select Measurement</option>'; // Reset dropdown
+            measurements.forEach(measurement => {
                 const option = document.createElement('option');
-                option.value = optionData.value;
-                option.textContent = optionData.text;
+                option.value = measurement.Name;
+                option.textContent = measurement.Name;
                 selectElement.appendChild(option);
             });
         }
@@ -229,10 +232,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             fetchProducts();
             fetchInventory();
-            const firstMeasurementSelect = document.querySelector('.measurementSelect');
-            if (firstMeasurementSelect) {
-                populateMeasurementDropdown(firstMeasurementSelect);
-            }
         });
 
         // Add more ingredients dynamically
@@ -267,42 +266,60 @@
             });
         });
 
+        function escapeBackslashes(inputString) {
+          return inputString.replace(/\\/g, '\\\\');
+        }
+
         // Handle form submission
-        document.getElementById('recipeForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        document.getElementById('recipeForm').addEventListener('submit', async (event) => {
+          event.preventDefault();
 
-            const formData = new FormData(e.target);
-            const recipeData = {};
-            formData.forEach((value, key) => {
-        // Handle newlines for the steps textarea
-            if (key === 'steps') {
-                recipeData[key] = value.replace(/\r?\n/g, '\\n'); // Convert newlines to \n
-            } else {
-                recipeData[key] = value;
-            }
-            });
+          // Gather form data
+          const recipeData = {
+              name: document.getElementById('recipeName').value,
+              steps: escapeBackslashes(document.getElementById('steps').value),
+              product_id: parseInt(document.getElementById('productID').value),
+              category: document.getElementById('category').value,
+              yield: parseInt(document.getElementById('yield').value),
+              ingredients: []
+          };
 
-            try {
-                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(recipeData),
-                });
+          // Gather ingredients data
+          const ingredientDivs = document.querySelectorAll('.ingredient');
+          ingredientDivs.forEach(div => {
+              const ingredientSelect = div.querySelector('select[name="ingredientSelect"]');
+              const quantityInput = div.querySelector('input[name="quantity"]');
+              const measurementSelect = div.querySelector('select[name="measurement"]');
 
-                if (response.ok) {
-                    alert('Recipe submitted successfully');
-                    window.location.href = 'recipe.html'; // Navigate back to instructions page
-                } else {
-                    alert('Failed to submit the recipe');
-                }
-            } catch (error) {
-                alert('Error submitting the recipe: ' + error.message);
-            }
+              recipeData.ingredients.push({
+                  IngredientID: parseInt(ingredientSelect.value),
+                  Quantity: parseFloat(quantityInput.value),
+                  Measurement: measurementSelect.value
+              });
+          });
+
+          try {
+              // Send the POST request
+              const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(recipeData), // Send the structured recipe data
+              });
+
+              if (response.ok) {
+                  alert('Recipe submitted successfully');
+                  window.location.href = 'recipe.html'; // Redirect after successful submission
+              } else {
+                  const errorMessage = await response.text();
+                  alert('Failed to submit the recipe: ' + errorMessage);
+              }
+          } catch (error) {
+              alert('Error submitting the recipe: ' + error.message);
+          }
         });
+
     </script>
 </body>
 </html>
-
-

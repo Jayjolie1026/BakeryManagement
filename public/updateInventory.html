@@ -219,6 +219,7 @@
 
             // Success message
             document.getElementById('responseMessage').textContent = 'Inventory and Ingredient updated successfully!';
+            window.location.href = 'Inventory.html'; 
         } catch (error) {
             // Error handling
             document.getElementById('responseMessage').textContent = error.message;

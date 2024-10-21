@@ -140,6 +140,7 @@
                     const result = await response.text();
                     messageDiv.textContent = result;  // Display the success message
                     loadVendors(); // Reload vendors after deletion
+                    window.location.href = 'vendor.html'; 
                 } else if (response.status === 404) {
                     messageDiv.textContent = 'Vendor not found.';
                 } else {

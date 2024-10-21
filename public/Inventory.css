@@ -116,6 +116,12 @@ body {
   cursor: pointer;
 }
 
+.search-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
+
+
 .search-icon {
   height: 20px;
   width: 20px;
@@ -229,14 +235,15 @@ table tr:hover {
   transition: all 0.3s ease;  
   box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
   font-size: 1.1rem;
+  border: none;
+  margin-left: 10px;
 }
 
 .category-button.active {
-  background-color: #85623fea;
+  background-color: #6A381F;
   color: #fff;               
 }
 
 .category-button:hover {
-  background-color: #a88a60;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background-color: #6A381F;
 }

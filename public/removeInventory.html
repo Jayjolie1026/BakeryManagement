@@ -165,11 +165,13 @@
                 });
 
                 const messageDiv = document.getElementById('message');
+                
 
                 if (response.ok) {
                     const result = await response.text();
                     messageDiv.textContent = result;  // Display the success message
                     loadInventoryItems(); // Refresh the inventory list after deletion
+                    window.location.href = 'Inventory.html'; 
                 } else if (response.status === 404) {
                     messageDiv.textContent = 'Item not found.';
                 } else {
