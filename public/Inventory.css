@@ -241,9 +241,11 @@ table tr:hover {
 
 .category-button.active {
   background-color: #6A381F;
-  color: #fff;               
+  color: #fff;           
+  cursor: pointer;    
 }
 
 .category-button:hover {
   background-color: #6A381F;
+  cursor: pointer;
 }
