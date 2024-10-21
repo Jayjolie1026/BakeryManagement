@@ -496,6 +496,172 @@ app.get('/vendors/:id', async (req, res) => {
 });
 
 
+// Endpoint to update vendor addresses
+app.put('/vendor-addresses/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const addresses = req.body.addresses; // Expecting an array of address objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const addressPromises = addresses.map(address => {
+            const { AddressID, StreetAddress, City, State, PostalCode, Country, AddressTypeID } = address;
+            return transaction.request()
+                .input('AddressID', sql.Int, AddressID)
+                .input('StreetAddress', sql.VarChar(255), StreetAddress)
+                .input('City', sql.VarChar(100), City)
+                .input('State', sql.VarChar(100), State)
+                .input('PostalCode', sql.VarChar(20), PostalCode)
+                .input('Country', sql.VarChar(100), Country)
+                .input('AddressTypeID', sql.Int, AddressTypeID)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorAddresses 
+                         SET StreetAddress = @StreetAddress, 
+                             City = @City, 
+                             State = @State, 
+                             PostalCode = @PostalCode, 
+                             Country = @Country, 
+                             AddressTypeID = @AddressTypeID 
+                         WHERE AddressID = @AddressID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(addressPromises);
+        await transaction.commit();
+        res.status(200).send('Vendor addresses updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor addresses:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor addresses.');
+    }
+});
+
+// Endpoint to update vendor phone numbers
+app.put('/vendor-phone-numbers/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const phoneNumbers = req.body.phoneNumbers; // Expecting an array of phone number objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const phonePromises = phoneNumbers.map(phone => {
+            const { PhoneNumberID, AreaCode, Number, TypeID, Valid } = phone;
+            return transaction.request()
+                .input('PhoneNumberID', sql.Int, PhoneNumberID)
+                .input('AreaCode', sql.VarChar(10), AreaCode)
+                .input('Number', sql.VarChar(20), Number)
+                .input('TypeID', sql.Int, TypeID)
+                .input('Valid', sql.Bit, Valid)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorPhoneNumbers 
+                         SET AreaCode = @AreaCode, 
+                             Number = @Number, 
+                             TypeID = @TypeID, 
+                             Valid = @Valid 
+                         WHERE PhoneNumberID = @PhoneNumberID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(phonePromises);
+        await transaction.commit();
+        res.status(200).send('Vendor phone numbers updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor phone numbers:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor phone numbers.');
+    }
+});
+
+// Endpoint to update vendor emails
+app.put('/vendor-emails/:vendorId', async (req, res) => {
+    const vendorId = req.params.vendorId;
+    const emails = req.body.emails; // Expecting an array of email objects
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+        const emailPromises = emails.map(email => {
+            const { EmailID, EmailAddress, TypeID, Valid } = email;
+            return transaction.request()
+                .input('EmailID', sql.Int, EmailID)
+                .input('EmailAddress', sql.VarChar(255), EmailAddress)
+                .input('TypeID', sql.Int, TypeID)
+                .input('Valid', sql.Bit, Valid)
+                .input('VendorID', sql.Int, vendorId)
+                .query(`UPDATE tblVendorEmails 
+                         SET EmailAddress = @EmailAddress, 
+                             TypeID = @TypeID, 
+                             Valid = @Valid 
+                         WHERE EmailID = @EmailID AND VendorID = @VendorID`);
+        });
+
+        await Promise.all(emailPromises);
+        await transaction.commit();
+        res.status(200).send('Vendor emails updated successfully.');
+    } catch (error) {
+        console.error('Error updating vendor emails:', error);
+        await transaction.rollback();
+        res.status(500).send('Error updating vendor emails.');
+    }
+});
+
+
+// Endpoint to get vendor addresses
+app.get('/vendor-addresses/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorAddresses WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor addresses:', error);
+      res.status(500).send('Error fetching vendor addresses.');
+  }
+});
+
+// Endpoint to get vendor phone numbers
+app.get('/vendor-phone-numbers/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorPhoneNumbers WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor phone numbers:', error);
+      res.status(500).send('Error fetching vendor phone numbers.');
+  }
+});
+
+// Endpoint to get vendor emails
+app.get('/vendor-emails/:vendorId', async (req, res) => {
+  const vendorId = req.params.vendorId;
+
+  try {
+      const pool = await sql.connect(dbConfig);
+      const result = await pool.request()
+          .input('VendorID', sql.Int, vendorId)
+          .query(`SELECT * FROM tblVendorEmails WHERE VendorID = @VendorID`);
+
+      res.status(200).json(result.recordset);
+  } catch (error) {
+      console.error('Error fetching vendor emails:', error);
+      res.status(500).send('Error fetching vendor emails.');
+  }
+});
+
+
 
 // POST /users: Add a new user
 app.post('/users', async (req, res) => {
@@ -1290,6 +1456,30 @@ app.post('/ingredients', async (req, res) => {
 });
 
 
+// GET /measurements: Fetch all unique measurements
+app.get('/measurements', async (req, res) => {
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .query(`
+                SELECT DISTINCT Measurement
+                FROM tblIngredients
+                WHERE Measurement IS NOT NULL
+            `);
+        
+        // If no measurements found
+        if (result.recordset.length === 0) {
+            return res.status(404).send('No measurements found');
+        }
+
+        // Map the results to return an array of measurements
+        const measurements = result.recordset.map(row => ({ Name: row.Measurement }));
+        
+        res.status(200).json(measurements);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
 
 
 // PUT /ingredients/:id: Update an existing ingredient
@@ -1792,11 +1982,94 @@ app.put('/recipes/name/:name', async (req, res) => {
             }
         }
 
-        res.send('Recipe updated');
+        res.json({ message: 'Recipe updated successfully' });
     } catch (error) {
         res.status(500).send('Error updating recipe: ' + error.message);
     }
 });
+
+app.put('/recipes/:id/:name', async (req, res) => {
+  const { id, name } = req.params; // Destructure to get both id and name from the URL
+  const { steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+
+  if (!steps && (!Array.isArray(ingredients) || ingredients.length === 0)) {
+      return res.status(400).send('At least one field (steps or ingredients) is required for update');
+  }
+
+  try {
+      const pool = await sql.connect(dbConfig);
+
+      // Check if recipe exists
+      const recipeResult = await pool.request()
+          .input('recipe_id', sql.Int, id)
+          .query('SELECT RecipeID FROM tblRecipes WHERE RecipeID = @recipe_id');
+
+      if (recipeResult.recordset.length === 0) {
+          return res.status(404).send('Recipe not found');
+      }
+
+      // Update recipe details
+      const updateQueries = [];
+      const updateParams = [];
+
+      // Use the new name from the URL if provided
+      if (name) {
+          updateQueries.push('Name = @new_name');
+          updateParams.push({ name: 'new_name', value: name, type: sql.VarChar });
+      }
+      if (steps) {
+          updateQueries.push('Steps = @steps');
+          updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+      }
+
+      if (updateQueries.length > 0) {
+          const updateQuery = `
+              UPDATE tblRecipes 
+              SET ${updateQueries.join(', ')} 
+              WHERE RecipeID = @recipe_id
+          `;
+          
+          const request = pool.request();
+          request.input('recipe_id', sql.Int, id);
+          updateParams.forEach(param => {
+              request.input(param.name, param.type, param.value);
+          });
+
+          await request.query(updateQuery);
+      }
+
+      // Update ingredients if provided
+      if (Array.isArray(ingredients) && ingredients.length > 0) {
+          // Clear current ingredients
+          await pool.request()
+              .input('recipe_id', sql.Int, id)
+              .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+
+          // Validate and insert new ingredients
+          for (const ingredient of ingredients) {
+              if (!ingredient.IngredientID || ingredient.Quantity === undefined || !ingredient.Measurement) {
+                  return res.status(400).send('Each ingredient must have IngredientID, Quantity, and Measurement');
+              }
+
+              await pool.request()
+                  .input('recipe_id', sql.Int, id)
+                  .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                  .input('quantity', sql.Decimal, ingredient.Quantity)
+                  .input('measurement', sql.VarChar, ingredient.Measurement)
+                  .query(`
+                      INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
+                      VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
+                  `);
+          }
+      }
+
+      res.json({ message: 'Recipe updated successfully' });
+  } catch (error) {
+      console.error('Error updating recipe:', error);
+      res.status(500).send('Error updating recipe: ' + error.message);
+  }
+});
+
 
 
 

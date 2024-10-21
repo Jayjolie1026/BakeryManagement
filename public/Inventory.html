@@ -47,6 +47,8 @@
         <button class="remove-item-btn" onclick="removeInventory()">Remove Inventory</button>
     </div>
 
+    <div id="category-container" class="category-container" style="display: flex; justify-content: center; align-items: center;"></div>
+
     <!-- Add New Item Section (Initially Hidden) -->
     <div id="addItemSection" class="add-item-section" style="display: none; padding: 20px; border: 1px solid #ddd;">
         <h3>Add New Ingredient and Inventory</h3>
@@ -123,11 +125,11 @@
     <script>
       // Function to redirect to the Add Inventory page
       function redirectToAddInventory() {
-          window.location.href = 'addinventory.html';
+          window.location.href = 'addInventory.html';
       }
 
       function redirectToUpdateInventory() {
-          window.location.href = 'updateinventory.html'
+          window.location.href = 'updateInventory.html'
       }
 
       function removeInventory() {

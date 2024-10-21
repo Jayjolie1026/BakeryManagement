@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendors List</title>
+    <link rel="stylesheet" href="navbar.css">
     <link rel="stylesheet" href="vendor.css">
     <style>
         .vendor-container {
@@ -35,6 +36,7 @@
         .vendor-card p {
             margin: 0;
         }
+        
     </style>
 </head>
 
@@ -63,7 +65,6 @@
         <button class="refresh-btn" onclick="addVendor()">Add Vendor</button>
         <button class="refresh-btn" onclick="updateVendor()">Update Vendor</button>
         <button class="refresh-btn" onclick="removeVendor()">Remove Vendor</button>
-        
     </div>
 
     <!-- Vendor List Section -->
@@ -95,25 +96,16 @@
                 card.innerHTML = `
                     <h3>${vendor.VendorName || 'N/A'}</h3>
                     <p>ID: ${vendor.VendorID || 'N/A'}</p>
-                    <div class="vendor-details" id="details-${vendor.VendorID}" style="display:none;"></div>
                 `;
-                card.onclick = () => showVendorDetails(vendor.VendorID, card.querySelector(`#details-${vendor.VendorID}`));
+                card.onclick = () => showVendorDetails(vendor.VendorID);
                 vendorContainer.appendChild(card);
             });
         }
 
         // Show vendor details by ID
-        async function showVendorDetails(vendorID) {
-            try {
-                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/vendors/${vendorID}`);
-                if (!response.ok) throw new Error(`Error fetching details for Vendor ID ${vendorID}`);
-                const vendorDetails = await response.json();
-                localStorage.setItem('vendorDetails', JSON.stringify(vendorDetails));
-                window.location.href = 'vendorDetails.html';
-            } catch (error) {
-                console.error(`Error fetching vendor details for ID ${vendorID}:`, error);
-                alert("Error fetching vendor details. Please try again later.");
-            }
+        function showVendorDetails(vendorID) {
+            const vendorDetailsPage = 'vendorDetails.html'; // Name of your vendor details page
+            window.location.href = `${vendorDetailsPage}?VendorID=${vendorID}`;
         }
 
         // Search vendors by name
