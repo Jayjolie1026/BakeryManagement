@@ -717,10 +717,7 @@ Future<List<Task>> checkTasks() async {
         return Text('Error: ${snapshot.error}');
       } else if (snapshot.hasData) {
         List<Task> existingTasks = snapshot.data!;
-        print('Fetched tasks:');
-        for (var task in existingTasks) {
-          print('Task: ${task.description}, Due Date: ${task.dueDate}');
-        }
+       
 
         if (product.quantity < product.minAmount) {
           final dueDate = DateTime.now().add(Duration(days: 1));
@@ -739,9 +736,7 @@ Future<List<Task>> checkTasks() async {
                 task.dueDate.toLocal().month == dueDate.month ||
                 task.dueDate.toLocal().year == dueDate.year;
 
-            print(
-                'Checking task: ${task.description}, isSameDescription: $isSameDescription, '
-                'isSameDueDate: $isSameDueDate');
+           
 
             return isSameDescription && isSameDueDate;
           });
@@ -749,7 +744,7 @@ Future<List<Task>> checkTasks() async {
 
           if (!taskExists) {
             // If no such task exists, add the new task
-            print('Adding new task: $description');
+            
 
             addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
           } else {
