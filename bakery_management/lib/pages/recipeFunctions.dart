@@ -881,6 +881,7 @@ Column(
             measurement: parts[3].trim(),
           );
         }).toList();
+        print('Updated ingredients list: $updatedIngredients');
 
         // Validate required fields
         if (nameController.text.isEmpty ||
@@ -903,6 +904,7 @@ Column(
           category: categoryController.text,
           yield2: yieldValue,
         );
+         print('Updated recipe: ${updatedRecipe}');
 
         // Prepare ingredients for the API call as List<Map<String, dynamic>>
         List<Map<String, dynamic>> ingredientsForApi =
@@ -914,6 +916,7 @@ Column(
             'Measurement': ingredient.measurement,
           };
         }).toList();
+         print('Ingredients for API: $ingredientsForApi');
 
         // Call the API to update the recipe
         await RecipeApi().updateRecipe(

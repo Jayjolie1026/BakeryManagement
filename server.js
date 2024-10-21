@@ -1838,6 +1838,10 @@ app.put('/recipes/:recipe_id', async (req, res) => {
     const { recipe_id } = req.params;
     const { name, steps, productID, category, yield2, ingredients } = req.body;
 
+    console.log('Received payload:', req.body);
+    console.log('Recipe ID:', recipe_id);
+    console.log('Ingredients:', ingredients);
+
     // Validate input
     if (!name && !steps && !productID && !category && yield2 === undefined && !ingredients) {
         return res.status(400).send('At least one field (name, steps, productID, category, yield, or ingredients) is required for update');
@@ -1845,8 +1849,10 @@ app.put('/recipes/:recipe_id', async (req, res) => {
 
     try {
         const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
 
-        // Prepare update query
+        await transaction.begin();  // Begin the transaction
+
         let updateQuery = 'UPDATE tblRecipes SET ';
         const updateParams = [];
 
@@ -1875,29 +1881,53 @@ app.put('/recipes/:recipe_id', async (req, res) => {
         updateQuery = updateQuery.slice(0, -2);
         updateQuery += ' WHERE RecipeID = @recipe_id';
 
-        // Execute update query
-        const request = pool.request();
-        request.input('recipe_id', sql.Int, recipe_id);
+        const updateRequest = transaction.request();
+        updateRequest.input('recipe_id', sql.Int, recipe_id);
 
         updateParams.forEach(param => {
-            request.input(param.name, param.type, param.value);
+            updateRequest.input(param.name, param.type, param.value);
         });
 
-        const result = await request.query(updateQuery);
+        const result = await updateRequest.query(updateQuery);
+
+        if (ingredients && ingredients.length > 0) {
+            const ingredientRequest = transaction.request();
+            let ingredientQuery = `
+                DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id;
+                INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) VALUES
+            `;
+
+            // Prepare batched insert query for all ingredients
+            const values = ingredients.map((_, index) => 
+                `(@recipe_id, @ingredientID${index}, @quantity${index}, @measurement${index})`
+            ).join(', ');
+
+            ingredientQuery += values;
+
+            // Add input parameters dynamically
+            ingredientRequest.input('recipe_id', sql.Int, recipe_id);
+            ingredients.forEach((ingredient, index) => {
+                ingredientRequest.input(`ingredientID${index}`, sql.Int, ingredient.ingredientID);
+                ingredientRequest.input(`quantity${index}`, sql.Int, ingredient.quantity);
+                ingredientRequest.input(`measurement${index}`, sql.VarChar, ingredient.measurement);
+            });
+
+            await ingredientRequest.query(ingredientQuery);
+        }
+
+        await transaction.commit();  // Commit the transaction
 
         if (result.rowsAffected[0] > 0) {
-            // Fetch the updated recipe and return it
             const updatedRecipeResult = await pool.request()
                 .input('recipe_id', sql.Int, recipe_id)
                 .query('SELECT * FROM tblRecipes WHERE RecipeID = @recipe_id');
 
             if (updatedRecipeResult.recordset.length > 0) {
-                // Format the ingredients properly before returning
                 const updatedRecipe = {
                     ...updatedRecipeResult.recordset[0],
-                    ingredients: ingredients || []  // Return existing or new ingredients
+                    ingredients: ingredients || []  // Include new or existing ingredients
                 };
-                res.json(updatedRecipe);  // Return the updated recipe
+                res.json(updatedRecipe);
             } else {
                 res.status(404).send('Recipe not found after update');
             }
@@ -1905,7 +1935,9 @@ app.put('/recipes/:recipe_id', async (req, res) => {
             res.status(404).send('Recipe not found');
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        console.error('Error updating recipe:', error.message);
+        if (transaction) await transaction.rollback();  // Rollback on error
+        res.status(500).send('An error occurred while updating the recipe');
     }
 });
 
