@@ -1833,42 +1833,44 @@ app.post('/recipes', async (req, res) => {
 });
 
 
+
 // PUT /recipes/:recipe_id: Update a recipe by ID
 app.put('/recipes/:recipe_id', async (req, res) => {
     const { recipe_id } = req.params;
-    const { name, steps, productID, category, yield2, ingredients } = req.body;
+    const { name, steps, product_id, category, yield: yield2, ingredients } = req.body;
 
     console.log('Received payload:', req.body);
     console.log('Recipe ID:', recipe_id);
     console.log('Ingredients:', ingredients);
 
     // Validate input
-    if (!name && !steps && !productID && !category && yield2 === undefined && !ingredients) {
-        return res.status(400).send('At least one field (name, steps, productID, category, yield, or ingredients) is required for update');
+    if (!name && !steps && !product_id && !category && yield2 === undefined && !ingredients) {
+        return res.status(400).send('At least one field (name, steps, product_id, category, yield, or ingredients) is required for update');
     }
+
+    let transaction;
 
     try {
         const pool = await sql.connect(dbConfig);
-        const transaction = new sql.Transaction(pool);
-
-        await transaction.begin();  // Begin the transaction
+        transaction = new sql.Transaction(pool);
+        await transaction.begin(); // Begin the transaction
 
         let updateQuery = 'UPDATE tblRecipes SET ';
         const updateParams = [];
 
-        if (name !== undefined) {
+        if (name) {
             updateQuery += 'Name = @name, ';
             updateParams.push({ name: 'name', value: name, type: sql.VarChar });
         }
-        if (steps !== undefined) {
+        if (steps) {
             updateQuery += 'Steps = @steps, ';
             updateParams.push({ name: 'steps', value: steps, type: sql.VarChar });
         }
-        if (productID !== undefined) {
-            updateQuery += 'ProductID = @productID, ';
-            updateParams.push({ name: 'productID', value: productID, type: sql.Int });
+        if (product_id) {
+            updateQuery += 'ProductID = @product_id, ';
+            updateParams.push({ name: 'product_id', value: product_id, type: sql.Int });
         }
-        if (category !== undefined) {
+        if (category) {
             updateQuery += 'Category = @category, ';
             updateParams.push({ name: 'category', value: category, type: sql.VarChar });
         }
@@ -1877,9 +1879,7 @@ app.put('/recipes/:recipe_id', async (req, res) => {
             updateParams.push({ name: 'yield2', value: yield2, type: sql.Int });
         }
 
-        // Remove trailing comma and space
-        updateQuery = updateQuery.slice(0, -2);
-        updateQuery += ' WHERE RecipeID = @recipe_id';
+        updateQuery = updateQuery.slice(0, -2) + ' WHERE RecipeID = @recipe_id';
 
         const updateRequest = transaction.request();
         updateRequest.input('recipe_id', sql.Int, recipe_id);
@@ -1897,25 +1897,24 @@ app.put('/recipes/:recipe_id', async (req, res) => {
                 INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) VALUES
             `;
 
-            // Prepare batched insert query for all ingredients
             const values = ingredients.map((_, index) => 
                 `(@recipe_id, @ingredientID${index}, @quantity${index}, @measurement${index})`
             ).join(', ');
 
             ingredientQuery += values;
 
-            // Add input parameters dynamically
             ingredientRequest.input('recipe_id', sql.Int, recipe_id);
             ingredients.forEach((ingredient, index) => {
-                ingredientRequest.input(`ingredientID${index}`, sql.Int, ingredient.ingredientID);
-                ingredientRequest.input(`quantity${index}`, sql.Int, ingredient.quantity);
-                ingredientRequest.input(`measurement${index}`, sql.VarChar, ingredient.measurement);
+                console.log(`Binding ingredient ${index}:`, ingredient);
+                ingredientRequest.input(`ingredientID${index}`, sql.Int, ingredient.IngredientID);
+                ingredientRequest.input(`quantity${index}`, sql.Int, ingredient.Quantity);
+                ingredientRequest.input(`measurement${index}`, sql.VarChar, ingredient.Measurement);
             });
 
             await ingredientRequest.query(ingredientQuery);
         }
 
-        await transaction.commit();  // Commit the transaction
+        await transaction.commit(); // Commit the transaction
 
         if (result.rowsAffected[0] > 0) {
             const updatedRecipeResult = await pool.request()
@@ -1925,7 +1924,7 @@ app.put('/recipes/:recipe_id', async (req, res) => {
             if (updatedRecipeResult.recordset.length > 0) {
                 const updatedRecipe = {
                     ...updatedRecipeResult.recordset[0],
-                    ingredients: ingredients || []  // Include new or existing ingredients
+                    ingredients: ingredients || []
                 };
                 res.json(updatedRecipe);
             } else {
@@ -1936,7 +1935,7 @@ app.put('/recipes/:recipe_id', async (req, res) => {
         }
     } catch (error) {
         console.error('Error updating recipe:', error.message);
-        if (transaction) await transaction.rollback();  // Rollback on error
+        if (transaction) await transaction.rollback(); // Rollback on error
         res.status(500).send('An error occurred while updating the recipe');
     }
 });
