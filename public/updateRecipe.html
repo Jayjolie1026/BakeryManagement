@@ -135,20 +135,11 @@
                 <option value="">Select Recipe</option>
             </select>
 
-            <label for="recipeName">Recipe Name</label>
-            <input type="text" id="recipeName" placeholder="Enter current recipe name" required>
-
             <label for="newName">New Name (Optional)</label>
             <input type="text" id="newName" placeholder="Enter new recipe name">
 
             <label for="steps">Steps (Optional)</label>
             <textarea id="steps" rows="4" placeholder="Enter new recipe steps"></textarea>
-
-            <label for="category">Category</label>
-            <input type="text" id="category" placeholder="Enter recipe category" required>
-
-            <label for="yield">Yield</label>
-            <input type="number" id="yield" placeholder="Enter recipe yield" required>
 
             <label for="ingredients">Ingredients</label>
             <table id="ingredientsTable" class="ingredient-table">
@@ -248,11 +239,8 @@
         document.getElementById('recipeSelect').addEventListener('change', function() {
             const selectedRecipe = recipes.find(recipe => recipe.RecipeID == this.value);
             if (selectedRecipe) {
-                document.getElementById('recipeName').value = selectedRecipe.Name;
                 document.getElementById('newName').value = ''; // Clear new name field
                 document.getElementById('steps').value = selectedRecipe.Steps || ''; // Handle empty steps
-                document.getElementById('category').value = selectedRecipe.Category || ''; // Handle empty category
-                document.getElementById('yield').value = selectedRecipe.Yield || ''; // Handle empty yield
 
                 // Autofill ingredients
                 clearIngredientTable();
@@ -281,107 +269,95 @@
 
         // Get ingredient name by ID
         function getIngredientNameById(id) {
-            const ingredient = ingredients.find(item => item.IngredientID == id);
-            return ingredient ? ingredient.Name : 'Unknown Ingredient';
+            const ingredient = ingredients.find(ingredient => ingredient.IngredientID == id);
+            return ingredient ? ingredient.Name : 'Unknown';
         }
 
-        // Add ingredient to the table
-        document.getElementById('addIngredient').addEventListener('click', function() {
-            const ingredientID = document.getElementById('newIngredientSelect').value;
-            const quantity = document.querySelector('.quantityInput').value;
-            const measurement = document.getElementById('measurementSelect').value;
-
-            if (ingredientID && quantity > 0 && measurement) {
-                addIngredientRow(ingredientID, quantity, measurement);
-                document.querySelector('.quantityInput').value = 1; // Reset quantity input
-            } else {
-                alert('Please select an ingredient, quantity and measurement.');
-            }
-        });
-
-        // Remove ingredient row from the table
+        // Remove ingredient row
         function removeIngredientRow(button) {
             const row = button.parentElement.parentElement;
             row.parentElement.removeChild(row);
         }
 
-        // Update the recipe
+        // Add an ingredient to the ingredient table
+        document.getElementById('addIngredient').addEventListener('click', function() {
+            const selectedIngredientID = document.getElementById('newIngredientSelect').value;
+            const quantity = document.querySelector('.quantityInput').value;
+            const measurement = document.getElementById('measurementSelect').value;
+
+            if (selectedIngredientID && quantity && measurement) {
+                addIngredientRow(selectedIngredientID, quantity, measurement);
+            } else {
+                alert('Please select an ingredient and provide a quantity and measurement.');
+            }
+        });
+
+        // Submit the update recipe form
         document.getElementById('updateRecipeForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const selectedRecipeId = document.getElementById('recipeSelect').value;
-            const newName = document.getElementById('newName').value;
-            const steps = document.getElementById('steps').value;
-            const category = document.getElementById('category').value;
-            const yieldValue = document.getElementById('yield').value;
+            const selectedRecipeID = document.getElementById('recipeSelect').value;
+            const newName = document.getElementById('newName').value || null;
+            const steps = document.getElementById('steps').value || null;
 
-            // Create an object to hold the updated recipe details
-            const updatedRecipe = {
-                RecipeID: selectedRecipeId,
-                Name: newName || undefined,
-                Steps: steps || undefined,
-                Category: category,
-                Yield: yieldValue,
-                Ingredients: getIngredientsFromTable()
+            // Gather ingredients from the table
+            const ingredientRows = document.querySelectorAll('#ingredientsContainer tr');
+            const ingredientsToUpdate = Array.from(ingredientRows).map(row => {
+                const cells = row.children;
+                return {
+                    IngredientID: getIngredientIDByName(cells[0].innerText),
+                    Quantity: parseFloat(cells[1].innerText),
+                    Measurement: cells[2].innerText,
+                };
+            });
+
+            // Prepare the data to send
+            const data = {
+                RecipeID: selectedRecipeID,
+                Name: newName,
+                Steps: steps,
+                Ingredients: ingredientsToUpdate.filter(ingredient => ingredient.IngredientID != null) // Filter out invalid ingredients
             };
 
-            // Send the update request to the API
             try {
-                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/updateById/${selectedRecipeId}`, {
+                const response = await fetch(`https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/${selectedRecipeID}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(updatedRecipe)
+                    body: JSON.stringify(data),
                 });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
+
                 const result = await response.json();
                 displayMessage('Recipe updated successfully!', 'success');
             } catch (error) {
                 console.error('Error updating recipe:', error);
-                displayMessage('Error updating recipe. Please try again.', 'error');
+                displayMessage('Failed to update recipe. Please try again.', 'error');
             }
         });
 
-        // Get ingredients from the table
-        function getIngredientsFromTable() {
-            const rows = document.querySelectorAll('#ingredientsContainer tr');
-            const ingredients = [];
-            rows.forEach(row => {
-                const cells = row.children;
-                ingredients.push({
-                    IngredientID: getIngredientIdByName(cells[0].innerText),
-                    Quantity: cells[1].innerText,
-                    Measurement: cells[2].innerText
-                });
-            });
-            return ingredients;
+        // Display a message
+        function displayMessage(message, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.className = `message ${type}`;
+            messageElement.textContent = message;
+            messageElement.style.display = 'block';
         }
 
         // Get ingredient ID by name
-        function getIngredientIdByName(name) {
-            const ingredient = ingredients.find(item => item.Name === name);
+        function getIngredientIDByName(name) {
+            const ingredient = ingredients.find(ingredient => ingredient.Name === name);
             return ingredient ? ingredient.IngredientID : null;
         }
 
-        // Display messages to the user
-        function displayMessage(message, type) {
-            const messageContainer = document.getElementById('message');
-            messageContainer.textContent = message;
-            messageContainer.className = `message ${type}`;
-            messageContainer.style.display = 'block';
-            setTimeout(() => {
-                messageContainer.style.display = 'none';
-            }, 3000); // Message disappears after 3 seconds
-        }
-
-        // Initialize the form with data
-        fetchIngredients();
-        fetchRecipes();
-        fetchMeasurements();
+        // Fetch data on page load
+        window.onload = async function() {
+            await fetchMeasurements();
+            await fetchIngredients();
+            await fetchRecipes();
+        };
     </script>
 </body>
 </html>

@@ -1992,7 +1992,7 @@ app.put('/recipes/updateById/:id', async (req, res) => {
   const { id } = req.params;
   const { new_name, steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
-  if (!new_name && !steps && !Array.isArray(ingredients)) {
+  if (!new_name && !steps && (!Array.isArray(ingredients) || ingredients.length === 0)) {
       return res.status(400).send('At least one field (new_name, steps, or ingredients) is required for update');
   }
 
@@ -2037,8 +2037,8 @@ app.put('/recipes/updateById/:id', async (req, res) => {
           await request.query(updateQuery);
       }
 
-      // Update ingredients
-      if (Array.isArray(ingredients)) {
+      // Update ingredients if provided
+      if (Array.isArray(ingredients) && ingredients.length > 0) {
           // Clear current ingredients
           await pool.request()
               .input('recipe_id', sql.Int, id)
@@ -2068,7 +2068,6 @@ app.put('/recipes/updateById/:id', async (req, res) => {
       res.status(500).send('Error updating recipe: ' + error.message);
   }
 });
-
 
 
 
