@@ -46,7 +46,7 @@ class RecipeApi {
       'name': newName,
       'steps': steps,
       'product_id': productID,
-      'ingredients': ingredients,
+        if (ingredients.isNotEmpty) 'ingredients': ingredients,
       'category': category,
       'yield': yield2,
     };

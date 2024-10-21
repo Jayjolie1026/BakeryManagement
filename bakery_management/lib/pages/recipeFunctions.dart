@@ -728,16 +728,16 @@ class _DetailedRecipePageState extends State<DetailedRecipePage> {
 void showRecipeUpdateDialog(
     BuildContext context, Item recipe, ValueChanged<Item> onRecipeUpdated) {
   // Create a string representation of ingredients including measurement
-  String ingredientsString = recipe.ingredients.map((ingredient) {
-    return '${ingredient.ingredientID}:${ingredient.name}:${ingredient.quantity}:${ingredient.measurement}'; // Include measurement
-  }).join(', ');
+  
 
   TextEditingController nameController =
       TextEditingController(text: recipe.name);
   TextEditingController stepsController =
       TextEditingController(text: recipe.steps);
-  TextEditingController ingredientsController =
-      TextEditingController(text: ingredientsString);
+  final ingredientsController = TextEditingController(
+      text: recipe.ingredients.map((ingredient) {
+    return '${ingredient.ingredientID}:${ingredient.name}:${ingredient.quantity}:${ingredient.measurement}';
+  }).join(', '));
   TextEditingController categoryController =
       TextEditingController(text: recipe.category);
   TextEditingController yieldController =
@@ -834,102 +834,103 @@ void showRecipeUpdateDialog(
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog without changes
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF6D3200), // Text color
-            ),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                // Update the recipe with new values
-                int yieldValue = int.tryParse(yieldController.text) ??
-                    0; // Default to 0 if parsing fails
+  TextButton(
+    onPressed: () {
+      Navigator.of(context).pop(); // Close dialog without changes
+    },
+    style: TextButton.styleFrom(
+      foregroundColor: const Color(0xFF6D3200), // Text color
+    ),
+    child: const Text('Cancel'),
+  ),
+  ElevatedButton(
+    onPressed: () async {
+      try {
+        // Parse yield value with a fallback to 0 if invalid
+        int yieldValue = int.tryParse(yieldController.text) ?? 0;
 
-                // Create the updated recipe
-                final updatedRecipe = Item(
-                  recipeID: recipe.recipeID,
-                  name: nameController.text,
-                  steps: stepsController.text,
-                  productID: recipe.productID,
-                  ingredients: ingredientsController.text
-                      .split(',')
-                      .map((ingredientString) {
-                    final parts = ingredientString.split(':');
+        // Parse ingredients from the text field and map to Ingredient objects
+        final List<Ingredient> updatedIngredients = ingredientsController.text
+            .split(',')
+            .map((ingredientString) {
+          final parts = ingredientString.split(':');
+          if (parts.length != 4) {
+            throw Exception(
+                'Invalid format. Use ID:name:quantity:measurement.');
+          }
+          return Ingredient(
+            ingredientID: int.parse(parts[0].trim()),
+            name: parts[1].trim(),
+            quantity: int.parse(parts[2].trim()),
+            measurement: parts[3].trim(),
+          );
+        }).toList();
 
-                    // Assuming you're using the format ID:name:quantity:measurement for updating ingredients
-                    if (parts.length == 4) {
-                      // Adjust this back to 4 for updates
-                      return Ingredient(
-                        ingredientID: int.parse(parts[0].trim()),
-                        name: parts[1].trim(),
-                        quantity: int.parse(parts[2].trim()),
-                        measurement: parts[3].trim(),
-                        // entryID and inventoryQuantity are not included for updates
-                      );
-                    } else {
-                      throw Exception(
-                          'Invalid ingredient format. Expected format: ID:name:quantity:measurement');
-                    }
-                  }).toList(),
-                  category: categoryController.text,
-                  yield2: yieldValue,
-                );
+        // Validate required fields
+        if (nameController.text.isEmpty ||
+            stepsController.text.isEmpty ||
+            recipe.productID == null ||
+            categoryController.text.isEmpty ||
+            yieldValue <= 0 ||
+            updatedIngredients.isEmpty) {
+          throw Exception(
+              'All fields are required: Name, steps, product ID, category, yield, and ingredients.');
+        }
 
-                // Validate required fields
-                if (updatedRecipe.name.isEmpty ||
-                    updatedRecipe.steps.isEmpty ||
-                    updatedRecipe.productID == null ||
-                    updatedRecipe.category.isEmpty ||
-                    updatedRecipe.yield2 <= 0 ||
-                    updatedRecipe.ingredients.isEmpty) {
-                  throw Exception(
-                      'Name, steps, product ID, category, yield, and ingredients are required');
-                }
+        // Create the updated recipe object
+        final updatedRecipe = Item(
+          recipeID: recipe.recipeID,
+          name: nameController.text,
+          steps: stepsController.text,
+          productID: recipe.productID,
+          ingredients: updatedIngredients,
+          category: categoryController.text,
+          yield2: yieldValue,
+        );
 
-                // Prepare ingredients for the API call
-                List<Map<String, dynamic>> ingredientsForApi =
-                    updatedRecipe.ingredients.map((ingredient) {
-                  return {
-                    'IngredientID': ingredient.ingredientID,
-                    'Name': ingredient.name,
-                    'Quantity': ingredient.quantity,
-                    'Measurement': ingredient.measurement,
-                    // Don't include entryID and inventoryQuantity for updates
-                  };
-                }).toList();
+        // Prepare ingredients for the API call as List<Map<String, dynamic>>
+        List<Map<String, dynamic>> ingredientsForApi =
+            updatedIngredients.map((ingredient) {
+          return {
+            'IngredientID': ingredient.ingredientID,
+            'Name': ingredient.name,
+            'Quantity': ingredient.quantity,
+            'Measurement': ingredient.measurement,
+          };
+        }).toList();
 
-                // Call the API to update the recipe
-                await RecipeApi().updateRecipe(
-                  updatedRecipe.recipeID,
-                  updatedRecipe.name,
-                  updatedRecipe.steps,
-                  ingredientsForApi,
-                  updatedRecipe.productID,
-                  updatedRecipe.category,
-                  updatedRecipe.yield2,
-                );
+        // Call the API to update the recipe
+        await RecipeApi().updateRecipe(
+          updatedRecipe.recipeID,
+          updatedRecipe.name,
+          updatedRecipe.steps,
+          ingredientsForApi,
+          updatedRecipe.productID,
+          updatedRecipe.category,
+          updatedRecipe.yield2,
+        );
 
-                // Call the update callback
-                onRecipeUpdated(updatedRecipe);
+        // Call the callback to notify of the update
+        onRecipeUpdated(updatedRecipe);
 
-                // Close the dialog
-                Navigator.pop(context, updatedRecipe);
-              } catch (error) {
-                // Handle error appropriately, e.g., show a snackbar or dialog
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6D3200),
-              foregroundColor: const Color(0xFFF0d1a0),
-            ),
-            child: const Text('Save Changes'),
-          )
-        ],
+        // Close the dialog and pass back the updated recipe
+        Navigator.pop(context, updatedRecipe);
+      } catch (error) {
+        // Show error message (e.g., using a SnackBar)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error')),
+        );
+      }
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF6D3200),
+      foregroundColor: const Color(0xFFF0D1A0), // Text color
+    ),
+    child: const Text('Save Changes'),
+  ),
+],
+
+
       );
     },
   );
