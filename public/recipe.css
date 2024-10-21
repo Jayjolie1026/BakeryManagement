@@ -22,11 +22,13 @@
 
 .category-button.active {
     background-color: #85623fea;
-    color: #fff;               
+    color: #fff; 
+    cursor: pointer;              
 }
 
 .category-button:hover {
     background-color: #6A381F;
+    cursor: pointer;
 }
 
 
