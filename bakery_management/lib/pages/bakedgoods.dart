@@ -695,9 +695,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 }
 Future<List<Task>> checkTasks() async {
-   List<Task> existingTasks = await getTasks();
-   return existingTasks;
-       
+  try {
+    List<Task> existingTasks = await getTasks();
+    print('Tasks fetched successfully: ${existingTasks.length}');
+    return existingTasks;
+  } catch (e) {
+    print('Error in checkTasks: $e');
+    return [];
+  }
 }
 
   Widget _buildQuantityWarning(Product product) {
@@ -712,6 +717,10 @@ Future<List<Task>> checkTasks() async {
         return Text('Error: ${snapshot.error}');
       } else if (snapshot.hasData) {
         List<Task> existingTasks = snapshot.data!;
+        print('Fetched tasks:');
+        for (var task in existingTasks) {
+          print('Task: ${task.description}, Due Date: ${task.dueDate}');
+        }
 
         if (product.quantity < product.minAmount) {
           final dueDate = DateTime.now().add(Duration(days: 1));
@@ -720,12 +729,28 @@ Future<List<Task>> checkTasks() async {
           existingTasks.forEach((task) {
 });
           // Check if a task for this product already exists
-          bool taskExists = existingTasks.any((task) =>
-              task.description == description || // Exact match for the description
-  task.dueDate.toIso8601String() == dueDate.toIso8601String()); // Exact match for the due date
+          bool taskExists = existingTasks.any((task) {
+            // Trim extra spaces and ignore case in descriptions
+            bool isSameDescription =
+                task.description.trim().toLowerCase() == description.trim().toLowerCase();
+
+            // Compare only the date parts, ignoring time differences
+            bool isSameDueDate = task.dueDate.toLocal().day == dueDate.day ||
+                task.dueDate.toLocal().month == dueDate.month ||
+                task.dueDate.toLocal().year == dueDate.year;
+
+            print(
+                'Checking task: ${task.description}, isSameDescription: $isSameDescription, '
+                'isSameDueDate: $isSameDueDate');
+
+            return isSameDescription && isSameDueDate;
+          });
+
 
           if (!taskExists) {
             // If no such task exists, add the new task
+            print('Adding new task: $description');
+
             addTask(description: description, dueDate: dueDate, assignedBy: assignedBy);
           } else {
           }
@@ -748,8 +773,8 @@ Future<List<Task>> checkTasks() async {
 
           // Check if a task for this product already exists
           bool taskExists = existingTasks.any((task) =>
-              task.description.contains(product.name) &&
-              task.description.contains(description) &&
+              task.description.contains(product.name) ||
+              task.description.contains(description) ||
               task.dueDate == dueDate);
 
           if (!taskExists) {
