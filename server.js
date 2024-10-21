@@ -1988,6 +1988,89 @@ app.put('/recipes/name/:name', async (req, res) => {
     }
 });
 
+app.put('/recipes/:id/:name', async (req, res) => {
+  const { id, name } = req.params; // Destructure to get both id and name from the URL
+  const { steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
+
+  if (!steps && (!Array.isArray(ingredients) || ingredients.length === 0)) {
+      return res.status(400).send('At least one field (steps or ingredients) is required for update');
+  }
+
+  try {
+      const pool = await sql.connect(dbConfig);
+
+      // Check if recipe exists
+      const recipeResult = await pool.request()
+          .input('recipe_id', sql.Int, id)
+          .query('SELECT RecipeID FROM tblRecipes WHERE RecipeID = @recipe_id');
+
+      if (recipeResult.recordset.length === 0) {
+          return res.status(404).send('Recipe not found');
+      }
+
+      // Update recipe details
+      const updateQueries = [];
+      const updateParams = [];
+
+      // Use the new name from the URL if provided
+      if (name) {
+          updateQueries.push('Name = @new_name');
+          updateParams.push({ name: 'new_name', value: name, type: sql.VarChar });
+      }
+      if (steps) {
+          updateQueries.push('Steps = @steps');
+          updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+      }
+
+      if (updateQueries.length > 0) {
+          const updateQuery = `
+              UPDATE tblRecipes 
+              SET ${updateQueries.join(', ')} 
+              WHERE RecipeID = @recipe_id
+          `;
+          
+          const request = pool.request();
+          request.input('recipe_id', sql.Int, id);
+          updateParams.forEach(param => {
+              request.input(param.name, param.type, param.value);
+          });
+
+          await request.query(updateQuery);
+      }
+
+      // Update ingredients if provided
+      if (Array.isArray(ingredients) && ingredients.length > 0) {
+          // Clear current ingredients
+          await pool.request()
+              .input('recipe_id', sql.Int, id)
+              .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
+
+          // Validate and insert new ingredients
+          for (const ingredient of ingredients) {
+              if (!ingredient.IngredientID || ingredient.Quantity === undefined || !ingredient.Measurement) {
+                  return res.status(400).send('Each ingredient must have IngredientID, Quantity, and Measurement');
+              }
+
+              await pool.request()
+                  .input('recipe_id', sql.Int, id)
+                  .input('ingredient_id', sql.Int, ingredient.IngredientID)
+                  .input('quantity', sql.Decimal, ingredient.Quantity)
+                  .input('measurement', sql.VarChar, ingredient.Measurement)
+                  .query(`
+                      INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
+                      VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
+                  `);
+          }
+      }
+
+      res.json({ message: 'Recipe updated successfully' });
+  } catch (error) {
+      console.error('Error updating recipe:', error);
+      res.status(500).send('Error updating recipe: ' + error.message);
+  }
+});
+
+
 
 
 

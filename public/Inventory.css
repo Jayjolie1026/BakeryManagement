@@ -116,6 +116,12 @@ body {
   cursor: pointer;
 }
 
+.search-btn:hover {
+  background-color: #6A381F;
+  color: #fff;
+}
+
+
 .search-icon {
   height: 20px;
   width: 20px;
@@ -209,4 +215,37 @@ table tr:hover {
 .employee-id-btn:hover {
   background-color: #DCAB6B;
   color: #6A381F;
+}
+
+.category-container {
+  flex-direction: row;               
+  margin: auto;
+  width: 90%;
+  padding: 25px;
+}
+
+.category-button {
+  width: 195px;              
+  height: 70px;
+  font-family: "Playwrite DE Grund", cursive;               
+  border-radius: 4px;        
+  background-color: #794500;  
+  color: #fff;                
+  font-size: 1rem;            
+  transition: all 0.3s ease;  
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  border: none;
+  margin-left: 10px;
+}
+
+.category-button.active {
+  background-color: #6A381F;
+  color: #fff;           
+  cursor: pointer;    
+}
+
+.category-button:hover {
+  background-color: #6A381F;
+  cursor: pointer;
 }

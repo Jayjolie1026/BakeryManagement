@@ -63,6 +63,7 @@ document.getElementById('ingredientInventoryForm').addEventListener('submit', as
 
       // Success message
       document.getElementById('resultMessage').textContent = 'Ingredient and Inventory added successfully!';
+      window.location.href = 'Inventory.html'; 
   } catch (error) {
       // Display error message
       document.getElementById('errorMessage').textContent = error.message;
