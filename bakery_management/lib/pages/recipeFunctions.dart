@@ -770,21 +770,37 @@ void showRecipeUpdateDialog(
                   ),
                 ),
               ),
-              TextField(
-                controller: ingredientsController,
-                style: const TextStyle(color: Color(0xFF6D3200)),
-                decoration: const InputDecoration(
-                  labelText:
-                      'Ingredients (format: ID:name:quantity:measurement, ...)',
-                  labelStyle: TextStyle(color: Color(0xFF6D3200)),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF6D3200)),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 20),
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const Text(
+      'Ingredients\n (ID:name:quantity:measurement, ...)',
+      style: TextStyle(
+        color: Color(0xFF6D3200), // Dark brown text color for the instruction
+        fontSize: 14, // You can adjust the size as needed
+      ),
+    ),
+    const SizedBox(height: 10),
+    TextField(
+      controller: ingredientsController,
+      style: const TextStyle(color: Color(0xFF6D3200)), // Text color
+      decoration: InputDecoration(
+        //labelText: 'Ingredients',
+        labelStyle: const TextStyle(color: Color(0xFF6D3200)), // Label text color
+        counterText: '', // Remove the character counter
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF6D3200)), // Dark brown border when not focused
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF6D3200), width: 2.0), // Dark brown border when focused
+        ),
+      ),
+      maxLines: null, // Allows the TextField to grow
+      maxLength: 500, // Limit input to 500 characters, but the counter will be hidden
+    ),
+  ],
+),
               TextField(
                 controller: stepsController,
                 style: const TextStyle(color: Color(0xFF6D3200)),
@@ -935,3 +951,4 @@ void showRecipeUpdateDialog(
     },
   );
 }
+
