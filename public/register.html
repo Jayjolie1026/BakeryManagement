@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account Page</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"> <!--Poppins, Cursive-->
-    <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet"> <!--font from mobile team-->
-    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet"> <!--font from mobile team-->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sofadi+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
     <style>
         /* General Styles */
         body {
@@ -18,7 +18,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: rgba(241, 212, 164, 0.967); /* Light background */
+            background-color: rgba(241, 212, 164, 0.967);
             animation: fadeInUp 1s ease-in-out;
         }
 
@@ -37,11 +37,10 @@
             }
         }
 
-
         .register {
             width: 100%;
             max-width: 400px;
-            background-color: rgba(255, 255, 255, 0.9); /* Slight transparency */
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             padding: 40px;
@@ -55,7 +54,6 @@
             margin-bottom: 20px;
         }
 
-        /* Form Styles */
         form {
             display: flex;
             flex-direction: column;
@@ -91,18 +89,12 @@
             outline: none;
         }
 
-        /* Placeholder Styles */
-        input::placeholder {
-            color: #aaa; /* Placeholder color */
-        }
-
-        /* Button Styles */
         .button {
             width: 100%;
             font-family: "Playwrite DE Grund", cursive;
             padding: 15px;
-            background-color: #774E24; /* Button background color */
-            color: #fff; /* White text */
+            background-color: #774E24;
+            color: #fff;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -112,7 +104,13 @@
         }
 
         .button:hover {
-            background-color: #9c2a3b; /* Darker shade on hover */
+            background-color: #9c2a3b;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            display: none;
         }
     </style>
 </head>
@@ -135,6 +133,7 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required placeholder="Create a password">
+                <span class="error-message" id="passwordError">Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.</span>
             </div>
             <div class="form-group">
                 <label for="email">Email</label>

@@ -210,3 +210,33 @@ table tr:hover {
   background-color: #DCAB6B;
   color: #6A381F;
 }
+
+.category-container {
+  flex-direction: row;               
+  margin: auto;
+  width: 90%;
+  padding: 25px;
+}
+
+.category-button {
+  width: 195px;              
+  height: 70px;
+  font-family: "Playwrite DE Grund", cursive;               
+  border-radius: 4px;        
+  background-color: #794500;  
+  color: #fff;                
+  font-size: 1rem;            
+  transition: all 0.3s ease;  
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+}
+
+.category-button.active {
+  background-color: #85623fea;
+  color: #fff;               
+}
+
+.category-button:hover {
+  background-color: #a88a60;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
