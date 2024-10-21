@@ -1988,9 +1988,8 @@ app.put('/recipes/name/:name', async (req, res) => {
     }
 });
 
-// PUT /recipes/name/:name: Update a recipe by name including measurements
 app.put('/recipes/updateById/:id', async (req, res) => {
-  const { name } = req.params;
+  const { id } = req.params;
   const { new_name, steps, ingredients } = req.body; // Expecting ingredients array [{ IngredientID, Quantity, Measurement }]
 
   if (!new_name && !steps && !Array.isArray(ingredients)) {
@@ -2000,37 +1999,37 @@ app.put('/recipes/updateById/:id', async (req, res) => {
   try {
       const pool = await sql.connect(dbConfig);
 
-      // Fetch the RecipeID using the current recipe name
+      // Check if recipe exists
       const recipeResult = await pool.request()
-          .input('name', sql.VarChar, name)
-          .query('SELECT RecipeID FROM tblRecipes WHERE Name = @name');
+          .input('recipe_id', sql.Int, id)
+          .query('SELECT RecipeID FROM tblRecipes WHERE RecipeID = @recipe_id');
 
       if (recipeResult.recordset.length === 0) {
           return res.status(404).send('Recipe not found');
       }
 
-      const recipeID = recipeResult.recordset[0].RecipeID;
-
       // Update recipe details
-      if (new_name || steps) {
-          let updateQuery = 'UPDATE tblRecipes SET ';
-          const updateParams = [];
+      const updateQueries = [];
+      const updateParams = [];
 
-          if (new_name) {
-              updateQuery += 'Name = @new_name, ';
-              updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
-          }
-          if (steps) {
-              updateQuery += 'Steps = @steps, ';
-              updateParams.push({ name: 'steps', value: steps, type: sql.Text });
-          }
+      if (new_name) {
+          updateQueries.push('Name = @new_name');
+          updateParams.push({ name: 'new_name', value: new_name, type: sql.VarChar });
+      }
+      if (steps) {
+          updateQueries.push('Steps = @steps');
+          updateParams.push({ name: 'steps', value: steps, type: sql.Text });
+      }
 
-          // Remove trailing comma and space
-          updateQuery = updateQuery.slice(0, -2);
-          updateQuery += ' WHERE RecipeID = @recipe_id';
-
+      if (updateQueries.length > 0) {
+          const updateQuery = `
+              UPDATE tblRecipes 
+              SET ${updateQueries.join(', ')} 
+              WHERE RecipeID = @recipe_id
+          `;
+          
           const request = pool.request();
-          request.input('recipe_id', sql.Int, recipeID);
+          request.input('recipe_id', sql.Int, id);
           updateParams.forEach(param => {
               request.input(param.name, param.type, param.value);
           });
@@ -2042,16 +2041,20 @@ app.put('/recipes/updateById/:id', async (req, res) => {
       if (Array.isArray(ingredients)) {
           // Clear current ingredients
           await pool.request()
-              .input('recipe_id', sql.Int, recipeID)
+              .input('recipe_id', sql.Int, id)
               .query('DELETE FROM tblRecipeIngredients WHERE RecipeID = @recipe_id');
 
-          // Insert new ingredients with measurements
+          // Validate and insert new ingredients
           for (const ingredient of ingredients) {
+              if (!ingredient.IngredientID || ingredient.Quantity === undefined || !ingredient.Measurement) {
+                  return res.status(400).send('Each ingredient must have IngredientID, Quantity, and Measurement');
+              }
+
               await pool.request()
-                  .input('recipe_id', sql.Int, recipeID)
+                  .input('recipe_id', sql.Int, id)
                   .input('ingredient_id', sql.Int, ingredient.IngredientID)
                   .input('quantity', sql.Decimal, ingredient.Quantity)
-                  .input('measurement', sql.VarChar, ingredient.Measurement) // Add Measurement field
+                  .input('measurement', sql.VarChar, ingredient.Measurement)
                   .query(`
                       INSERT INTO tblRecipeIngredients (RecipeID, IngredientID, Quantity, Measurement) 
                       VALUES (@recipe_id, @ingredient_id, @quantity, @measurement)
@@ -2061,9 +2064,11 @@ app.put('/recipes/updateById/:id', async (req, res) => {
 
       res.json({ message: 'Recipe updated successfully' });
   } catch (error) {
+      console.error('Error updating recipe:', error);
       res.status(500).send('Error updating recipe: ' + error.message);
   }
 });
+
 
 
 
