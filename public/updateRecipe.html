@@ -33,7 +33,9 @@
         h2 {
             text-align: center;
             color: #6E0D25;
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 15px;
+            border-radius: 8px;
         }
 
         label {
@@ -168,9 +170,7 @@
                     <option value="">Select Ingredient</option>
                 </select>
                 <input type="number" class="quantityInput" placeholder="Quantity" min="0" step="0.01" value="1">
-                <select id="measurementSelect" required>
-                    <option value="">Select Measurement</option>
-                </select>
+                <input type="text" class="measurementInput" placeholder="Measurement (e.g., grams, cups)" value="grams"> <!-- Added this -->
                 <button type="button" id="addIngredient">Add Ingredient</button>
             </div>
 
@@ -181,127 +181,190 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const recipeSelect = document.getElementById("recipeSelect");
-            const messageDiv = document.getElementById("message");
-            const ingredientsContainer = document.getElementById("ingredientsContainer");
+        let ingredients = []; // Store the fetched ingredients
+        let recipes = []; // Store the fetched recipes
 
-            // Populate recipes and ingredients dropdowns
-            await populateRecipes();
-            await populateIngredients();
+        // Fetch ingredients and populate the dropdown menu
+        async function fetchIngredients() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/ingredients');
+                ingredients = await response.json();
+                populateIngredientDropdown();
+            } catch (error) {
+                console.error('Error fetching ingredients:', error);
+            }
+        }
 
-            recipeSelect.addEventListener("change", async (event) => {
-                const recipeId = event.target.value;
+        // Fetch recipes and populate the recipe dropdown
+        async function fetchRecipes() {
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes');
+                recipes = await response.json();
+                populateRecipeDropdown();
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+            }
+        }
 
-                // Fetch the selected recipe details
-                const response = await fetch(`http://localhost:3000/recipes/${recipeId}`);
-                if (response.ok) {
-                    const recipe = await response.json();
-                    document.getElementById("recipeName").value = recipe.Name;
-                    document.getElementById("steps").value = recipe.Steps;
-                    document.getElementById("category").value = recipe.Category;
-                    document.getElementById("yield").value = recipe.Yield;
+        // Populate dropdowns with fetched ingredients
+        function populateIngredientDropdown() {
+            const ingredientOptions = ingredients.map(ingredient => `
+                <option value="${ingredient.IngredientID}">${ingredient.Name}</option>
+            `).join('');
 
-                    // Clear existing ingredients
-                    ingredientsContainer.innerHTML = '';
-                    recipe.Ingredients.forEach(ingredient => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${ingredient.Name}</td>
-                            <td>${ingredient.Quantity}</td>
-                            <td>${ingredient.Measurement}</td>
-                            <td><button type="button" class="removeIngredient">Remove</button></td>
-                        `;
-                        ingredientsContainer.appendChild(row);
-                    });
-                }
-            });
+            // Populate the ingredient select dropdown for adding new ingredients
+            document.getElementById('newIngredientSelect').innerHTML = `<option value="">Select Ingredient</option>` + ingredientOptions;
+        }
 
-            // Add ingredient event
-            document.getElementById("addIngredient").addEventListener("click", () => {
-                const ingredientSelect = document.getElementById("newIngredientSelect");
-                const quantityInput = document.querySelector(".quantityInput");
-                const measurementSelect = document.getElementById("measurementSelect");
+        // Populate the recipe dropdown
+        function populateRecipeDropdown() {
+            const recipeOptions = recipes.map(recipe => `
+                <option value="${recipe.RecipeID}">${recipe.Name}</option>
+            `).join('');
+            document.getElementById('recipeSelect').innerHTML += recipeOptions;
+        }
 
-                const ingredientId = ingredientSelect.value;
-                const quantity = parseFloat(quantityInput.value);
-                const measurement = measurementSelect.value;
+        // Autofill form fields when a recipe is selected
+        document.getElementById('recipeSelect').addEventListener('change', function() {
+            const selectedRecipe = recipes.find(recipe => recipe.RecipeID == this.value);
+            if (selectedRecipe) {
+                document.getElementById('recipeName').value = selectedRecipe.Name;
+                document.getElementById('newName').value = ''; // Clear new name field
+                document.getElementById('steps').value = selectedRecipe.Steps || ''; // Handle empty steps
+                document.getElementById('category').value = selectedRecipe.Category || ''; // Handle empty category
+                document.getElementById('yield').value = selectedRecipe.Yield || ''; // Handle empty yield
 
-                if (ingredientId && quantity && measurement) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${ingredientSelect.options[ingredientSelect.selectedIndex].text}</td>
-                        <td>${quantity}</td>
-                        <td>${measurement}</td>
-                        <td><button type="button" class="removeIngredient">Remove</button></td>
-                    `;
-                    ingredientsContainer.appendChild(row);
-                }
-            });
-
-            // Handle form submission
-            document.getElementById("updateRecipeForm").addEventListener("submit", async (event) => {
-                event.preventDefault();
-
-                const id = recipeSelect.value;
-                const name = document.getElementById("newName").value || null;
-                const steps = document.getElementById("steps").value || null;
-                const ingredients = [];
-
-                ingredientsContainer.querySelectorAll("tr").forEach(row => {
-                    const cells = row.querySelectorAll("td");
-                    const ingredientId = cells[0].innerText;
-                    const quantity = cells[1].innerText;
-                    const measurement = cells[2].innerText;
-
-                    ingredients.push({
-                        IngredientID: ingredientId,
-                        Quantity: parseFloat(quantity),
-                        Measurement: measurement
-                    });
-                });
-
-                const response = await fetch(`http://localhost:3000/recipes/${id}/${name}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ steps, ingredients }),
-                });
-
-                if (response.ok) {
-                    messageDiv.textContent = 'Recipe updated successfully!';
-                    messageDiv.className = 'message success';
-                } else {
-                    const errorMessage = await response.text();
-                    messageDiv.textContent = 'Error updating recipe: ' + errorMessage;
-                    messageDiv.className = 'message error';
-                }
-                messageDiv.style.display = 'block';
-            });
-
-            // Populate recipes from API
-            async function populateRecipes() {
-                const response = await fetch('http://localhost:3000/recipes');
-                const recipes = await response.json();
-                recipes.forEach(recipe => {
-                    const option = document.createElement('option');
-                    option.value = recipe.RecipeID;
-                    option.textContent = recipe.Name;
-                    recipeSelect.appendChild(option);
+                // Autofill ingredients
+                clearIngredientTable();
+                selectedRecipe.Ingredients.forEach(ingredient => {
+                    addIngredientRow(ingredient.IngredientID, ingredient.Quantity, ingredient.Measurement);
                 });
             }
+        });
 
-            // Populate ingredients from API
-            async function populateIngredients() {
-                const response = await fetch('http://localhost:3000/ingredients');
-                const ingredients = await response.json();
-                ingredients.forEach(ingredient => {
-                    const option = document.createElement('option');
-                    option.value = ingredient.IngredientID;
-                    option.textContent = ingredient.Name;
-                    document.getElementById("newIngredientSelect").appendChild(option);
+        // Clear existing ingredient rows
+        function clearIngredientTable() {
+            const ingredientsContainer = document.getElementById('ingredientsContainer');
+            ingredientsContainer.innerHTML = ''; // Clear existing rows
+        }
+
+        // Function to handle adding a new ingredient row to the table
+        document.getElementById('addIngredient').addEventListener('click', function() {
+            const ingredientID = document.getElementById('newIngredientSelect').value;
+            const quantity = document.querySelector('.quantityInput').value;
+            const measurement = document.querySelector('.measurementInput').value;
+
+            if (ingredientID && quantity > 0) {
+                addIngredientRow(ingredientID, quantity, measurement);
+                clearNewIngredientInputs(); // Clear input fields after adding
+            } else {
+                alert('Please select an ingredient and enter a valid quantity.');
+            }
+        });
+
+        // Get ingredient name by ID
+        function getIngredientName(ingredientID) {
+            const ingredient = ingredients.find(i => i.IngredientID == ingredientID);
+            return ingredient ? ingredient.Name : '';
+        }
+
+        // Clear new ingredient inputs
+        function clearNewIngredientInputs() {
+            document.getElementById('newIngredientSelect').value = '';
+            document.querySelector('.quantityInput').value = 1;
+        }
+
+        // Function to add a new ingredient row to the table
+          // Consolidated function for adding an ingredient row
+          function addIngredientRow(selectedID, quantity, measurement) {
+              const ingredientsContainer = document.getElementById('ingredientsContainer');
+              const newRow = document.createElement('tr');
+              const ingredientName = getIngredientName(selectedID);
+
+              newRow.innerHTML = `
+                  <td>${ingredientName}</td>
+                  <td>${quantity}</td>
+                  <td>${measurement}</td>
+                  <td><button class="removeIngredient">Remove</button></td>
+              `;
+
+              ingredientsContainer.appendChild(newRow);
+              newRow.querySelector('.removeIngredient').addEventListener('click', function() {
+                  newRow.remove();
+              });
+          }
+
+
+          // Mock function to simulate fetching ingredient data (you'll implement this based on your actual data source)
+          function getIngredientData(selectedID) {
+              const ingredients = [ /* Your ingredient data here */ ];
+              return ingredients.find(ingredient => ingredient.IngredientID === selectedID);
+          }
+
+
+
+          // Function to handle form submission
+          document.getElementById('updateRecipeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const recipeName = document.getElementById('recipeName').value;
+            const newName = document.getElementById('newName').value;
+            const steps = document.getElementById('steps').value.replace(/\\/g, '\\\\'); // Replace single backslash with double backslash
+            const category = document.getElementById('category').value;
+            const yieldValue = document.getElementById('yield').value;
+
+            // Collect current ingredients from the table
+            const ingredientsData = Array.from(document.querySelectorAll('#ingredientsContainer tr')).map(row => {
+                const cells = row.children;
+                const ingredientID = getIngredientId(cells[0].textContent); // Get ID from ingredient name
+                const quantity = parseFloat(cells[1].textContent) || 1; // Default quantity
+                const measurement = cells[2].textContent.trim();  // Ensure no extra spaces in measurement
+
+                return {
+                    IngredientID: ingredientID,
+                    Quantity: quantity,
+                    Measurement: measurement || 'grams'  // Default to 'grams' if measurement is missing
+                };
+            }).filter(ingredient => ingredient.IngredientID !== null); // Filter out invalid ingredients
+
+            // Log ingredientsData to check if measurements are correct
+            console.log('Collected ingredients:', ingredientsData);
+
+            const body = {
+                new_name: newName || undefined,
+                steps: steps || undefined,
+                category: category || undefined,
+                yield2: yieldValue || undefined,
+                ingredients: ingredientsData.length > 0 ? ingredientsData : undefined
+            };
+
+            // Log the final request body before making the fetch request
+            console.log('Request body:', body);
+
+            // Send the request to update the recipe (make sure to replace this URL with your actual endpoint)
+            try {
+                const response = await fetch('https://bakerymanagement-efgmhebnd5aggagn.eastus-01.azurewebsites.net/recipes/name/${recipeName}', {
+                    method: 'PUT', // Assuming you are updating a recipe
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
                 });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update recipe');
+                }
+
+                const responseData = await response.json();
+                document.getElementById('message').textContent = 'Recipe updated successfully!';
+                document.getElementById('message').classList.add('success');
+                document.getElementById('message').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error updating recipe:', error);
+                document.getElementById('message').textContent = 'Error updating recipe: ' + error.message;
+                document.getElementById('message').classList.add('error');
+                document.getElementById('message').style.display = 'block';
             }
         });
     </script>
