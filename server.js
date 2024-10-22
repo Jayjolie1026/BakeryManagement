@@ -1839,9 +1839,7 @@ app.put('/recipes/:recipe_id', async (req, res) => {
     const { recipe_id } = req.params;
     const { name, steps, product_id, category, yield: yield2, ingredients } = req.body;
 
-    console.log('Received payload:', req.body);
-    console.log('Recipe ID:', recipe_id);
-    console.log('Ingredients:', ingredients);
+    
 
     // Validate input
     if (!name && !steps && !product_id && !category && yield2 === undefined && !ingredients) {
