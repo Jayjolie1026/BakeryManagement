@@ -28,6 +28,21 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
       initialDate: initialDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData(
+            primaryColor: const Color(0xFF6D3200), // Header color (Calendar header)
+            colorScheme: const ColorScheme.light(
+              surface: Color(0xFFF0D1A0),
+              primary: Color(0xFF6D3200), // Selection color
+              onPrimary: Color(0xFFF0D1A0), // Header text color
+              onSurface: Color(0xFF6D3200), // Calendar day numbers color
+            ),
+            dialogBackgroundColor: const Color(0xFFF0D1A0), // Background color
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (selectedDate != null) {
@@ -287,8 +302,7 @@ Future<void> showAddIngredientAndInventoryDialog(BuildContext context, VoidCallb
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            backgroundColor: const Color(0xFF6D3200), // Text color of the button
-            foregroundColor: const Color(0xFFF0d1a0),
+            foregroundColor: const Color(0xFF6D3200),
           ),
           child: const Text('Cancel'),
         ),
@@ -385,6 +399,21 @@ void showInventoryAndIngredientUpdateDialog(BuildContext context, InventoryItem 
       initialDate: initialDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData(
+            primaryColor: const Color(0xFF6D3200), // Header color (Calendar header)
+            colorScheme: const ColorScheme.light(
+              surface: Color(0xFFF0D1A0),
+              primary: Color(0xFF6D3200), // Selection color
+              onPrimary: Color(0xFFF0D1A0), // Header text color
+              onSurface: Color(0xFF6D3200), // Calendar day numbers color
+            ),
+            dialogBackgroundColor: const Color(0xFFF0D1A0), // Background color
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (selectedDate != null) {
